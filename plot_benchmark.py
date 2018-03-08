@@ -30,7 +30,7 @@ def mean_confidence_interval(data, confidence=0.95):
 
 
 # funtion to retrieve the used tool name. Depending on the method the dataset format differs
-def get_tool_name (filename, data, method):
+def get_tool_name(filename, data, method):
     if method == "STD":
         return data.iloc[1, 0]
     elif method == "GO_Conservation_test":
@@ -44,7 +44,7 @@ def read_tsv_file(filename, method):
     # read file as csv. Ignore first line(header)
     data = pandas.read_csv(input_dir + filename, sep='\t', comment="#", header=None)
     tool_name = get_tool_name(filename, data, method)
-    #depending on the method used, numerical values are in columns 3 or 4
+    # depending on the method used, numerical values are in columns 3 or 4
     if method == "STD":
         values = data.iloc[:, 3]
     elif method == "GO_Conservation_test":
@@ -131,11 +131,11 @@ for i in range(len(means)):
     new_color = "#%06x" % random.randint(0, 0xFFFFFF)
     marker_style = markers[random.randint(0, len(markers) - 1)]
     ax.errorbar(completed_tree_samples[i], means[i], errors[i], linestyle='None', marker=marker_style,
-                 markersize='8', markerfacecolor=new_color, markeredgecolor=new_color, capsize=4,
-                 ecolor=new_color, label=tools[i])
+                markersize='8', markerfacecolor=new_color, markeredgecolor=new_color, capsize=4,
+                ecolor=new_color, label=tools[i])
 
 # change plot style
-#set plot title depending on the analysed tool
+# set plot title depending on the analysed tool
 if method == "STD":
     main_title = 'Species Tree Discordance Benchmark'
 elif method == "GO_Conservation_test":
@@ -143,7 +143,7 @@ elif method == "GO_Conservation_test":
 
 plt.title(main_title, fontsize=18, fontweight='bold')
 
-#set plot title depending on the analysed tool
+# set plot title depending on the analysed tool
 if method == "STD":
     x_label = 'Completed tree samples (out of 50k trials)'
     y_label = 'Average RF distance'
@@ -173,15 +173,15 @@ elif method == "GO_Conservation_test":
     max_x = True
     max_y = True
 
-#set the axis limits
+# set the axis limits
 x_lims = ax.get_xlim()
 plt.xlim(x_lims)
 y_lims = ax.get_ylim()
 plt.ylim(y_lims)
 
 # get pareto frontier and plot
-p_frontX, p_frontY = pareto_frontier(completed_tree_samples, means, maxX=max_x, maxY = max_y)
-plt.plot(p_frontX,p_frontY, linestyle='--', color='grey', linewidth=1)
+p_frontX, p_frontY = pareto_frontier(completed_tree_samples, means, maxX=max_x, maxY=max_y)
+plt.plot(p_frontX, p_frontY, linestyle='--', color='grey', linewidth=1)
 # append edges to pareto frontier
 if better == 'bottom-right':
     left_edge = [[x_lims[0], p_frontX[-1]], [p_frontY[-1], p_frontY[-1]]]
@@ -192,17 +192,15 @@ elif better == 'top-right':
     right_edge = [[p_frontX[0], p_frontX[0]], [p_frontY[0], y_lims[0]]]
     plt.plot(left_edge[0], left_edge[1], right_edge[0], right_edge[1], linestyle='--', color='red', linewidth=1)
 
-
-
 # add 'better' annotation
 if better == 'bottom-right':
-    plt.annotate('better',  xy=(0.98, 0.04), xycoords='axes fraction',
+    plt.annotate('better', xy=(0.98, 0.04), xycoords='axes fraction',
                  xytext=(-30, 30), textcoords='offset points',
                  ha="right", va="bottom",
                  arrowprops=dict(facecolor='black', shrink=0.05, width=0.9))
 
 elif better == 'top-right':
-    plt.annotate('better',  xy=(0.98, 0.95), xycoords='axes fraction',
+    plt.annotate('better', xy=(0.98, 0.95), xycoords='axes fraction',
                  xytext=(-30, -30), textcoords='offset points',
                  ha="right", va="top",
                  arrowprops=dict(facecolor='black', shrink=0.05, width=0.9))
