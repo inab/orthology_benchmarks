@@ -3,13 +3,11 @@
 import numpy as np
 import scipy as sp
 import scipy.stats
-from math import sqrt
 import pandas
 import matplotlib.pyplot as plt
 import os
 import random
 import gzip
-import subprocess
 
 
 # function to unzip a gzip file
@@ -31,16 +29,30 @@ def mean_confidence_interval(data, confidence=0.95):
     return (m, h)
 
 
+# funtion to retrieve the used tool name. Depending on the method the dataset format differs
+def get_tool_name (filename, data, method):
+    if method == "STD":
+        return data.iloc[1, 0]
+    elif method == "GO_Conservation_test":
+        with open(input_dir + filename) as f:
+            header = f.readline()
+            return (header.split("from ")[1])
+
+
 # function that reads a tsv file and returns statistic values and tool name
-def read_tsv_file(filename):
-    # read file as csv
-    data = pandas.read_csv(input_dir + filename, sep='\t')
-    tool_name = (data.iloc[1, 0])
-    RF_distance = data.iloc[:, 3]
+def read_tsv_file(filename, method):
+    # read file as csv. Ignore first line(header)
+    data = pandas.read_csv(input_dir + filename, sep='\t', comment="#", header=None)
+    tool_name = get_tool_name(filename, data, method)
+    #depending on the method used, numerical values are in columns 3 or 4
+    if method == "STD":
+        values = data.iloc[:, 3]
+    elif method == "GO_Conservation_test":
+        values = data.iloc[:, 2]
     # get number of completed tree samples
-    comp_samples = len(RF_distance)
+    comp_samples = len(values)
     # get mean and confidence interval
-    mean, conf = mean_confidence_interval(RF_distance)
+    mean, conf = mean_confidence_interval(values)
     return (tool_name, comp_samples, mean, conf)
 
 
@@ -76,8 +88,11 @@ def pareto_frontier(Xs, Ys, maxX=True, maxY=True):
 ###########################################################################################################
 ###########################################################################################################
 
+# SET BENCHMARKING METHOD
+# method = "GO_Conservation_test"
+method = "STD"
 # SET INPUT DATA DIRECTORY
-input_dir = "input/"
+input_dir = "input/" + method + "/"
 
 # unzip input files
 cwd = os.getcwd()
@@ -101,14 +116,7 @@ for filename in os.listdir(input_dir):
         os.remove(input_dir + filename)
         continue
 
-    # format header
-    with open(input_dir + filename) as f:
-        newText = f.read().replace(' <TAB> ', '\t')
-
-    with open(input_dir + filename, "w") as f:
-        f.write(newText)
-
-    tool_name, comp_samples, mean, conf = read_tsv_file(filename)
+    tool_name, comp_samples, mean, conf = read_tsv_file(filename, method)
 
     tools.append(tool_name)
     completed_tree_samples.append(comp_samples)
@@ -127,13 +135,24 @@ for i in range(len(means)):
                  ecolor=new_color, label=tools[i])
 
 # change plot style
+#set plot title depending on the analysed tool
+if method == "STD":
+    main_title = 'Species Tree Discordance Benchmark'
+elif method == "GO_Conservation_test":
+    main_title = 'Gene Ontology Conservation Test Benchmark'
 
-plt.ylim(ymin=0.04, ymax=0.1)
-plt.xlim(xmin=4000, xmax=14000)
-plt.title('Species tree discordance benchmark', fontsize=18, fontweight='bold')
+plt.title(main_title, fontsize=18, fontweight='bold')
 
-ax.set_xlabel('Completed tree samples (out of 50k trials)', fontsize=12)
-ax.set_ylabel('average RF distance', fontsize=12)
+#set plot title depending on the analysed tool
+if method == "STD":
+    x_label = 'Completed tree samples (out of 50k trials)'
+    y_label = 'Average RF distance'
+elif method == "GO_Conservation_test":
+    x_label = 'Ortholog relations'
+    y_label = 'Average Schlicker Similarity'
+
+ax.set_xlabel(x_label, fontsize=12)
+ax.set_ylabel(y_label, fontsize=12)
 
 # Shrink current axis's height  on the bottom
 box = ax.get_position()
@@ -144,15 +163,48 @@ ax.set_position([box.x0, box.y0 + box.height * 0.25,
 plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.12), markerscale=0.7,
            fancybox=True, shadow=True, ncol=5, prop={'size': 9})
 
+# get which corner of the plot corresponds to better performance (depending on tool)
+if method == "STD":
+    better = 'bottom-right'
+    max_x = True
+    max_y = False
+elif method == "GO_Conservation_test":
+    better = 'top-right'
+    max_x = True
+    max_y = True
+
+#set the axis limits
+x_lims = ax.get_xlim()
+plt.xlim(x_lims)
+y_lims = ax.get_ylim()
+plt.ylim(y_lims)
+
 # get pareto frontier and plot
-# p_frontX, p_frontY = pareto_frontier(completed_tree_samples, means, maxY = False)
+p_frontX, p_frontY = pareto_frontier(completed_tree_samples, means, maxX=max_x, maxY = max_y)
+plt.plot(p_frontX,p_frontY, linestyle='--', color='grey', linewidth=1)
 # append edges to pareto frontier
-# p_frontX = [p_frontX[0]] + p_frontX + [4000]
-# p_frontY = [0.1] + p_frontY + [p_frontY[-1]]
-# plt.plot(p_frontX,p_frontY, linestyle='--', color='grey', linewidth=1)
+if better == 'bottom-right':
+    left_edge = [[x_lims[0], p_frontX[-1]], [p_frontY[-1], p_frontY[-1]]]
+    right_edge = [[p_frontX[0], p_frontX[0]], [p_frontY[0], y_lims[1]]]
+    plt.plot(left_edge[0], left_edge[1], right_edge[0], right_edge[1], linestyle='--', color='red', linewidth=1)
+elif better == 'top-right':
+    left_edge = [[x_lims[0], p_frontX[-1]], [p_frontY[-1], p_frontY[-1]]]
+    right_edge = [[p_frontX[0], p_frontX[0]], [p_frontY[0], y_lims[0]]]
+    plt.plot(left_edge[0], left_edge[1], right_edge[0], right_edge[1], linestyle='--', color='red', linewidth=1)
+
+
 
 # add 'better' annotation
-plt.annotate('better', xy=(13800, 0.042), xytext=(12600, 0.048),
-             arrowprops=dict(facecolor='black', shrink=0.05, width=0.9))
+if better == 'bottom-right':
+    plt.annotate('better',  xy=(0.98, 0.04), xycoords='axes fraction',
+                 xytext=(-30, 30), textcoords='offset points',
+                 ha="right", va="bottom",
+                 arrowprops=dict(facecolor='black', shrink=0.05, width=0.9))
+
+elif better == 'top-right':
+    plt.annotate('better',  xy=(0.98, 0.95), xycoords='axes fraction',
+                 xytext=(-30, -30), textcoords='offset points',
+                 ha="right", va="top",
+                 arrowprops=dict(facecolor='black', shrink=0.05, width=0.9))
 
 plt.show()
