@@ -1,6 +1,7 @@
 #!/usr/bin/env python2
 
 import numpy as np
+from math import sqrt
 import scipy as sp
 import scipy.stats
 import pandas
@@ -8,7 +9,6 @@ import matplotlib.pyplot as plt
 import os
 import random
 import gzip
-
 
 # function to unzip a gzip file
 def unzipper(filename):
@@ -55,7 +55,6 @@ def read_tsv_file(filename, method):
     mean, conf = mean_confidence_interval(values)
     return (tool_name, comp_samples, mean, conf)
 
-
 '''
 CODE FROM "http://oco-carbon.com/metrics/find-pareto-frontiers-in-python/"
 Method to take two equally-sized lists and return just the elements which lie 
@@ -85,6 +84,48 @@ def pareto_frontier(Xs, Ys, maxX=True, maxY=True):
     return p_frontX, p_frontY
 
 
+#funtion that gets quartiles for x and y values
+def plot_quartiles(x_values, means, better):
+
+    #get distance to lowest score corner
+    if better == "bottom-right":
+        worse_point = (0,1)
+    #normalize data
+    minX = 9999
+    maxX = -1
+    minY = 9999
+    maxY = -1
+    for value in x_values:
+        maxX = float(max(maxX, value))
+        minX = min(minX, value)
+    for value in means:
+        maxY = float(max(maxY, value))
+        minY = min(minY, value)
+    x_norm = [(x - minX) / (maxX - minX) for x in x_values]
+    means_norm = [(y - minY) / (maxY - minY) for y in means]
+
+    scores = []
+    for i in range(len(x_norm)):
+        scores.append(x_norm[i] * (1 - means_norm[i]))
+
+    # sort the list in descending order
+    scores_and_values = sorted([[scores[i], x_values[i], means[i]] for i in range(len(scores))], reverse=True)
+    scores = sorted(scores, reverse =True)
+    print (scores)
+    print (np.percentile(scores, 25), np.percentile(scores, 50), np.percentile(scores, 75))
+    first_quartile, second_quartile, third_quartile = (np.nanpercentile(scores, 25), np.nanpercentile(scores, 50), np.nanpercentile(scores, 75))
+    for i in range(len(scores_and_values)):
+        if scores_and_values[i][0] <= second_quartile:
+            target = [(scores_and_values[i-1][1], scores_and_values[i-1][2]),(scores_and_values[i][1], scores_and_values[i][2])]
+            print(target)
+            break
+    plt.plot((target[0][0]+target[1][0])/2, (target[0][1] + target[1][1])/2, '*')
+    # x_percentile, y_percentile = (np.nanpercentile(x_values, percentile), np.nanpercentile(means, percentile))
+    # plt.axvline(x=x_percentile, linestyle='-', color='black', linewidth=0.1)
+    # plt.axhline(y=y_percentile, linestyle='-', color='black', linewidth=0.1)
+    # ax.add_patch(patches.Rectangle((x_percentile, y_percentile), ax.get_xlim()[1]-x_percentile, ax.get_ylim()[1]-y_percentile, color="grey", alpha=0.1))
+    # ax.add_patch(patches.Rectangle((ax.get_xlim()[0], ax.get_ylim()[0]), x_percentile, y_percentile, color="grey", alpha=0.1))
+
 ###########################################################################################################
 ###########################################################################################################
 
@@ -105,7 +146,7 @@ os.chdir(cwd)
 
 # create lists for information about the dataset
 tools = []
-completed_tree_samples = []
+x_values = []
 means = []
 errors = []
 
@@ -119,7 +160,7 @@ for filename in os.listdir(input_dir):
     tool_name, comp_samples, mean, conf = read_tsv_file(filename, method)
 
     tools.append(tool_name)
-    completed_tree_samples.append(comp_samples)
+    x_values.append(comp_samples)
     means.append(mean)
     errors.append(conf)
 
@@ -130,7 +171,7 @@ markers = [".", ",", "o", "v", "^", "<", ">", "1", "2", "3", "4", "8", "s", "p",
 for i in range(len(means)):
     new_color = "#%06x" % random.randint(0, 0xFFFFFF)
     marker_style = markers[random.randint(0, len(markers) - 1)]
-    ax.errorbar(completed_tree_samples[i], means[i], errors[i], linestyle='None', marker=marker_style,
+    ax.errorbar(x_values[i], means[i], errors[i], linestyle='None', marker=marker_style,
                 markersize='8', markerfacecolor=new_color, markeredgecolor=new_color, capsize=4,
                 ecolor=new_color, label=tools[i])
 
@@ -178,9 +219,10 @@ x_lims = ax.get_xlim()
 plt.xlim(x_lims)
 y_lims = ax.get_ylim()
 plt.ylim(y_lims)
+ax.get_xaxis().set_major_formatter(plt.FuncFormatter(lambda x, loc: "{:,}".format(int(x))))
 
 # get pareto frontier and plot
-p_frontX, p_frontY = pareto_frontier(completed_tree_samples, means, maxX=max_x, maxY=max_y)
+p_frontX, p_frontY = pareto_frontier(x_values, means, maxX=max_x, maxY=max_y)
 plt.plot(p_frontX, p_frontY, linestyle='--', color='grey', linewidth=1)
 # append edges to pareto frontier
 if better == 'bottom-right':
@@ -204,5 +246,13 @@ elif better == 'top-right':
                  xytext=(-30, -30), textcoords='offset points',
                  ha="right", va="top",
                  arrowprops=dict(facecolor='black', shrink=0.05, width=0.9))
+
+#plot quartiles
+plot_quartiles(x_values, means, better)
+
+
+# ROC CURVES
+
+
 
 plt.show()
