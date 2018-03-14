@@ -10,6 +10,7 @@ import os
 import random
 import gzip
 
+
 # function to unzip a gzip file
 def unzipper(filename):
     f = gzip.open(filename, 'rb')
@@ -55,6 +56,7 @@ def read_tsv_file(filename, method):
     mean, conf = mean_confidence_interval(values)
     return (tool_name, comp_samples, mean, conf)
 
+
 '''
 CODE FROM "http://oco-carbon.com/metrics/find-pareto-frontiers-in-python/"
 Method to take two equally-sized lists and return just the elements which lie 
@@ -84,13 +86,17 @@ def pareto_frontier(Xs, Ys, maxX=True, maxY=True):
     return p_frontX, p_frontY
 
 
-#funtion that gets quartiles for x and y values
-def plot_quartiles(x_values, means, better):
+# funtion that gets quartiles for x and y values
+def plot_square_quartiles(x_values, means, percentile=50):
+    x_percentile, y_percentile = (np.nanpercentile(x_values, percentile), np.nanpercentile(means, percentile))
+    plt.axvline(x=x_percentile, linestyle='-', color='black', linewidth=0.1)
+    plt.axhline(y=y_percentile, linestyle='-', color='black', linewidth=0.1)
+    # ax.add_patch(patches.Rectangle((x_percentile, y_percentile), ax.get_xlim()[1]-x_percentile, ax.get_ylim()[1]-y_percentile, color="grey", alpha=0.1))
+    # ax.add_patch(patches.Rectangle((ax.get_xlim()[0], ax.get_ylim()[0]), x_percentile, y_percentile, color="grey", alpha=0.1))
 
-    #get distance to lowest score corner
-    if better == "bottom-right":
-        worse_point = (0,1)
-    #normalize data
+
+# function to normalize the x and y axis to 0-1 range
+def normalize_data(x_values, means):
     minX = 9999
     maxX = -1
     minY = 9999
@@ -103,28 +109,45 @@ def plot_quartiles(x_values, means, better):
         minY = min(minY, value)
     x_norm = [(x - minX) / (maxX - minX) for x in x_values]
     means_norm = [(y - minY) / (maxY - minY) for y in means]
+    return x_norm, means_norm
 
+
+# funtion that plots a diagonal line separating the values by the given quartile
+def draw_diagonal_line(scores_and_values, quartile):
+    for i in range(len(scores_and_values)):
+        if scores_and_values[i][0] <= quartile:
+            target = [(scores_and_values[i - 1][1], scores_and_values[i - 1][2]),
+                      (scores_and_values[i][1], scores_and_values[i][2])]
+            break
+    half_point = (target[0][0] + target[1][0]) / 2, (target[0][1] + target[1][1]) / 2
+    start_point = (half_point[0] - ax.get_xlim()[1], half_point[0] + ax.get_xlim()[1])
+    end_point = (half_point[1] - ax.get_ylim()[1], half_point[1] + ax.get_ylim()[1])
+    plt.plot(start_point, end_point, linestyle='--', linewidth=0.5)
+
+
+# funtion that separate the points through diagonal quartiles based on the distance to the 'best corner'
+def plot_diagonal_quartiles(x_values, means, better):
+    # get distance to lowest score corner
+    if better == "bottom-right":
+        worse_point = (0, 1)
+    # normalize data to 0-1 range
+    x_norm, means_norm = normalize_data(x_values, means)
+
+    # compute the scores for each of the tool. based on their distance to the x and y axis
     scores = []
     for i in range(len(x_norm)):
         scores.append(x_norm[i] * (1 - means_norm[i]))
 
-    # sort the list in descending order
+    # region sort the list in descending order
     scores_and_values = sorted([[scores[i], x_values[i], means[i]] for i in range(len(scores))], reverse=True)
-    scores = sorted(scores, reverse =True)
-    print (scores)
-    print (np.percentile(scores, 25), np.percentile(scores, 50), np.percentile(scores, 75))
-    first_quartile, second_quartile, third_quartile = (np.nanpercentile(scores, 25), np.nanpercentile(scores, 50), np.nanpercentile(scores, 75))
-    for i in range(len(scores_and_values)):
-        if scores_and_values[i][0] <= second_quartile:
-            target = [(scores_and_values[i-1][1], scores_and_values[i-1][2]),(scores_and_values[i][1], scores_and_values[i][2])]
-            print(target)
-            break
-    plt.plot((target[0][0]+target[1][0])/2, (target[0][1] + target[1][1])/2, '*')
-    # x_percentile, y_percentile = (np.nanpercentile(x_values, percentile), np.nanpercentile(means, percentile))
-    # plt.axvline(x=x_percentile, linestyle='-', color='black', linewidth=0.1)
-    # plt.axhline(y=y_percentile, linestyle='-', color='black', linewidth=0.1)
-    # ax.add_patch(patches.Rectangle((x_percentile, y_percentile), ax.get_xlim()[1]-x_percentile, ax.get_ylim()[1]-y_percentile, color="grey", alpha=0.1))
-    # ax.add_patch(patches.Rectangle((ax.get_xlim()[0], ax.get_ylim()[0]), x_percentile, y_percentile, color="grey", alpha=0.1))
+    scores = sorted(scores, reverse=True)
+    # endregion
+    first_quartile, second_quartile, third_quartile = (
+    np.percentile(scores, 25), np.percentile(scores, 50), np.percentile(scores, 75))
+    draw_diagonal_line(scores_and_values, first_quartile)
+    draw_diagonal_line(scores_and_values, second_quartile)
+    draw_diagonal_line(scores_and_values, third_quartile)
+
 
 ###########################################################################################################
 ###########################################################################################################
@@ -247,12 +270,11 @@ elif better == 'top-right':
                  ha="right", va="top",
                  arrowprops=dict(facecolor='black', shrink=0.05, width=0.9))
 
-#plot quartiles
-plot_quartiles(x_values, means, better)
-
+# plot quartiles
+plot_square_quartiles(x_values, means)
+plot_diagonal_quartiles(x_values, means, better)
 
 # ROC CURVES
-
 
 
 plt.show()
