@@ -1,9 +1,10 @@
 #!/usr/bin/env python2
 
+from __future__ import division
 import numpy as np
-from math import sqrt
 import scipy as sp
 import scipy.stats
+from statsmodels.stats.proportion import proportion_confint
 import pandas
 import matplotlib.pyplot as plt
 import os
@@ -32,29 +33,53 @@ def mean_confidence_interval(data, confidence=0.95):
 
 # funtion to retrieve the used tool name. Depending on the method the dataset format differs
 def get_tool_name(filename, data, method):
-    if method == "STD":
+    if method == "STD" or method == "Generalized_STD":
         return data.iloc[1, 0]
-    elif method == "GO_Conservation_test":
+    elif method == "GO_Conservation_test" or method == "EC_Conservation_test":
         with open(input_dir + filename) as f:
             header = f.readline()
             return (header.split("from ")[1])
 
 
 # function that reads a tsv file and returns statistic values and tool name
-def read_tsv_file(filename, method):
+def read_tsv_file_numerical(filename, method):
     # read file as csv. Ignore first line(header)
     data = pandas.read_csv(input_dir + filename, sep='\t', comment="#", header=None)
     tool_name = get_tool_name(filename, data, method)
     # depending on the method used, numerical values are in columns 3 or 4
-    if method == "STD":
+    if method == "STD" or method == "Generalized_STD":
         values = data.iloc[:, 3]
-    elif method == "GO_Conservation_test":
+    elif method == "GO_Conservation_test" or method == "EC_Conservation_test":
         values = data.iloc[:, 2]
     # get number of completed tree samples
     comp_samples = len(values)
     # get mean and confidence interval
     mean, conf = mean_confidence_interval(values)
     return (tool_name, comp_samples, mean, conf)
+
+
+# function that reads a tsv file and returns statistic values and tool name
+def read_tsv_file_binomial(filename, method):
+    # read file as csv. Ignore first line(header)
+    data = pandas.read_csv(input_dir + filename, sep='\t', comment="#", header=None)
+    tool_name = filename
+    # the true /false positite/negative values are in the fourth column
+    values = list(data.iloc[:, 3])
+    # get get TRUE POSITIVE RATE
+    num_TP = values.count('TP')
+    num_FN = values.count('FN')
+    true_positive_rate = num_TP / (num_TP + num_FN)
+    # get predictive positive value rate
+    num_positives = values.count('TP') + values.count('FP')
+    predictive_pos_value_rate = num_TP / num_positives
+
+    # confidence interval
+    CI = proportion_confint(num_TP, num_TP + num_FN)
+    true_positive_CI = true_positive_rate - CI[0]
+    CI = proportion_confint(num_TP, num_positives)
+    predictive_pos_value_CI = predictive_pos_value_rate - CI[0]
+
+    return (tool_name, true_positive_rate, true_positive_CI, predictive_pos_value_rate, predictive_pos_value_CI)
 
 
 '''
@@ -113,49 +138,98 @@ def normalize_data(x_values, means):
 
 
 # funtion that plots a diagonal line separating the values by the given quartile
-def draw_diagonal_line(scores_and_values, quartile):
+def draw_diagonal_line(scores_and_values, quartile, better, max_x, max_y):
     for i in range(len(scores_and_values)):
+        # find out which are the two points that contain the percentile value
         if scores_and_values[i][0] <= quartile:
             target = [(scores_and_values[i - 1][1], scores_and_values[i - 1][2]),
                       (scores_and_values[i][1], scores_and_values[i][2])]
             break
+    # get the the mid point between the two, where the quartile line will pass
     half_point = (target[0][0] + target[1][0]) / 2, (target[0][1] + target[1][1]) / 2
-    start_point = (half_point[0] - ax.get_xlim()[1], half_point[0] + ax.get_xlim()[1])
-    end_point = (half_point[1] - ax.get_ylim()[1], half_point[1] + ax.get_ylim()[1])
-    plt.plot(start_point, end_point, linestyle='--', linewidth=0.5)
+    # draw the line depending on which is the optimal corner
+    if better == "bottom-right":
+        x_coords = (half_point[0] - max_x, half_point[0] + max_x)
+        y_coords = (half_point[1] - max_y, half_point[1] + max_y)
+    elif better == "top-right":
+        x_coords = (half_point[0] + max_x, half_point[0] - max_x)
+        y_coords = (half_point[1] - max_y, half_point[1] + max_y)
+
+    plt.plot(x_coords, y_coords, linestyle='--', linewidth=0.5)
+
+
+# funtion that splits the analysed tools into four quartiles, according to the asigned score
+def get_quartile_points(scores_and_values, first_quartile, second_quartile, third_quartile):
+    fourth_quartile_tools = []
+    third_quartile_tools = []
+    second_quartile_tools = []
+    first_quartile_tools = []
+    for i in range(len(scores_and_values)):
+        if scores_and_values[i][0] > third_quartile:
+            for j in range(len(x_values)):
+                if scores_and_values[i][1] == x_values[j]:
+                    fourth_quartile_tools.append(tools[j])
+        elif second_quartile < scores_and_values[i][0] <= third_quartile:
+            for j in range(len(x_values)):
+                if scores_and_values[i][1] == x_values[j]:
+                    third_quartile_tools.append(tools[j])
+        elif first_quartile < scores_and_values[i][0] <= second_quartile:
+            for j in range(len(x_values)):
+                if scores_and_values[i][1] == x_values[j]:
+                    second_quartile_tools.append(tools[j])
+        elif scores_and_values[i][0] <= first_quartile:
+            for j in range(len(x_values)):
+                if scores_and_values[i][1] == x_values[j]:
+                    first_quartile_tools.append(tools[j])
+    print (fourth_quartile_tools)
+    print (third_quartile_tools)
+    print(second_quartile_tools)
+    print(first_quartile_tools)
 
 
 # funtion that separate the points through diagonal quartiles based on the distance to the 'best corner'
 def plot_diagonal_quartiles(x_values, means, better):
     # get distance to lowest score corner
-    if better == "bottom-right":
-        worse_point = (0, 1)
+
     # normalize data to 0-1 range
     x_norm, means_norm = normalize_data(x_values, means)
-
+    max_x = max(x_values)
+    max_y = max(means)
     # compute the scores for each of the tool. based on their distance to the x and y axis
     scores = []
     for i in range(len(x_norm)):
-        scores.append(x_norm[i] * (1 - means_norm[i]))
-
+        if better == "bottom-right":
+            scores.append(x_norm[i] * (1 - means_norm[i]))
+        elif better == "top-right":
+            scores.append(x_norm[i] * means_norm[i])
     # region sort the list in descending order
     scores_and_values = sorted([[scores[i], x_values[i], means[i]] for i in range(len(scores))], reverse=True)
     scores = sorted(scores, reverse=True)
+    print (scores_and_values)
+    # print (scores)
     # endregion
     first_quartile, second_quartile, third_quartile = (
-    np.percentile(scores, 25), np.percentile(scores, 50), np.percentile(scores, 75))
-    draw_diagonal_line(scores_and_values, first_quartile)
-    draw_diagonal_line(scores_and_values, second_quartile)
-    draw_diagonal_line(scores_and_values, third_quartile)
+        np.nanpercentile(scores, 25), np.nanpercentile(scores, 50), np.nanpercentile(scores, 75))
+    print (first_quartile, second_quartile, third_quartile)
+    draw_diagonal_line(scores_and_values, first_quartile, better, max_x, max_y)
+    draw_diagonal_line(scores_and_values, second_quartile, better, max_x, max_y)
+    draw_diagonal_line(scores_and_values, third_quartile, better, max_x, max_y)
+
+    # split in quartiles
+    get_quartile_points(scores_and_values, first_quartile, second_quartile, third_quartile)
 
 
 ###########################################################################################################
 ###########################################################################################################
 
 # SET BENCHMARKING METHOD
-# method = "GO_Conservation_test"
-method = "STD"
-# SET INPUT DATA DIRECTORY
+method = "GO_Conservation_test"
+# method = "STD"
+# method = "Treefam-A"
+method = "Generalized_STD"
+# method = "SwissTree"
+# method = "EC_Conservation_test"
+#  SET INPUT DATA DIRECTORY
 input_dir = "input/" + method + "/"
 
 # unzip input files
@@ -172,6 +246,7 @@ tools = []
 x_values = []
 means = []
 errors = []
+errors_x = []
 
 # loop over all files in input directory to get information
 for filename in os.listdir(input_dir):
@@ -179,13 +254,20 @@ for filename in os.listdir(input_dir):
     if os.stat(input_dir + filename).st_size == 0:
         os.remove(input_dir + filename)
         continue
-
-    tool_name, comp_samples, mean, conf = read_tsv_file(filename, method)
-
-    tools.append(tool_name)
-    x_values.append(comp_samples)
-    means.append(mean)
-    errors.append(conf)
+    if method == "Treefam-A" or method == "SwissTree":
+        tool_name, true_positive_rate, true_positive_CI, predictive_pos_value_rate, predictive_pos_value_CI = read_tsv_file_binomial(
+            filename, method)
+        tools.append(tool_name)
+        x_values.append(true_positive_rate)
+        means.append(predictive_pos_value_rate)
+        errors_x.append(true_positive_CI)
+        errors.append(predictive_pos_value_CI)
+    else:
+        tool_name, x_val, mean, conf = read_tsv_file_numerical(filename, method)
+        tools.append(tool_name)
+        x_values.append(x_val)
+        means.append(mean)
+        errors.append(conf)
 
 # plot
 ax = plt.subplot()
@@ -194,9 +276,15 @@ markers = [".", ",", "o", "v", "^", "<", ">", "1", "2", "3", "4", "8", "s", "p",
 for i in range(len(means)):
     new_color = "#%06x" % random.randint(0, 0xFFFFFF)
     marker_style = markers[random.randint(0, len(markers) - 1)]
-    ax.errorbar(x_values[i], means[i], errors[i], linestyle='None', marker=marker_style,
-                markersize='8', markerfacecolor=new_color, markeredgecolor=new_color, capsize=4,
-                ecolor=new_color, label=tools[i])
+    if not errors_x:
+        ax.errorbar(x_values[i], means[i], errors[i], linestyle='None', marker=marker_style,
+                    markersize='8', markerfacecolor=new_color, markeredgecolor=new_color, capsize=4,
+                    ecolor=new_color, label=tools[i])
+
+    else:
+        ax.errorbar(x_values[i], means[i], errors_x[i], errors[i], linestyle='None', marker=marker_style,
+                    markersize='8', markerfacecolor=new_color, markeredgecolor=new_color, capsize=4,
+                    ecolor=new_color, label=tools[i])
 
 # change plot style
 # set plot title depending on the analysed tool
@@ -204,16 +292,25 @@ if method == "STD":
     main_title = 'Species Tree Discordance Benchmark'
 elif method == "GO_Conservation_test":
     main_title = 'Gene Ontology Conservation Test Benchmark'
+elif method == "Treefam-A" or method == "SwissTree":
+    main_title = "Agreement with Reference Gene Phylogenies: " + method
+elif method == "Generalized_STD":
+    main_title = 'Generalized Species Tree Discordance Benchmark'
+elif method == "EC_Conservation_test":
+    main_title = "Enzyme Classification Conservation Test Benchmark"
 
 plt.title(main_title, fontsize=18, fontweight='bold')
 
 # set plot title depending on the analysed tool
-if method == "STD":
+if method == "STD" or method == "Generalized_STD":
     x_label = 'Completed tree samples (out of 50k trials)'
     y_label = 'Average RF distance'
-elif method == "GO_Conservation_test":
+elif method == "GO_Conservation_test" or method == "EC_Conservation_test":
     x_label = 'Ortholog relations'
     y_label = 'Average Schlicker Similarity'
+elif method == "Treefam-A" or method == "SwissTree":
+    x_label = ' recall - true positive rate'
+    y_label = 'precision - pos. predictive value rate'
 
 ax.set_xlabel(x_label, fontsize=12)
 ax.set_ylabel(y_label, fontsize=12)
@@ -228,11 +325,11 @@ plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.12), markerscale=0.7,
            fancybox=True, shadow=True, ncol=5, prop={'size': 9})
 
 # get which corner of the plot corresponds to better performance (depending on tool)
-if method == "STD":
+if method == "STD" or method == "Generalized_STD":
     better = 'bottom-right'
     max_x = True
     max_y = False
-elif method == "GO_Conservation_test":
+elif method == "GO_Conservation_test" or method == "Treefam-A" or method == "SwissTree" or method == "EC_Conservation_test":
     better = 'top-right'
     max_x = True
     max_y = True
@@ -242,7 +339,10 @@ x_lims = ax.get_xlim()
 plt.xlim(x_lims)
 y_lims = ax.get_ylim()
 plt.ylim(y_lims)
-ax.get_xaxis().set_major_formatter(plt.FuncFormatter(lambda x, loc: "{:,}".format(int(x))))
+if x_lims[0] >= 1000:
+    ax.get_xaxis().set_major_formatter(plt.FuncFormatter(lambda x, loc: "{:,}".format(int(x))))
+if y_lims[0] >= 1000:
+    ax.get_yaxis().set_major_formatter(plt.FuncFormatter(lambda y, loc: "{:,}".format(int(y))))
 
 # get pareto frontier and plot
 p_frontX, p_frontY = pareto_frontier(x_values, means, maxX=max_x, maxY=max_y)
@@ -272,6 +372,8 @@ elif better == 'top-right':
 
 # plot quartiles
 plot_square_quartiles(x_values, means)
+# plot_square_quartiles(x_values, means, 25)
+# plot_square_quartiles(x_values, means, 75)
 plot_diagonal_quartiles(x_values, means, better)
 
 # ROC CURVES
