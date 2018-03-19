@@ -166,21 +166,13 @@ def get_quartile_points(scores_and_values, first_quartile, second_quartile, thir
     first_quartile_tools = []
     for i in range(len(scores_and_values)):
         if scores_and_values[i][0] > third_quartile:
-            for j in range(len(x_values)):
-                if scores_and_values[i][1] == x_values[j]:
-                    fourth_quartile_tools.append(tools[j])
+            fourth_quartile_tools.append(scores_and_values[i][3])
         elif second_quartile < scores_and_values[i][0] <= third_quartile:
-            for j in range(len(x_values)):
-                if scores_and_values[i][1] == x_values[j]:
-                    third_quartile_tools.append(tools[j])
+            third_quartile_tools.append(scores_and_values[i][3])
         elif first_quartile < scores_and_values[i][0] <= second_quartile:
-            for j in range(len(x_values)):
-                if scores_and_values[i][1] == x_values[j]:
-                    second_quartile_tools.append(tools[j])
+            second_quartile_tools.append(scores_and_values[i][3])
         elif scores_and_values[i][0] <= first_quartile:
-            for j in range(len(x_values)):
-                if scores_and_values[i][1] == x_values[j]:
-                    first_quartile_tools.append(tools[j])
+            first_quartile_tools.append(scores_and_values[i][3])
     print (fourth_quartile_tools)
     print (third_quartile_tools)
     print(second_quartile_tools)
@@ -188,7 +180,7 @@ def get_quartile_points(scores_and_values, first_quartile, second_quartile, thir
 
 
 # funtion that separate the points through diagonal quartiles based on the distance to the 'best corner'
-def plot_diagonal_quartiles(x_values, means, better):
+def plot_diagonal_quartiles(x_values, means, tools, better):
     # get distance to lowest score corner
 
     # normalize data to 0-1 range
@@ -203,14 +195,14 @@ def plot_diagonal_quartiles(x_values, means, better):
         elif better == "top-right":
             scores.append(x_norm[i] * means_norm[i])
     # region sort the list in descending order
-    scores_and_values = sorted([[scores[i], x_values[i], means[i]] for i in range(len(scores))], reverse=True)
+    scores_and_values = sorted([[scores[i], x_values[i], means[i], tools[i]] for i in range(len(scores))], reverse=True)
     scores = sorted(scores, reverse=True)
-    print (scores_and_values)
+    # print (scores_and_values)
     # print (scores)
     # endregion
     first_quartile, second_quartile, third_quartile = (
         np.nanpercentile(scores, 25), np.nanpercentile(scores, 50), np.nanpercentile(scores, 75))
-    print (first_quartile, second_quartile, third_quartile)
+    # print (first_quartile, second_quartile, third_quartile)
     draw_diagonal_line(scores_and_values, first_quartile, better, max_x, max_y)
     draw_diagonal_line(scores_and_values, second_quartile, better, max_x, max_y)
     draw_diagonal_line(scores_and_values, third_quartile, better, max_x, max_y)
@@ -223,10 +215,10 @@ def plot_diagonal_quartiles(x_values, means, better):
 ###########################################################################################################
 
 # SET BENCHMARKING METHOD
-method = "GO_Conservation_test"
-# method = "STD"
+# method = "GO_Conservation_test"
+method = "STD"
 # method = "Treefam-A"
-method = "Generalized_STD"
+# method = "Generalized_STD"
 # method = "SwissTree"
 # method = "EC_Conservation_test"
 #  SET INPUT DATA DIRECTORY
@@ -374,7 +366,7 @@ elif better == 'top-right':
 plot_square_quartiles(x_values, means)
 # plot_square_quartiles(x_values, means, 25)
 # plot_square_quartiles(x_values, means, 75)
-plot_diagonal_quartiles(x_values, means, better)
+plot_diagonal_quartiles(x_values, means, tools, better)
 
 # ROC CURVES
 
