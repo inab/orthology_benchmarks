@@ -160,23 +160,18 @@ def draw_diagonal_line(scores_and_values, quartile, better, max_x, max_y):
 
 # funtion that splits the analysed tools into four quartiles, according to the asigned score
 def get_quartile_points(scores_and_values, first_quartile, second_quartile, third_quartile):
-    fourth_quartile_tools = []
-    third_quartile_tools = []
-    second_quartile_tools = []
-    first_quartile_tools = []
+    tools_quartiles = {}
     for i in range(len(scores_and_values)):
         if scores_and_values[i][0] > third_quartile:
-            fourth_quartile_tools.append(scores_and_values[i][3])
+            tools_quartiles[scores_and_values[i][3]] = 1
         elif second_quartile < scores_and_values[i][0] <= third_quartile:
-            third_quartile_tools.append(scores_and_values[i][3])
+            tools_quartiles[scores_and_values[i][3]] = 2
         elif first_quartile < scores_and_values[i][0] <= second_quartile:
-            second_quartile_tools.append(scores_and_values[i][3])
+            tools_quartiles[scores_and_values[i][3]] = 3
         elif scores_and_values[i][0] <= first_quartile:
-            first_quartile_tools.append(scores_and_values[i][3])
-    print (fourth_quartile_tools)
-    print (third_quartile_tools)
-    print(second_quartile_tools)
-    print(first_quartile_tools)
+            tools_quartiles[scores_and_values[i][3]] = 4
+    return (tools_quartiles)
+
 
 
 # funtion that separate the points through diagonal quartiles based on the distance to the 'best corner'
@@ -208,8 +203,36 @@ def plot_diagonal_quartiles(x_values, means, tools, better):
     draw_diagonal_line(scores_and_values, third_quartile, better, max_x, max_y)
 
     # split in quartiles
-    get_quartile_points(scores_and_values, first_quartile, second_quartile, third_quartile)
+    tools_quartiles = get_quartile_points(scores_and_values, first_quartile, second_quartile, third_quartile)
+    return (tools_quartiles)
 
+
+#
+def print_quartiles_table(tools_quartiles, method):
+    row_names = tools_quartiles.keys()
+    quartiles = tools_quartiles.values()
+    colnames= ["TOOL", "Quartile"]
+    celltxt=zip(row_names, quartiles)
+    colors = []
+    for num in quartiles:
+        if num == 1:
+            colors.append(["#66ff33", "#66ff33"])
+        if num == 2:
+            colors.append(["#33cc33", "#33cc33"])
+        if num == 3:
+            colors.append(["#ffff00", "#ffff00"])
+        if num == 4:
+            colors.append(["#66ffcc", "#66ffcc"])
+    the_table = plt.table(cellText=celltxt,
+                          colLabels=colnames,
+                          cellLoc='center',
+                          loc='right',
+                          bbox=[1.1, 0.15, 0.5, 0.8],
+                          colWidths=[1.2,0.5],
+                          cellColours=colors)
+    the_table.auto_set_font_size(False)
+    the_table.set_fontsize(8)
+    plt.subplots_adjust(right=0.65, bottom=0.2)
 
 ###########################################################################################################
 ###########################################################################################################
@@ -366,7 +389,8 @@ elif better == 'top-right':
 plot_square_quartiles(x_values, means)
 # plot_square_quartiles(x_values, means, 25)
 # plot_square_quartiles(x_values, means, 75)
-plot_diagonal_quartiles(x_values, means, tools, better)
+tools_quartiles = plot_diagonal_quartiles(x_values, means, tools, better)
+print_quartiles_table(tools_quartiles, method)
 
 # ROC CURVES
 
