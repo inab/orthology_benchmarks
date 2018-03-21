@@ -94,7 +94,7 @@ or both of the parameters.
 
 def pareto_frontier(Xs, Ys, maxX=True, maxY=True):
     # Sort the list in either ascending or descending order of X
-    myList = sorted([[Xs[i], Ys[i]] for i,val in enumerate(Xs, 0)], reverse=maxX)
+    myList = sorted([[Xs[i], Ys[i]] for i, val in enumerate(Xs, 0)], reverse=maxX)
     # Start the Pareto frontier with the first value in the sorted list
     p_front = [myList[0]]
     # Loop through the sorted list
@@ -112,22 +112,33 @@ def pareto_frontier(Xs, Ys, maxX=True, maxY=True):
 
 
 # funtion that gets quartiles for x and y values
-def plot_square_quartiles(x_values, means, tools, percentile=50):
+def plot_square_quartiles(x_values, means, tools, better, percentile=50):
     x_percentile, y_percentile = (np.nanpercentile(x_values, percentile), np.nanpercentile(means, percentile))
     plt.axvline(x=x_percentile, linestyle='-', color='black', linewidth=0.1)
     plt.axhline(y=y_percentile, linestyle='-', color='black', linewidth=0.1)
 
-    #create a dictionary with tools and their corresponding quartile
+    # create a dictionary with tools and their corresponding quartile
     tools_quartiles = {}
-    for i, val in enumerate(tools, 0):
-        if x_values[i] >= x_percentile and means[i] <= y_percentile:
-            tools_quartiles[tools[i]] = 1
-        elif x_values[i] >= x_percentile and means[i] > y_percentile:
-            tools_quartiles[tools[i]] = 3
-        elif x_values[i] < x_percentile and means[i] > y_percentile:
-            tools_quartiles[tools[i]] = 4
-        elif x_values[i] < x_percentile and means[i] <= y_percentile:
-            tools_quartiles[tools[i]] = 2
+    if better == "bottom-right":
+        for i, val in enumerate(tools, 0):
+            if x_values[i] >= x_percentile and means[i] <= y_percentile:
+                tools_quartiles[tools[i]] = 1
+            elif x_values[i] >= x_percentile and means[i] > y_percentile:
+                tools_quartiles[tools[i]] = 3
+            elif x_values[i] < x_percentile and means[i] > y_percentile:
+                tools_quartiles[tools[i]] = 4
+            elif x_values[i] < x_percentile and means[i] <= y_percentile:
+                tools_quartiles[tools[i]] = 2
+    elif better == "top-right":
+        for i, val in enumerate(tools, 0):
+            if x_values[i] > x_percentile and means[i] < y_percentile:
+                tools_quartiles[tools[i]] = 3
+            elif x_values[i] >= x_percentile and means[i] >= y_percentile:
+                tools_quartiles[tools[i]] = 1
+            elif x_values[i] <= x_percentile and means[i] > y_percentile:
+                tools_quartiles[tools[i]] = 2
+            elif x_values[i] < x_percentile and means[i] < y_percentile:
+                tools_quartiles[tools[i]] = 4
     return (tools_quartiles)
 
 
@@ -143,8 +154,8 @@ def normalize_data(x_values, means):
     # minY = ax.get_ylim()[0]
     # x_norm = [(x - minX) / (maxX - minX) for x in x_values]
     # means_norm = [(y - minY) / (maxY - minY) for y in means]
-    x_norm = [x/maxX for x in x_values]
-    means_norm = [y/maxY for y in means]
+    x_norm = [x / maxX for x in x_values]
+    means_norm = [y / maxY for y in means]
     return x_norm, means_norm
 
 
@@ -158,7 +169,7 @@ def draw_diagonal_line(scores_and_values, quartile, better, max_x, max_y):
             break
     # get the the mid point between the two, where the quartile line will pass
     half_point = (target[0][0] + target[1][0]) / 2, (target[0][1] + target[1][1]) / 2
-    plt.plot(half_point[0],half_point[1], '*')
+    plt.plot(half_point[0], half_point[1], '*')
     # draw the line depending on which is the optimal corner
     if better == "bottom-right":
         x_coords = (half_point[0] - max_x, half_point[0] + max_x)
@@ -183,7 +194,6 @@ def get_quartile_points(scores_and_values, first_quartile, second_quartile, thir
         elif scores_and_values[i][0] <= first_quartile:
             tools_quartiles[scores_and_values[i][3]] = 4
     return (tools_quartiles)
-
 
 
 # funtion that separate the points through diagonal quartiles based on the distance to the 'best corner'
@@ -215,7 +225,8 @@ def plot_diagonal_quartiles(x_values, means, tools, better):
     #         arrowprops=dict(arrowstyle='->', connectionstyle='arc3,rad=0'))
 
     # region sort the list in descending order
-    scores_and_values = sorted([[scores[i], x_values[i], means[i], tools[i]] for i,val in enumerate(scores, 0)], reverse=True)
+    scores_and_values = sorted([[scores[i], x_values[i], means[i], tools[i]] for i, val in enumerate(scores, 0)],
+                               reverse=True)
     scores = sorted(scores, reverse=True)
     # print (scores_and_values)
     # print (scores)
@@ -247,8 +258,8 @@ def print_quartiles_table(tools_quartiles_squares, tools_quartiles_diagonal, met
     quartiles_2 = []
     for i, val in enumerate(row_names, 0):
         quartiles_2.append(tools_quartiles_diagonal[row_names[i]])
-    colnames= ["TOOL", "Quartile_sqr", "Quartile_diag"]
-    celltxt=zip(row_names, quartiles_1, quartiles_2)
+    colnames = ["TOOL", "Quartile_sqr", "Quartile_diag"]
+    celltxt = zip(row_names, quartiles_1, quartiles_2)
     # set cell colors depending on the quartile
     colors = []
     for col1, col2 in zip(quartiles_1, quartiles_2):
@@ -261,11 +272,11 @@ def print_quartiles_table(tools_quartiles_squares, tools_quartiles_diagonal, met
         elif col1 == 4:
             col1_color = "#ffff00"
 
-        if col2 ==1:
+        if col2 == 1:
             colors.append(["#ffffcc", col1_color, "#66ff33"])
         elif col2 == 2:
             colors.append(["#ffffcc", col1_color, "#33cc33"])
-        elif col2 ==3:
+        elif col2 == 3:
             colors.append(["#ffffcc", col1_color, "#66ffcc"])
         elif col2 == 4:
             colors.append(["#ffffcc", col1_color, "#ffff00"])
@@ -275,11 +286,12 @@ def print_quartiles_table(tools_quartiles_squares, tools_quartiles_diagonal, met
                           cellLoc='center',
                           loc='right',
                           bbox=[1.1, 0.15, 0.5, 0.8],
-                          colWidths=[1.2,0.5, 0.5],
+                          colWidths=[1.2, 0.5, 0.5],
                           cellColours=colors)
     the_table.auto_set_font_size(False)
     the_table.set_fontsize(8)
     plt.subplots_adjust(right=0.65, bottom=0.2)
+
 
 ###########################################################################################################
 ###########################################################################################################
@@ -287,8 +299,8 @@ def print_quartiles_table(tools_quartiles_squares, tools_quartiles_diagonal, met
 if __name__ == "__main__":
 
     # SET BENCHMARKING METHOD
-    # method = "GO_Conservation_test"
-    method = "STD"
+    method = "GO_Conservation_test"
+    # method = "STD"
     # method = "Treefam-A"
     # method = "Generalized_STD"
     # method = "SwissTree"
@@ -335,9 +347,10 @@ if __name__ == "__main__":
 
     # plot
     ax = plt.subplot()
-    markers = [".", ",", "o", "v", "^", "<", ">", "1", "2", "3", "4", "8", "s", "p", "P", "*", "h", "H", "+", "x", "X", "D",
+    markers = [".", ",", "o", "v", "^", "<", ">", "1", "2", "3", "4", "8", "s", "p", "P", "*", "h", "H", "+", "x", "X",
+               "D",
                "d", "|", "_"]
-    for i,val in enumerate(means, 0):
+    for i, val in enumerate(means, 0):
         new_color = "#%06x" % random.randint(0, 0xFFFFFF)
         marker_style = markers[random.randint(0, len(markers) - 1)]
         if not errors_x:
@@ -435,14 +448,11 @@ if __name__ == "__main__":
                      arrowprops=dict(facecolor='black', shrink=0.05, width=0.9))
 
     # plot quartiles
-    tools_quartiles_squares = plot_square_quartiles(x_values, means, tools)
-    # plot_square_quartiles(x_values, means, 25)
-    # plot_square_quartiles(x_values, means, 75)
+    tools_quartiles_squares = plot_square_quartiles(x_values, means, tools, better)
     tools_quartiles_diagonal = plot_diagonal_quartiles(x_values, means, tools, better)
     add_quartile_numbers_to_plot(x_values, means, tools, tools_quartiles_diagonal)
     print_quartiles_table(tools_quartiles_squares, tools_quartiles_diagonal, method)
 
     # ROC CURVES
-
 
     plt.show()
