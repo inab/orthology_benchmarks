@@ -26,7 +26,7 @@ def unzipper(filename):
 def mean_confidence_interval(data, confidence=0.95):
     a = 1.0 * np.array(data)
     n = len(a)
-    m, se = np.mean(a), scipy.stats.sem(a)
+    m, se = np.nanmean(a), scipy.stats.sem(a)
     h = se * sp.stats.t._ppf((1 + confidence) / 2., n - 1)
     return (m, h)
 
@@ -38,7 +38,7 @@ def get_tool_name(filename, data, method):
     elif method == "GO_Conservation_test" or method == "EC_Conservation_test":
         with open(input_dir + filename) as f:
             header = f.readline()
-            return (header.split("from ")[1])
+            return (header.split("from ")[1].rstrip())
 
 
 # function that reads a tsv file and returns statistic values and tool name
@@ -62,7 +62,7 @@ def read_tsv_file_numerical(filename, method):
 def read_tsv_file_binomial(filename, method):
     # read file as csv. Ignore first line(header)
     data = pandas.read_csv(input_dir + filename, sep='\t', comment="#", header=None)
-    tool_name = filename
+    tool_name = filename.split('_')[0]
     # the true /false positite/negative values are in the fourth column
     values = list(data.iloc[:, 3])
     # get get TRUE POSITIVE RATE
@@ -131,11 +131,11 @@ def plot_square_quartiles(x_values, means, tools, better, percentile=50):
                 tools_quartiles[tools[i]] = 2
     elif better == "top-right":
         for i, val in enumerate(tools, 0):
-            if x_values[i] > x_percentile and means[i] < y_percentile:
+            if x_values[i] >= x_percentile and means[i] < y_percentile:
                 tools_quartiles[tools[i]] = 3
             elif x_values[i] >= x_percentile and means[i] >= y_percentile:
                 tools_quartiles[tools[i]] = 1
-            elif x_values[i] <= x_percentile and means[i] > y_percentile:
+            elif x_values[i] < x_percentile and means[i] >= y_percentile:
                 tools_quartiles[tools[i]] = 2
             elif x_values[i] < x_percentile and means[i] < y_percentile:
                 tools_quartiles[tools[i]] = 4
@@ -169,7 +169,7 @@ def draw_diagonal_line(scores_and_values, quartile, better, max_x, max_y):
             break
     # get the the mid point between the two, where the quartile line will pass
     half_point = (target[0][0] + target[1][0]) / 2, (target[0][1] + target[1][1]) / 2
-    plt.plot(half_point[0], half_point[1], '*')
+    # plt.plot(half_point[0], half_point[1], '*')
     # draw the line depending on which is the optimal corner
     if better == "bottom-right":
         x_coords = (half_point[0] - max_x, half_point[0] + max_x)
@@ -213,16 +213,16 @@ def plot_diagonal_quartiles(x_values, means, tools, better):
             scores.append(x_norm[i] + means_norm[i])
 
     # add plot annotation boxes with info about scores and tool names
-    # for counter, scr in enumerate(scores):
-    #     plt.annotate(
-    #         tools[counter] + "\n" +
-    #         # str(round(x_norm[counter], 6)) + " * " + str(round(1 - means_norm[counter], 6)) + " = " + str(round(scr, 8)),
-    #         "score = " + str(round(scr, 3)),
-    #         xy=(x_values[counter], means[counter]), xytext=(0, 20),
-    #         textcoords='offset points', ha='right', va='bottom',
-    #         bbox=dict(boxstyle='round,pad=0.5', fc='yellow', alpha=0.15),
-    #         size=6,
-    #         arrowprops=dict(arrowstyle='->', connectionstyle='arc3,rad=0'))
+    for counter, scr in enumerate(scores):
+        plt.annotate(
+            tools[counter] + "\n" +
+            # str(round(x_norm[counter], 6)) + " * " + str(round(1 - means_norm[counter], 6)) + " = " + str(round(scr, 8)),
+            "score = " + str(round(scr, 3)),
+            xy=(x_values[counter], means[counter]), xytext=(0, 20),
+            textcoords='offset points', ha='right', va='bottom',
+            bbox=dict(boxstyle='round,pad=0.5', fc='yellow', alpha=0.15),
+            size=7,
+            arrowprops=dict(arrowstyle='->', connectionstyle='arc3,rad=0'))
 
     # region sort the list in descending order
     scores_and_values = sorted([[scores[i], x_values[i], means[i], tools[i]] for i, val in enumerate(scores, 0)],
@@ -293,166 +293,276 @@ def print_quartiles_table(tools_quartiles_squares, tools_quartiles_diagonal, met
     plt.subplots_adjust(right=0.65, bottom=0.2)
 
 
+# function that prints a table with the list of tools and the corresponding quartiles
+def print_full_table(quartiles_table):
+    # (tools_quartiles_squares, tools_quartiles_diagonal, method):
+    colnames = ["TOOL / QUARTILES -->"]
+    for name in quartiles_table.keys():
+        colnames.append("SQR")
+        colnames.append("DIAG")
+    row_names = quartiles_table[next(iter(quartiles_table))][0].keys()
+    quartiles_list = []
+
+    for name in quartiles_table.keys():
+        quartiles_sqr = []
+        quartiles_diag = []
+        for i in row_names:
+            print (name)
+            print (i, quartiles_table[name][0][i])
+            quartiles_sqr.append(quartiles_table[name][0][i])
+            quartiles_diag.append(quartiles_table[name][1][i])
+        quartiles_list.append(quartiles_sqr)
+        quartiles_list.append(quartiles_diag)
+    print (quartiles_list)
+    text = []
+    for tool in row_names:
+        text.append([tool])
+
+    for num, name in enumerate(row_names):
+        for i in range(len(quartiles_table.keys()) * 2):
+            text[num].append(quartiles_list[i][num])
+    print (text)
+    df = pandas.DataFrame(text)
+    vals = df.values
+    ##
+    colors = df.applymap(lambda x: '#1dff00' if x == 1 else '#5aff44' if x == 2 else '#8cff7c' if x == 3
+    else '#beffb5' if x == 4 else '#fff5d1')
+
+    colors = colors.values
+
+    ##
+    fig, ax = plt.subplots()
+    # hide axes
+    fig.patch.set_visible(False)
+    ax.axis('off')
+    ax.axis('tight')
+
+    fig.tight_layout()
+    method_names = quartiles_table.keys()
+    method_names = ["BENCHMARKING METHOD -->"] + method_names
+    header = plt.table(cellText=[[''] * len(method_names)],
+                       colLabels=method_names,
+                       loc='top',
+                       colWidths=[0.2, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1],
+                       bbox=[0, 0.76, 1, 0.1],
+                       colColours=['#fff5d1'] * len(method_names)
+                       )
+    header.auto_set_font_size(False)
+    header.set_fontsize(8)
+    the_table = ax.table(cellText=vals,
+                         colLabels=colnames,
+                         cellLoc='center',
+                         loc='center',
+                         # bbox=[1.1, 0.15, 0.5, 0.8])
+                         colWidths=[0.2, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05,
+                                    0.05, 0.05, 0.05],
+                         cellColours=colors,
+                         colColours=['#fff5d1'] * len(df.columns))
+    fig.tight_layout()
+    the_table.auto_set_font_size(False)
+    the_table.set_fontsize(8)
+    # plt.subplots_adjust(right=0.65, bottom=0.2)
+
+
 ###########################################################################################################
 ###########################################################################################################
 
 if __name__ == "__main__":
 
-    # SET BENCHMARKING METHOD
-    method = "GO_Conservation_test"
-    # method = "STD"
-    # method = "Treefam-A"
-    # method = "Generalized_STD"
-    # method = "SwissTree"
-    # method = "EC_Conservation_test"
-    #  SET INPUT DATA DIRECTORY
-    input_dir = "input/" + method + "/"
+    # SET BENCHMARKING METHODS
 
-    # unzip input files
-    cwd = os.getcwd()
-    os.chdir(input_dir)
-    for filename in os.listdir(os.getcwd()):
-        if filename.endswith('.gz'):
-            unzipper(filename)
+    methods = ["GO_Conservation_test", "STD", "Treefam-A", "Generalized_STD", "SwissTree", "EC_Conservation_test"]
+    methods = ["GO_Conservation_test", "STD", "Generalized_STD", "EC_Conservation_test"]
+    # this dictionary will store all the information required for the quartiles table
+    quartiles_table = {}
 
-    os.chdir(cwd)
+    for method in methods:
 
-    # create lists for information about the dataset
-    tools = []
-    x_values = []
-    means = []
-    errors = []
-    errors_x = []
-
-    # loop over all files in input directory to get information
-    for filename in os.listdir(input_dir):
-        # check if file is empty and delete if so
-        if os.stat(input_dir + filename).st_size == 0:
-            os.remove(input_dir + filename)
-            continue
-        if method == "Treefam-A" or method == "SwissTree":
-            tool_name, true_positive_rate, true_positive_CI, predictive_pos_value_rate, predictive_pos_value_CI = read_tsv_file_binomial(
-                filename, method)
-            tools.append(tool_name)
-            x_values.append(true_positive_rate)
-            means.append(predictive_pos_value_rate)
-            errors_x.append(true_positive_CI)
-            errors.append(predictive_pos_value_CI)
+        if method == "STD":
+            organisms = ["Eukaryota", "Fungi"]
+        elif method == "Generalized_STD":
+            organisms = ["Eukaryota", "Fungi", "LUCA", "Vertebrata"]
         else:
-            tool_name, x_val, mean, conf = read_tsv_file_numerical(filename, method)
-            tools.append(tool_name)
-            x_values.append(x_val)
-            means.append(mean)
-            errors.append(conf)
+            organisms = ["NULL"]
+        #  SET INPUT DATA DIRECTORY
 
-    # plot
-    ax = plt.subplot()
-    markers = [".", ",", "o", "v", "^", "<", ">", "1", "2", "3", "4", "8", "s", "p", "P", "*", "h", "H", "+", "x", "X",
-               "D",
-               "d", "|", "_"]
-    for i, val in enumerate(means, 0):
-        new_color = "#%06x" % random.randint(0, 0xFFFFFF)
-        marker_style = markers[random.randint(0, len(markers) - 1)]
-        if not errors_x:
-            ax.errorbar(x_values[i], means[i], errors[i], linestyle='None', marker=marker_style,
-                        markersize='8', markerfacecolor=new_color, markeredgecolor=new_color, capsize=4,
-                        ecolor=new_color, label=tools[i])
+        for organism in organisms:
+            if organism == "NULL":
+                input_dir = "input/" + method + "/"
+            else:
+                input_dir = "input/" + method + "/" + organism + "/"
 
-        else:
-            ax.errorbar(x_values[i], means[i], errors_x[i], errors[i], linestyle='None', marker=marker_style,
-                        markersize='8', markerfacecolor=new_color, markeredgecolor=new_color, capsize=4,
-                        ecolor=new_color, label=tools[i])
+            # unzip input files
+            cwd = os.getcwd()
+            os.chdir(input_dir)
+            for filename in os.listdir(os.getcwd()):
+                if filename.endswith('.gz'):
+                    unzipper(filename)
 
-    # change plot style
-    # set plot title depending on the analysed tool
-    if method == "STD":
-        main_title = 'Species Tree Discordance Benchmark'
-    elif method == "GO_Conservation_test":
-        main_title = 'Gene Ontology Conservation Test Benchmark'
-    elif method == "Treefam-A" or method == "SwissTree":
-        main_title = "Agreement with Reference Gene Phylogenies: " + method
-    elif method == "Generalized_STD":
-        main_title = 'Generalized Species Tree Discordance Benchmark'
-    elif method == "EC_Conservation_test":
-        main_title = "Enzyme Classification Conservation Test Benchmark"
+            os.chdir(cwd)
 
-    plt.title(main_title, fontsize=18, fontweight='bold')
+            # create lists for information about the dataset
+            tools = []
+            x_values = []
+            means = []
+            errors = []
+            errors_x = []
 
-    # set plot title depending on the analysed tool
-    if method == "STD" or method == "Generalized_STD":
-        x_label = 'Completed tree samples (out of 50k trials)'
-        y_label = 'Average RF distance'
-    elif method == "GO_Conservation_test" or method == "EC_Conservation_test":
-        x_label = 'Ortholog relations'
-        y_label = 'Average Schlicker Similarity'
-    elif method == "Treefam-A" or method == "SwissTree":
-        x_label = ' recall - true positive rate'
-        y_label = 'precision - pos. predictive value rate'
+            # loop over all files in input directory to get information
+            for filename in os.listdir(input_dir):
+                # check if file is empty and delete if so
+                if os.stat(input_dir + filename).st_size == 0:
+                    os.remove(input_dir + filename)
+                    continue
+                if method == "Treefam-A" or method == "SwissTree":
+                    tool_name, true_positive_rate, true_positive_CI, predictive_pos_value_rate, predictive_pos_value_CI = read_tsv_file_binomial(
+                        filename, method)
+                    tools.append(tool_name)
+                    x_values.append(true_positive_rate)
+                    means.append(predictive_pos_value_rate)
+                    errors_x.append(true_positive_CI)
+                    errors.append(predictive_pos_value_CI)
+                else:
+                    tool_name, x_val, mean, conf = read_tsv_file_numerical(filename, method)
+                    tools.append(tool_name)
+                    x_values.append(x_val)
+                    means.append(mean)
+                    errors.append(conf)
 
-    ax.set_xlabel(x_label, fontsize=12)
-    ax.set_ylabel(y_label, fontsize=12)
+            # plot
+            ax = plt.subplot()
+            markers = [".", ",", "o", "v", "^", "<", ">", "1", "2", "3", "4", "8", "s", "p", "P", "*", "h", "H", "+",
+                       "x", "X",
+                       "D",
+                       "d", "|", "_"]
+            for i, val in enumerate(means, 0):
+                new_color = "#%06x" % random.randint(0, 0xFFFFFF)
+                marker_style = markers[random.randint(0, len(markers) - 1)]
+                if not errors_x:
+                    ax.errorbar(x_values[i], means[i], errors[i], linestyle='None', marker=marker_style,
+                                markersize='8', markerfacecolor=new_color, markeredgecolor=new_color, capsize=4,
+                                ecolor=new_color, label=tools[i])
 
-    # Shrink current axis's height  on the bottom
-    box = ax.get_position()
-    ax.set_position([box.x0, box.y0 + box.height * 0.25,
-                     box.width, box.height * 0.75])
+                else:
+                    ax.errorbar(x_values[i], means[i], errors_x[i], errors[i], linestyle='None', marker=marker_style,
+                                markersize='8', markerfacecolor=new_color, markeredgecolor=new_color, capsize=4,
+                                ecolor=new_color, label=tools[i])
 
-    # Put a legend below current axis
-    plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.12), markerscale=0.7,
-               fancybox=True, shadow=True, ncol=5, prop={'size': 9})
+            # change plot style
+            # set plot title depending on the analysed tool
+            if method == "STD":
+                main_title = 'Species Tree Discordance Benchmark'
+            elif method == "GO_Conservation_test":
+                main_title = 'Gene Ontology Conservation Test Benchmark'
+            elif method == "Treefam-A" or method == "SwissTree":
+                main_title = "Agreement with Reference Gene Phylogenies: " + method
+            elif method == "Generalized_STD":
+                main_title = 'Generalized Species Tree Discordance Benchmark'
+            elif method == "EC_Conservation_test":
+                main_title = "Enzyme Classification Conservation Test Benchmark"
 
-    # get which corner of the plot corresponds to better performance (depending on tool)
-    if method == "STD" or method == "Generalized_STD":
-        better = 'bottom-right'
-        max_x = True
-        max_y = False
-    elif method == "GO_Conservation_test" or method == "Treefam-A" or method == "SwissTree" or method == "EC_Conservation_test":
-        better = 'top-right'
-        max_x = True
-        max_y = True
+            plt.title(main_title, fontsize=18, fontweight='bold')
 
-    # set the axis limits
-    x_lims = ax.get_xlim()
-    plt.xlim(x_lims)
-    y_lims = ax.get_ylim()
-    plt.ylim(y_lims)
-    if x_lims[0] >= 1000:
-        ax.get_xaxis().set_major_formatter(plt.FuncFormatter(lambda x, loc: "{:,}".format(int(x))))
-    if y_lims[0] >= 1000:
-        ax.get_yaxis().set_major_formatter(plt.FuncFormatter(lambda y, loc: "{:,}".format(int(y))))
+            # set plot title depending on the analysed tool
+            if method == "STD" or method == "Generalized_STD":
+                x_label = 'Completed tree samples (out of 50k trials)'
+                y_label = 'Average RF distance'
+            elif method == "GO_Conservation_test" or method == "EC_Conservation_test":
+                x_label = 'Ortholog relations'
+                y_label = 'Average Schlicker Similarity'
+            elif method == "Treefam-A" or method == "SwissTree":
+                x_label = ' recall - true positive rate'
+                y_label = 'precision - pos. predictive value rate'
 
-    # get pareto frontier and plot
-    p_frontX, p_frontY = pareto_frontier(x_values, means, maxX=max_x, maxY=max_y)
-    plt.plot(p_frontX, p_frontY, linestyle='--', color='grey', linewidth=1)
-    # append edges to pareto frontier
-    if better == 'bottom-right':
-        left_edge = [[x_lims[0], p_frontX[-1]], [p_frontY[-1], p_frontY[-1]]]
-        right_edge = [[p_frontX[0], p_frontX[0]], [p_frontY[0], y_lims[1]]]
-        plt.plot(left_edge[0], left_edge[1], right_edge[0], right_edge[1], linestyle='--', color='red', linewidth=1)
-    elif better == 'top-right':
-        left_edge = [[x_lims[0], p_frontX[-1]], [p_frontY[-1], p_frontY[-1]]]
-        right_edge = [[p_frontX[0], p_frontX[0]], [p_frontY[0], y_lims[0]]]
-        plt.plot(left_edge[0], left_edge[1], right_edge[0], right_edge[1], linestyle='--', color='red', linewidth=1)
+            ax.set_xlabel(x_label, fontsize=12)
+            ax.set_ylabel(y_label, fontsize=12)
 
-    # add 'better' annotation
-    if better == 'bottom-right':
-        plt.annotate('better', xy=(0.98, 0.04), xycoords='axes fraction',
-                     xytext=(-30, 30), textcoords='offset points',
-                     ha="right", va="bottom",
-                     arrowprops=dict(facecolor='black', shrink=0.05, width=0.9))
+            # Shrink current axis's height  on the bottom
+            box = ax.get_position()
+            ax.set_position([box.x0, box.y0 + box.height * 0.25,
+                             box.width, box.height * 0.75])
 
-    elif better == 'top-right':
-        plt.annotate('better', xy=(0.98, 0.95), xycoords='axes fraction',
-                     xytext=(-30, -30), textcoords='offset points',
-                     ha="right", va="top",
-                     arrowprops=dict(facecolor='black', shrink=0.05, width=0.9))
+            # Put a legend below current axis
+            plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.12), markerscale=0.7,
+                       fancybox=True, shadow=True, ncol=5, prop={'size': 9})
 
-    # plot quartiles
-    tools_quartiles_squares = plot_square_quartiles(x_values, means, tools, better)
-    tools_quartiles_diagonal = plot_diagonal_quartiles(x_values, means, tools, better)
-    add_quartile_numbers_to_plot(x_values, means, tools, tools_quartiles_diagonal)
-    print_quartiles_table(tools_quartiles_squares, tools_quartiles_diagonal, method)
+            # get which corner of the plot corresponds to better performance (depending on tool)
+            if method == "STD" or method == "Generalized_STD":
+                better = 'bottom-right'
+                max_x = True
+                max_y = False
+            elif method == "GO_Conservation_test" or method == "Treefam-A" or method == "SwissTree" or method == "EC_Conservation_test":
+                better = 'top-right'
+                max_x = True
+                max_y = True
 
-    # ROC CURVES
+            # set the axis limits
+            x_lims = ax.get_xlim()
+            plt.xlim(x_lims)
+            y_lims = ax.get_ylim()
+            plt.ylim(y_lims)
+            if x_lims[0] >= 1000:
+                ax.get_xaxis().set_major_formatter(plt.FuncFormatter(lambda x, loc: "{:,}".format(int(x))))
+            if y_lims[0] >= 1000:
+                ax.get_yaxis().set_major_formatter(plt.FuncFormatter(lambda y, loc: "{:,}".format(int(y))))
 
-    plt.show()
+            # get pareto frontier and plot
+            p_frontX, p_frontY = pareto_frontier(x_values, means, maxX=max_x, maxY=max_y)
+            plt.plot(p_frontX, p_frontY, linestyle='--', color='grey', linewidth=1)
+            # append edges to pareto frontier
+            if better == 'bottom-right':
+                left_edge = [[x_lims[0], p_frontX[-1]], [p_frontY[-1], p_frontY[-1]]]
+                right_edge = [[p_frontX[0], p_frontX[0]], [p_frontY[0], y_lims[1]]]
+                plt.plot(left_edge[0], left_edge[1], right_edge[0], right_edge[1], linestyle='--', color='red',
+                         linewidth=1)
+            elif better == 'top-right':
+                left_edge = [[x_lims[0], p_frontX[-1]], [p_frontY[-1], p_frontY[-1]]]
+                right_edge = [[p_frontX[0], p_frontX[0]], [p_frontY[0], y_lims[0]]]
+                plt.plot(left_edge[0], left_edge[1], right_edge[0], right_edge[1], linestyle='--', color='red',
+                         linewidth=1)
+
+            # add 'better' annotation
+            if better == 'bottom-right':
+                plt.annotate('better', xy=(0.98, 0.04), xycoords='axes fraction',
+                             xytext=(-30, 30), textcoords='offset points',
+                             ha="right", va="bottom",
+                             arrowprops=dict(facecolor='black', shrink=0.05, width=0.9))
+
+            elif better == 'top-right':
+                plt.annotate('better', xy=(0.98, 0.95), xycoords='axes fraction',
+                             xytext=(-30, -30), textcoords='offset points',
+                             ha="right", va="top",
+                             arrowprops=dict(facecolor='black', shrink=0.05, width=0.9))
+
+            # plot quartiles
+            tools_quartiles_squares = plot_square_quartiles(x_values, means, tools, better)
+            tools_quartiles_diagonal = plot_diagonal_quartiles(x_values, means, tools, better)
+            # add_quartile_numbers_to_plot(x_values, means, tools, tools_quartiles_squares)
+            # print_quartiles_table(tools_quartiles_squares, tools_quartiles_diagonal, method)
+
+            # add values to the quartiles table dictionary
+            if organism == "NULL":
+                key = method
+            else:
+                key = method + "_" + organism
+
+            quartiles_table[key] = [tools_quartiles_squares, tools_quartiles_diagonal]
+
+            # ROC CURVES
+
+            # plt.show()
+            outname = method + "_" + organism + ".svg"
+            fig = plt.gcf()
+            fig.set_size_inches(18.5, 10.5)
+            fig.savefig(outname, dpi=100)
+
+            plt.close("all")
+
+    print_full_table(quartiles_table)
+    # plt.show()
+    out_table = "table.svg"
+    fig = plt.gcf()
+    fig.set_size_inches(18.5, 11.1)
+    fig.savefig(out_table, dpi=100)
+
+    plt.close("all")
