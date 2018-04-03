@@ -63,6 +63,15 @@ def read_tsv_file_binomial(filename, method):
     # read file as csv. Ignore first line(header)
     data = pandas.read_csv(input_dir + filename, sep='\t', comment="#", header=None)
     tool_name = filename.split('_')[0]
+    if tool_name == "RBH-BBH":
+        tool_name = "RBH / BBH"
+    elif tool_name == "RSD-0.8-1e-5-Deluca":
+        tool_name = "RSD 0.8 1e-5 Deluca"
+    elif tool_name == "orthoinspector-1.30-(blast-threshold-10-9)":
+        tool_name = "orthoinspector 1.30 (blast threshold 10-9)"
+    else:
+        tool_name = tool_name.replace("-", " ")
+    print (tool_name)
     # the true /false positite/negative values are in the fourth column
     values = list(data.iloc[:, 3])
     # get get TRUE POSITIVE RATE
@@ -339,12 +348,15 @@ def print_full_table(quartiles_table):
 
     fig.tight_layout()
     method_names = quartiles_table.keys()
+    for i, val in enumerate(method_names):
+        method_names[i] = method_names[i].replace("_", "\n")
     method_names = ["BENCHMARKING METHOD -->"] + method_names
     header = plt.table(cellText=[[''] * len(method_names)],
                        colLabels=method_names,
                        loc='top',
-                       colWidths=[0.2, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1],
-                       bbox=[0, 0.76, 1, 0.1],
+                       bbox=[0.01, 0.76, 0.98, 0.1],
+                       colWidths=[0.18, 0.08, 0.08, 0.08, 0.08, 0.08, 0.08, 0.08, 0.08, 0.08, 0.08],
+
                        colColours=['#fff5d1'] * len(method_names)
                        )
     header.auto_set_font_size(False)
@@ -354,8 +366,8 @@ def print_full_table(quartiles_table):
                          cellLoc='center',
                          loc='center',
                          # bbox=[1.1, 0.15, 0.5, 0.8])
-                         colWidths=[0.2, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05,
-                                    0.05, 0.05, 0.05],
+                         colWidths=[0.18, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04,
+                                    0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04],
                          cellColours=colors,
                          colColours=['#fff5d1'] * len(df.columns))
     fig.tight_layout()
@@ -371,8 +383,8 @@ if __name__ == "__main__":
 
     # SET BENCHMARKING METHODS
 
-    methods = ["GO_Conservation_test", "STD", "Treefam-A", "Generalized_STD", "SwissTree", "EC_Conservation_test"]
-    methods = ["GO_Conservation_test", "STD", "Generalized_STD", "EC_Conservation_test"]
+    methods = ["GO_Conservation_test", "STD", "TreeFam-A", "Generalized_STD", "SwissTree", "EC_Conservation_test"]
+    # methods = ["GO_Conservation_test", "STD", "Generalized_STD", "EC_Conservation_test", "SwissTree"]
     # this dictionary will store all the information required for the quartiles table
     quartiles_table = {}
 
@@ -411,10 +423,10 @@ if __name__ == "__main__":
             # loop over all files in input directory to get information
             for filename in os.listdir(input_dir):
                 # check if file is empty and delete if so
-                if os.stat(input_dir + filename).st_size == 0:
+                if os.stat(input_dir + filename).st_size == 0 or filename == ".DS_Store":
                     os.remove(input_dir + filename)
                     continue
-                if method == "Treefam-A" or method == "SwissTree":
+                if method == "TreeFam-A" or method == "SwissTree":
                     tool_name, true_positive_rate, true_positive_CI, predictive_pos_value_rate, predictive_pos_value_CI = read_tsv_file_binomial(
                         filename, method)
                     tools.append(tool_name)
@@ -454,7 +466,7 @@ if __name__ == "__main__":
                 main_title = 'Species Tree Discordance Benchmark'
             elif method == "GO_Conservation_test":
                 main_title = 'Gene Ontology Conservation Test Benchmark'
-            elif method == "Treefam-A" or method == "SwissTree":
+            elif method == "TreeFam-A" or method == "SwissTree":
                 main_title = "Agreement with Reference Gene Phylogenies: " + method
             elif method == "Generalized_STD":
                 main_title = 'Generalized Species Tree Discordance Benchmark'
@@ -470,7 +482,7 @@ if __name__ == "__main__":
             elif method == "GO_Conservation_test" or method == "EC_Conservation_test":
                 x_label = 'Ortholog relations'
                 y_label = 'Average Schlicker Similarity'
-            elif method == "Treefam-A" or method == "SwissTree":
+            elif method == "TreeFam-A" or method == "SwissTree":
                 x_label = ' recall - true positive rate'
                 y_label = 'precision - pos. predictive value rate'
 
@@ -491,7 +503,7 @@ if __name__ == "__main__":
                 better = 'bottom-right'
                 max_x = True
                 max_y = False
-            elif method == "GO_Conservation_test" or method == "Treefam-A" or method == "SwissTree" or method == "EC_Conservation_test":
+            elif method == "GO_Conservation_test" or method == "TreeFam-A" or method == "SwissTree" or method == "EC_Conservation_test":
                 better = 'top-right'
                 max_x = True
                 max_y = True
