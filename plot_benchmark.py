@@ -269,34 +269,42 @@ def print_quartiles_table(tools_quartiles_squares, tools_quartiles_diagonal, met
         quartiles_2.append(tools_quartiles_diagonal[row_names[i]])
     colnames = ["TOOL", "Quartile_sqr", "Quartile_diag"]
     celltxt = zip(row_names, quartiles_1, quartiles_2)
+    df = pandas.DataFrame(celltxt)
+    vals = df.values
+
     # set cell colors depending on the quartile
-    colors = []
-    for col1, col2 in zip(quartiles_1, quartiles_2):
-        if col1 == 1:
-            col1_color = "#66ff33"
-        elif col1 == 2:
-            col1_color = "#33cc33"
-        elif col1 == 3:
-            col1_color = "#66ffcc"
-        elif col1 == 4:
-            col1_color = "#ffff00"
+    colors = df.applymap(lambda x: '#66cdaa' if x == 1 else '#7fffd4' if x == 2 else '#ffa07a' if x == 3
+    else '#fa8072' if x == 4 else '#fff5d1')
 
-        if col2 == 1:
-            colors.append(["#ffffcc", col1_color, "#66ff33"])
-        elif col2 == 2:
-            colors.append(["#ffffcc", col1_color, "#33cc33"])
-        elif col2 == 3:
-            colors.append(["#ffffcc", col1_color, "#66ffcc"])
-        elif col2 == 4:
-            colors.append(["#ffffcc", col1_color, "#ffff00"])
+    colors = colors.values
+    # colors = []
+    # for col1, col2 in zip(quartiles_1, quartiles_2):
+    #     if col1 == 1:
+    #         col1_color = "#66ff33"
+    #     elif col1 == 2:
+    #         col1_color = "#33cc33"
+    #     elif col1 == 3:
+    #         col1_color = "#66ffcc"
+    #     elif col1 == 4:
+    #         col1_color = "#ffff00"
+    #
+    #     if col2 == 1:
+    #         colors.append(["#ffffcc", col1_color, "#66ff33"])
+    #     elif col2 == 2:
+    #         colors.append(["#ffffcc", col1_color, "#33cc33"])
+    #     elif col2 == 3:
+    #         colors.append(["#ffffcc", col1_color, "#66ffcc"])
+    #     elif col2 == 4:
+    #         colors.append(["#ffffcc", col1_color, "#ffff00"])
 
-    the_table = plt.table(cellText=celltxt,
+    the_table = plt.table(cellText=vals,
                           colLabels=colnames,
                           cellLoc='center',
                           loc='right',
                           bbox=[1.1, 0.15, 0.5, 0.8],
                           colWidths=[1.2, 0.5, 0.5],
-                          cellColours=colors)
+                          cellColours=colors,
+                          colColours=['#fff5d1'] * 3)
     the_table.auto_set_font_size(False)
     the_table.set_fontsize(8)
     plt.subplots_adjust(right=0.65, bottom=0.2)
@@ -309,6 +317,7 @@ def print_full_table(quartiles_table):
     for name in quartiles_table.keys():
         colnames.append("SQR")
         colnames.append("DIAG")
+    colnames.extend(["TOTAL", "#RANK"])
     row_names = quartiles_table[next(iter(quartiles_table))][0].keys()
     quartiles_list = []
 
@@ -331,11 +340,31 @@ def print_full_table(quartiles_table):
         for i in range(len(quartiles_table.keys()) * 2):
             text[num].append(quartiles_list[i][num])
     print (text)
+
+    # add column with sum of quartiles for ranking
+    for num, val in enumerate(text):
+        total = sum(text[num][i] for i in range(1, len(text[num])))
+        text[num].append(total)
+
+    # add last column with tool ranking
+    quartiles_sums = {}
+    for num, lst in enumerate(text):
+        quartiles_sums[text[num][0]] = text[num][-1]
+
+    sorted_quartiles_sums = sorted(quartiles_sums.items(), key=lambda x: x[1])
+
+    for i, val in enumerate(sorted_quartiles_sums):
+        for j, lst in enumerate(text):
+            if val[0] == text[j][0]:
+                text[j].append("# " + str(i+1))
+    print (text)
+
     df = pandas.DataFrame(text)
     vals = df.values
+
     ##
-    colors = df.applymap(lambda x: '#1dff00' if x == 1 else '#5aff44' if x == 2 else '#8cff7c' if x == 3
-    else '#beffb5' if x == 4 else '#fff5d1')
+    colors = df.applymap(lambda x: '#66cdaa' if x == 1 else '#7fffd4' if x == 2 else '#ffa07a' if x == 3
+    else '#fa8072' if x == 4 else '#fff5d1')
 
     colors = colors.values
 
@@ -354,25 +383,25 @@ def print_full_table(quartiles_table):
     header = plt.table(cellText=[[''] * len(method_names)],
                        colLabels=method_names,
                        loc='top',
-                       bbox=[0.01, 0.76, 0.98, 0.1],
+                       bbox=[-0.03, 0.76, 0.98, 0.11],
                        colWidths=[0.18, 0.08, 0.08, 0.08, 0.08, 0.08, 0.08, 0.08, 0.08, 0.08, 0.08],
 
                        colColours=['#fff5d1'] * len(method_names)
                        )
     header.auto_set_font_size(False)
-    header.set_fontsize(8)
+    header.set_fontsize(9)
     the_table = ax.table(cellText=vals,
                          colLabels=colnames,
                          cellLoc='center',
                          loc='center',
                          # bbox=[1.1, 0.15, 0.5, 0.8])
                          colWidths=[0.18, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04,
-                                    0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04],
+                                    0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04],
                          cellColours=colors,
                          colColours=['#fff5d1'] * len(df.columns))
     fig.tight_layout()
     the_table.auto_set_font_size(False)
-    the_table.set_fontsize(8)
+    the_table.set_fontsize(9)
     # plt.subplots_adjust(right=0.65, bottom=0.2)
 
 
@@ -383,7 +412,8 @@ if __name__ == "__main__":
 
     # SET BENCHMARKING METHODS
 
-    methods = ["GO_Conservation_test", "STD", "TreeFam-A", "Generalized_STD", "SwissTree", "EC_Conservation_test"]
+    # methods = ["GO_Conservation_test", "STD", "TreeFam-A", "Generalized_STD", "SwissTree", "EC_Conservation_test"]
+    methods = ["STD", "Generalized_STD", "SwissTree", "TreeFam-A", "GO_Conservation_test", "EC_Conservation_test"]
     # methods = ["GO_Conservation_test", "STD", "Generalized_STD", "EC_Conservation_test", "SwissTree"]
     # this dictionary will store all the information required for the quartiles table
     quartiles_table = {}
@@ -550,7 +580,7 @@ if __name__ == "__main__":
             tools_quartiles_squares = plot_square_quartiles(x_values, means, tools, better)
             tools_quartiles_diagonal = plot_diagonal_quartiles(x_values, means, tools, better)
             # add_quartile_numbers_to_plot(x_values, means, tools, tools_quartiles_squares)
-            # print_quartiles_table(tools_quartiles_squares, tools_quartiles_diagonal, method)
+            print_quartiles_table(tools_quartiles_squares, tools_quartiles_diagonal, method)
 
             # add values to the quartiles table dictionary
             if organism == "NULL":
@@ -563,7 +593,7 @@ if __name__ == "__main__":
             # ROC CURVES
 
             # plt.show()
-            outname = method + "_" + organism + ".svg"
+            outname = method + "_" + organism + ".png"
             fig = plt.gcf()
             fig.set_size_inches(18.5, 10.5)
             fig.savefig(outname, dpi=100)
@@ -572,9 +602,9 @@ if __name__ == "__main__":
 
     print_full_table(quartiles_table)
     # plt.show()
-    out_table = "table.svg"
+    out_table = "table.png"
     fig = plt.gcf()
-    fig.set_size_inches(18.5, 11.1)
+    fig.set_size_inches(20, 11.1)
     fig.savefig(out_table, dpi=100)
 
     plt.close("all")
