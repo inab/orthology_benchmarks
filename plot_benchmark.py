@@ -274,28 +274,9 @@ def print_quartiles_table(tools_quartiles_squares, tools_quartiles_diagonal, met
 
     # set cell colors depending on the quartile
     colors = df.applymap(lambda x: '#66cdaa' if x == 1 else '#7fffd4' if x == 2 else '#ffa07a' if x == 3
-    else '#fa8072' if x == 4 else '#fff5d1')
+    else '#fa8072' if x == 4 else '#ffffff')
 
     colors = colors.values
-    # colors = []
-    # for col1, col2 in zip(quartiles_1, quartiles_2):
-    #     if col1 == 1:
-    #         col1_color = "#66ff33"
-    #     elif col1 == 2:
-    #         col1_color = "#33cc33"
-    #     elif col1 == 3:
-    #         col1_color = "#66ffcc"
-    #     elif col1 == 4:
-    #         col1_color = "#ffff00"
-    #
-    #     if col2 == 1:
-    #         colors.append(["#ffffcc", col1_color, "#66ff33"])
-    #     elif col2 == 2:
-    #         colors.append(["#ffffcc", col1_color, "#33cc33"])
-    #     elif col2 == 3:
-    #         colors.append(["#ffffcc", col1_color, "#66ffcc"])
-    #     elif col2 == 4:
-    #         colors.append(["#ffffcc", col1_color, "#ffff00"])
 
     the_table = plt.table(cellText=vals,
                           colLabels=colnames,
@@ -304,7 +285,7 @@ def print_quartiles_table(tools_quartiles_squares, tools_quartiles_diagonal, met
                           bbox=[1.1, 0.15, 0.5, 0.8],
                           colWidths=[1.2, 0.5, 0.5],
                           cellColours=colors,
-                          colColours=['#fff5d1'] * 3)
+                          colColours=['#ffffff'] * 3)
     the_table.auto_set_font_size(False)
     the_table.set_fontsize(8)
     plt.subplots_adjust(right=0.65, bottom=0.2)
@@ -317,11 +298,11 @@ def print_full_table(quartiles_table):
     for name in quartiles_table.keys():
         colnames.append("SQR")
         colnames.append("DIAG")
-    colnames.extend(["TOTAL", "#RANK"])
+    colnames.extend(["# SQR", "# DIAG"])
     row_names = quartiles_table[next(iter(quartiles_table))][0].keys()
     quartiles_list = []
 
-    for name in quartiles_table.keys():
+    for name in sorted(quartiles_table.iterkeys()):
         quartiles_sqr = []
         quartiles_diag = []
         for i in row_names:
@@ -341,22 +322,28 @@ def print_full_table(quartiles_table):
             text[num].append(quartiles_list[i][num])
     print (text)
 
-    # add column with sum of quartiles for ranking
+    # get total score for square and diagonal quartiles
+    sqr_quartiles_sums = {}
+    diag_quartiles_sums = {}
     for num, val in enumerate(text):
-        total = sum(text[num][i] for i in range(1, len(text[num])))
-        text[num].append(total)
+        total_sqr = sum(text[num][i] for i in range(1, len(text[num]), 2))
+        total_diag = sum(text[num][i] for i in range(2, len(text[num]), 2))
+        sqr_quartiles_sums[text[num][0]] = total_sqr
+        diag_quartiles_sums[text[num][0]] = total_diag
+    # tools by that score to rank them
+    sorted_sqr_quartiles_sums = sorted(sqr_quartiles_sums.items(), key=lambda x: x[1])
+    sorted_diag_quartiles_sums = sorted(diag_quartiles_sums.items(), key=lambda x: x[1])
 
-    # add last column with tool ranking
-    quartiles_sums = {}
-    for num, lst in enumerate(text):
-        quartiles_sums[text[num][0]] = text[num][-1]
-
-    sorted_quartiles_sums = sorted(quartiles_sums.items(), key=lambda x: x[1])
-
-    for i, val in enumerate(sorted_quartiles_sums):
+    # append to the final table
+    for i, val in enumerate(sorted_sqr_quartiles_sums):
         for j, lst in enumerate(text):
             if val[0] == text[j][0]:
-                text[j].append("# " + str(i+1))
+                text[j].append("# " + str(i + 1))
+    for i, val in enumerate(sorted_diag_quartiles_sums):
+        for j, lst in enumerate(text):
+            if val[0] == text[j][0]:
+                text[j].append("# " + str(i + 1))
+
     print (text)
 
     df = pandas.DataFrame(text)
@@ -364,7 +351,7 @@ def print_full_table(quartiles_table):
 
     ##
     colors = df.applymap(lambda x: '#66cdaa' if x == 1 else '#7fffd4' if x == 2 else '#ffa07a' if x == 3
-    else '#fa8072' if x == 4 else '#fff5d1')
+    else '#fa8072' if x == 4 else '#ffffff')
 
     colors = colors.values
 
@@ -376,17 +363,18 @@ def print_full_table(quartiles_table):
     ax.axis('tight')
 
     fig.tight_layout()
-    method_names = quartiles_table.keys()
+    method_names = sorted(quartiles_table.iterkeys())
     for i, val in enumerate(method_names):
         method_names[i] = method_names[i].replace("_", "\n")
     method_names = ["BENCHMARKING METHOD -->"] + method_names
+    method_names.append("# RANKING #")
     header = plt.table(cellText=[[''] * len(method_names)],
                        colLabels=method_names,
                        loc='top',
-                       bbox=[-0.03, 0.76, 0.98, 0.11],
-                       colWidths=[0.18, 0.08, 0.08, 0.08, 0.08, 0.08, 0.08, 0.08, 0.08, 0.08, 0.08],
+                       bbox=[-0.03, 0.76, 1.06, 0.11],
+                       colWidths=[0.18, 0.08, 0.08, 0.08, 0.08, 0.08, 0.08, 0.08, 0.08, 0.08, 0.08, 0.08],
 
-                       colColours=['#fff5d1'] * len(method_names)
+                       colColours=['#ffffff'] * len(method_names)
                        )
     header.auto_set_font_size(False)
     header.set_fontsize(9)
@@ -398,7 +386,7 @@ def print_full_table(quartiles_table):
                          colWidths=[0.18, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04,
                                     0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04],
                          cellColours=colors,
-                         colColours=['#fff5d1'] * len(df.columns))
+                         colColours=['#ffffff'] * len(df.columns))
     fig.tight_layout()
     the_table.auto_set_font_size(False)
     the_table.set_fontsize(9)
@@ -470,6 +458,57 @@ if __name__ == "__main__":
                     x_values.append(x_val)
                     means.append(mean)
                     errors.append(conf)
+            # add values manually for Generalized std
+            if method == "Generalized_STD":
+                if organism == "LUCA":
+                    tools = ['EggNOG', 'Ensembl Compara (e81)', 'Hieranoid 2', 'InParanoid', 'InParanoidCore',
+                             'OMA GETHOGs', 'OMA Groups (RefSet5)', 'PANTHER 8.0 (LDO only)', 'PANTHER 8.0 (all)',
+                             'RBH / BBH', 'RSD 0.8 1e-5 Deluca', 'metaPhOrs',
+                             'orthoinspector 1.30 (blast threshold 10-9)',
+                             'phylomeDB', 'OMA Pairs (Refset5)']
+
+                    x_values = [2217, 3806, 3862, 4661, 2530, 4639, 1393, 3358, 4877, 4315, 3786, 2848, 3974, 3047,
+                                3163]
+                    means = [0.191174, 0.240765, 0.211089, 0.199813, 0.176264, 0.190783, 0.167145, 0.21788, 0.269907,
+                             0.20917, 0.200261, 0.230796, 0.211106, 0.205282, 0.2106]
+                    errors = [0.016054, 0.01485, 0.014252, 0.013808, 0.014481, 0.013562, 0.019364, 0.014325, 0.0153,
+                              0.014042, 0.013875, 0.014961, 0.014032, 0.014097, 0.014398]
+                elif organism == "Eukaryota":
+                    tools = ['EggNOG', 'Ensembl Compara (e81)', 'Hieranoid 2', 'InParanoid', 'InParanoidCore',
+                             'OMA GETHOGs', 'OMA Groups (RefSet5)', 'PANTHER 8.0 (LDO only)', 'PANTHER 8.0 (all)',
+                             'RBH / BBH', 'RSD 0.8 1e-5 Deluca', 'metaPhOrs',
+                             'orthoinspector 1.30 (blast threshold 10-9)',
+                             'phylomeDB', 'OMA Pairs (Refset5)']
+                    x_values = [4182, 4110, 4122, 4763, 2965, 3534, 756, 4769, 6724, 5265, 4446, 3541, 4931, 3370, 2274]
+                    means = [0.254531, 0.275736, 0.237259, 0.240042, 0.231371, 0.246465, 0.175591, 0.251081, 0.299014,
+                             0.247405, 0.250449, 0.26941, 0.254794, 0.247908, 0.214862]
+                    errors = [0.010081, 0.010504, 0.009751, 0.009914, 0.009912, 0.009472, 0.017395, 0.01007, 0.011052,
+                              0.009892, 0.009962, 0.010357, 0.00987, 0.009961, 0.010764]
+                elif organism == "Vertebrata":
+                    tools = ['EggNOG', 'Ensembl Compara (e81)', 'Hieranoid 2', 'InParanoid', 'InParanoidCore',
+                             'OMA GETHOGs', 'OMA Groups (RefSet5)', 'PANTHER 8.0 (LDO only)', 'PANTHER 8.0 (all)',
+                             'RBH / BBH', 'RSD 0.8 1e-5 Deluca', 'metaPhOrs',
+                             'orthoinspector 1.30 (blast threshold 10-9)',
+                             'phylomeDB', 'OMA Pairs (Refset5)']
+                    x_values = [14397, 13466, 11868, 12242, 8956, 11549, 6145, 9740, 13464, 13972, 13730, 17402, 15242,
+                                12618, 10239]
+                    means = [0.197683, 0.209117, 0.189865, 0.200017, 0.164927, 0.205736, 0.180332, 0.182049, 0.217692,
+                             0.198473, 0.19904, 0.208106, 0.196562, 0.192503, 0.20154]
+                    errors = [0.006915, 0.00725, 0.006866, 0.007062, 0.006206, 0.007122, 0.006916, 0.006774, 0.00749,
+                              0.007109, 0.006979, 0.007244, 0.006882, 0.006679, 0.007445]
+                elif organism == "Fungi":
+                    tools = ['EggNOG', 'Ensembl Compara (e81)', 'Hieranoid 2', 'InParanoid', 'InParanoidCore',
+                             'OMA GETHOGs', 'OMA Groups (RefSet5)', 'PANTHER 8.0 (LDO only)', 'PANTHER 8.0 (all)',
+                             'RBH / BBH', 'RSD 0.8 1e-5 Deluca', 'metaPhOrs',
+                             'orthoinspector 1.30 (blast threshold 10-9)',
+                             'phylomeDB', 'OMA Pairs (Refset5)']
+                    x_values = [14782, 15122, 15201, 16481, 13533, 11130, 3584, 15670, 18627, 18304, 16608, 15581,
+                                16825,
+                                16299, 8778]
+                    means = [0.078667, 0.093667, 0.079333, 0.076667, 0.060667, 0.064, 0.040333, 0.075333, 0.107667,
+                             0.094667, 0.073667, 0.081, 0.082667, 0.070667, 0.063667]
+                    errors = [0.009635, 0.010428, 0.009673, 0.009522, 0.008544, 0.00876, 0.007041, 0.009446, 0.011093,
+                              0.010478, 0.009349, 0.009765, 0.009856, 0.009172, 0.008738]
 
             # plot
             ax = plt.subplot()
@@ -493,13 +532,13 @@ if __name__ == "__main__":
             # change plot style
             # set plot title depending on the analysed tool
             if method == "STD":
-                main_title = 'Species Tree Discordance Benchmark'
+                main_title = 'Species Tree Discordance Benchmark' + ' - ' + organism
             elif method == "GO_Conservation_test":
                 main_title = 'Gene Ontology Conservation Test Benchmark'
             elif method == "TreeFam-A" or method == "SwissTree":
                 main_title = "Agreement with Reference Gene Phylogenies: " + method
             elif method == "Generalized_STD":
-                main_title = 'Generalized Species Tree Discordance Benchmark'
+                main_title = 'Generalized Species Tree Discordance Benchmark' + ' - ' + organism
             elif method == "EC_Conservation_test":
                 main_title = "Enzyme Classification Conservation Test Benchmark"
 
@@ -563,19 +602,50 @@ if __name__ == "__main__":
                 plt.plot(left_edge[0], left_edge[1], right_edge[0], right_edge[1], linestyle='--', color='red',
                          linewidth=1)
 
-            # add 'better' annotation
+            # add 'better' annotation and quartile numbers to plot
             if better == 'bottom-right':
                 plt.annotate('better', xy=(0.98, 0.04), xycoords='axes fraction',
                              xytext=(-30, 30), textcoords='offset points',
                              ha="right", va="bottom",
                              arrowprops=dict(facecolor='black', shrink=0.05, width=0.9))
-
+                my_text1 = plt.text(0.99, 0.15, '1',
+                                    verticalalignment='bottom', horizontalalignment='right',
+                                    transform=ax.transAxes, fontsize=25)
+                my_text2 = plt.text(0.01, 0.15, '2',
+                                    verticalalignment='bottom', horizontalalignment='left',
+                                    transform=ax.transAxes, fontsize=25)
+                my_text3 = plt.text(0.99, 0.85, '3',
+                                    verticalalignment='top', horizontalalignment='right',
+                                    transform=ax.transAxes, fontsize=25)
+                my_text4 = plt.text(0.01, 0.85, '4',
+                                    verticalalignment='top', horizontalalignment='left',
+                                    transform=ax.transAxes, fontsize=25)
+                my_text1.set_alpha(.2)
+                my_text2.set_alpha(.2)
+                my_text3.set_alpha(.2)
+                my_text4.set_alpha(.2)
             elif better == 'top-right':
                 plt.annotate('better', xy=(0.98, 0.95), xycoords='axes fraction',
                              xytext=(-30, -30), textcoords='offset points',
                              ha="right", va="top",
                              arrowprops=dict(facecolor='black', shrink=0.05, width=0.9))
+                my_text1 = plt.text(0.99, 0.85, '1',
+                                    verticalalignment='top', horizontalalignment='right',
+                                    transform=ax.transAxes, fontsize=25)
+                my_text2 = plt.text(0.01, 0.85, '2',
+                                    verticalalignment='top', horizontalalignment='left',
+                                    transform=ax.transAxes, fontsize=25)
+                my_text3 = plt.text(0.99, 0.15, '3',
+                                    verticalalignment='bottom', horizontalalignment='right',
+                                    transform=ax.transAxes, fontsize=25)
+                my_text4 = plt.text(0.01, 0.15, '4',
+                                    verticalalignment='bottom', horizontalalignment='left',
+                                    transform=ax.transAxes, fontsize=25)
 
+                my_text1.set_alpha(.2)
+                my_text2.set_alpha(.2)
+                my_text3.set_alpha(.2)
+                my_text4.set_alpha(.2)
             # plot quartiles
             tools_quartiles_squares = plot_square_quartiles(x_values, means, tools, better)
             tools_quartiles_diagonal = plot_diagonal_quartiles(x_values, means, tools, better)
