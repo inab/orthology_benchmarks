@@ -10,6 +10,9 @@ import matplotlib.pyplot as plt
 import os
 import random
 import gzip
+#
+from sklearn.cluster import KMeans
+from scipy.spatial import Voronoi
 
 
 # function to unzip a gzip file
@@ -71,7 +74,7 @@ def read_tsv_file_binomial(filename, method):
         tool_name = "orthoinspector 1.30 (blast threshold 10-9)"
     else:
         tool_name = tool_name.replace("-", " ")
-    print (tool_name)
+    # print (tool_name)
     # the true /false positite/negative values are in the fourth column
     values = list(data.iloc[:, 3])
     # get get TRUE POSITIVE RATE
@@ -306,13 +309,13 @@ def print_full_table(quartiles_table):
         quartiles_sqr = []
         quartiles_diag = []
         for i in row_names:
-            print (name)
-            print (i, quartiles_table[name][0][i])
+            # print (name)
+            # print (i, quartiles_table[name][0][i])
             quartiles_sqr.append(quartiles_table[name][0][i])
             quartiles_diag.append(quartiles_table[name][1][i])
         quartiles_list.append(quartiles_sqr)
         quartiles_list.append(quartiles_diag)
-    print (quartiles_list)
+    # print (quartiles_list)
     text = []
     for tool in row_names:
         text.append([tool])
@@ -320,7 +323,7 @@ def print_full_table(quartiles_table):
     for num, name in enumerate(row_names):
         for i in range(len(quartiles_table.keys()) * 2):
             text[num].append(quartiles_list[i][num])
-    print (text)
+    # print (text)
 
     # get total score for square and diagonal quartiles
     sqr_quartiles_sums = {}
@@ -344,7 +347,7 @@ def print_full_table(quartiles_table):
             if val[0] == text[j][0]:
                 text[j].append("# " + str(i + 1))
 
-    print (text)
+    # print (text)
 
     df = pandas.DataFrame(text)
     vals = df.values
@@ -391,6 +394,145 @@ def print_full_table(quartiles_table):
     the_table.auto_set_font_size(False)
     the_table.set_fontsize(9)
     # plt.subplots_adjust(right=0.65, bottom=0.2)
+
+
+####
+def voronoi_finite_polygons_2d(vor, radius=None):
+    """
+    Reconstruct infinite voronoi regions in a 2D diagram to finite
+    regions.
+
+    Parameters
+    ----------
+    vor : Voronoi
+        Input diagram
+    radius : float, optional
+        Distance to 'points at infinity'.
+
+    Returns
+    -------
+    regions : list of tuples
+        Indices of vertices in each revised Voronoi regions.
+    vertices : list of tuples
+        Coordinates for revised Voronoi vertices. Same as coordinates
+        of input vertices, with 'points at infinity' appended to the
+        end.
+
+    """
+
+    if vor.points.shape[1] != 2:
+        raise ValueError("Requires 2D input")
+
+    new_regions = []
+    new_vertices = vor.vertices.tolist()
+
+    center = vor.points.mean(axis=0)
+    if radius is None:
+        radius = vor.points.ptp().max() * 2
+
+    # Construct a map containing all ridges for a given point
+    all_ridges = {}
+    for (p1, p2), (v1, v2) in zip(vor.ridge_points, vor.ridge_vertices):
+        all_ridges.setdefault(p1, []).append((p2, v1, v2))
+        all_ridges.setdefault(p2, []).append((p1, v1, v2))
+
+    # Reconstruct infinite regions
+    for p1, region in enumerate(vor.point_region):
+        vertices = vor.regions[region]
+
+        if all([v >= 0 for v in vertices]):
+            # finite region
+            new_regions.append(vertices)
+            continue
+
+        # reconstruct a non-finite region
+        ridges = all_ridges[p1]
+        new_region = [v for v in vertices if v >= 0]
+
+        for p2, v1, v2 in ridges:
+            if v2 < 0:
+                v1, v2 = v2, v1
+            if v1 >= 0:
+                # finite ridge: already in the region
+                continue
+
+            # Compute the missing endpoint of an infinite ridge
+
+            t = vor.points[p2] - vor.points[p1]  # tangent
+            t /= np.linalg.norm(t)
+            n = np.array([-t[1], t[0]])  # normal
+
+            midpoint = vor.points[[p1, p2]].mean(axis=0)
+            direction = np.sign(np.dot(midpoint - center, n)) * n
+            far_point = vor.vertices[v2] + direction * radius
+
+            new_region.append(len(new_vertices))
+            new_vertices.append(far_point.tolist())
+
+        # sort region counterclockwise
+        vs = np.asarray([new_vertices[v] for v in new_region])
+        c = vs.mean(axis=0)
+        angles = np.arctan2(vs[:, 1] - c[1], vs[:, 0] - c[0])
+        new_region = np.array(new_region)[np.argsort(angles)]
+
+        # finish
+        new_regions.append(new_region.tolist())
+
+    return new_regions, np.asarray(new_vertices)
+
+
+#####
+def cluster_tools(my_array, tools, method, organism, better):
+    X = np.array(my_array)
+    kmeans = KMeans(n_clusters=4, random_state=0).fit(X)
+    # print (method, organism)
+    cluster_no = kmeans.labels_
+    # cluster_no = [x + 1 for x in cluster_no]
+    # for i, val in enumerate (tools):
+    #     print(tools[i] , "---" , cluster_no[i])
+
+    # for (x, y), num in zip(X, cluster_no):
+    #     plt.text(x, y, num, color="red", fontsize=18)
+
+    centroids = kmeans.cluster_centers_
+    # plt.plot(centroids[0][0], centroids[0][1], '*')
+    # get distance from centroids to better corner
+    distances = []
+    if better == "top-right":
+        best_point = [ax.get_xlim()[1], ax.get_ylim()[1]]
+        for point in centroids:
+            distances.append(np.sqrt((best_point[0] - point[0]) ** 2 + (best_point[1] - point[1]) ** 2))
+    elif better == "bottom-right":
+        best_point = [ax.get_xlim()[1], ax.get_ylim()[1]]
+        for point in centroids:
+            distances.append(np.sqrt((best_point[0] - point[0]) ** 2 + (best_point[1] - point[1]) ** 2))
+
+    output = [0] * len(distances)
+    for i, x in enumerate(sorted(range(len(distances)), key=lambda y: distances[y])):
+        output[x] = i
+
+    for i, val in enumerate(cluster_no):
+        for y, num in enumerate(output):
+            if val == y:
+                cluster_no[i] = num
+
+    for (x, y), num in zip(X, cluster_no):
+        plt.text(x, y, num + 1, color="red", fontsize=18)
+
+    # # compute Voronoi tesselation
+    # vor = Voronoi(centroids)
+    #
+    # # plot
+    # regions, vertices = voronoi_finite_polygons_2d(vor)
+    # # print "--"
+    # # print regions
+    # # print "--"
+    # # print vertices
+    #
+    # # colorize
+    # for region in regions:
+    #     polygon = vertices[region]
+    #     plt.fill(*zip(*polygon), alpha=0.4)
 
 
 ###########################################################################################################
@@ -651,6 +793,8 @@ if __name__ == "__main__":
             tools_quartiles_diagonal = plot_diagonal_quartiles(x_values, means, tools, better)
             # add_quartile_numbers_to_plot(x_values, means, tools, tools_quartiles_squares)
             print_quartiles_table(tools_quartiles_squares, tools_quartiles_diagonal, method)
+
+            cluster_tools(zip(x_values, means), tools, method, organism, better)
 
             # add values to the quartiles table dictionary
             if organism == "NULL":
