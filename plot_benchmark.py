@@ -303,41 +303,49 @@ def print_full_table(quartiles_table):
     for name in quartiles_table.keys():
         colnames.append("SQR")
         colnames.append("DIAG")
-    colnames.extend(["# SQR", "# DIAG"])
+        colnames.append("CLUST  ")
+    colnames.extend(["# SQR", "# DIAG", "# CLUST"])
     row_names = quartiles_table[next(iter(quartiles_table))][0].keys()
     quartiles_list = []
 
     for name in sorted(quartiles_table.iterkeys()):
         quartiles_sqr = []
         quartiles_diag = []
+        clusters = []
         for i in row_names:
             # print (name)
             # print (i, quartiles_table[name][0][i])
             quartiles_sqr.append(quartiles_table[name][0][i])
             quartiles_diag.append(quartiles_table[name][1][i])
+            clusters.append(quartiles_table[name][2][i])
         quartiles_list.append(quartiles_sqr)
         quartiles_list.append(quartiles_diag)
+        quartiles_list.append(clusters)
     # print (quartiles_list)
     text = []
     for tool in row_names:
         text.append([tool])
 
     for num, name in enumerate(row_names):
-        for i in range(len(quartiles_table.keys()) * 2):
+        for i in range(len(quartiles_table.keys()) * 3):
             text[num].append(quartiles_list[i][num])
     # print (text)
 
     # get total score for square and diagonal quartiles
     sqr_quartiles_sums = {}
     diag_quartiles_sums = {}
+    cluster_sums = {}
     for num, val in enumerate(text):
-        total_sqr = sum(text[num][i] for i in range(1, len(text[num]), 2))
-        total_diag = sum(text[num][i] for i in range(2, len(text[num]), 2))
+        total_sqr = sum(text[num][i] for i in range(1, len(text[num]), 3))
+        total_diag = sum(text[num][i] for i in range(2, len(text[num]), 3))
+        total_clust = sum(text[num][i] for i in range(3, len(text[num]), 3))
         sqr_quartiles_sums[text[num][0]] = total_sqr
         diag_quartiles_sums[text[num][0]] = total_diag
-    # tools by that score to rank them
+        cluster_sums[text[num][0]] = total_clust
+    # sort tools by that score to rank them
     sorted_sqr_quartiles_sums = sorted(sqr_quartiles_sums.items(), key=lambda x: x[1])
     sorted_diag_quartiles_sums = sorted(diag_quartiles_sums.items(), key=lambda x: x[1])
+    sorted_clust_sums = sorted(cluster_sums.items(), key=lambda x: x[1])
 
     # append to the final table
     for i, val in enumerate(sorted_sqr_quartiles_sums):
@@ -345,6 +353,10 @@ def print_full_table(quartiles_table):
             if val[0] == text[j][0]:
                 text[j].append("# " + str(i + 1))
     for i, val in enumerate(sorted_diag_quartiles_sums):
+        for j, lst in enumerate(text):
+            if val[0] == text[j][0]:
+                text[j].append("# " + str(i + 1))
+    for i, val in enumerate(sorted_clust_sums):
         for j, lst in enumerate(text):
             if val[0] == text[j][0]:
                 text[j].append("# " + str(i + 1))
@@ -376,8 +388,8 @@ def print_full_table(quartiles_table):
     header = plt.table(cellText=[[''] * len(method_names)],
                        colLabels=method_names,
                        loc='top',
-                       bbox=[-0.03, 0.76, 1.06, 0.11],
-                       colWidths=[0.18, 0.08, 0.08, 0.08, 0.08, 0.08, 0.08, 0.08, 0.08, 0.08, 0.08, 0.08],
+                       bbox=[-0.0255, 0.76, 1.052, 0.11],
+                       colWidths=[0.16, 0.081, 0.081, 0.081, 0.081, 0.081, 0.081, 0.081, 0.081, 0.081, 0.081, 0.084],
 
                        colColours=['#ffffff'] * len(method_names)
                        )
@@ -388,14 +400,15 @@ def print_full_table(quartiles_table):
                          cellLoc='center',
                          loc='center',
                          # bbox=[1.1, 0.15, 0.5, 0.8])
-                         colWidths=[0.18, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04,
-                                    0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04],
+                         colWidths=[0.16, 0.027, 0.027, 0.027, 0.027, 0.027, 0.027, 0.027, 0.027, 0.027, 0.027, 0.027,
+                                    0.027, 0.027, 0.027, 0.027, 0.027, 0.027, 0.027, 0.027, 0.027, 0.027, 0.027, 0.027,
+                                    0.027, 0.027, 0.027, 0.027, 0.027, 0.027, 0.027, 0.028, 0.028, 0.028],
                          cellColours=colors,
                          colColours=['#ffffff'] * len(df.columns))
     fig.tight_layout()
     the_table.auto_set_font_size(False)
     the_table.set_fontsize(9)
-    # plt.subplots_adjust(right=0.65, bottom=0.2)
+    plt.subplots_adjust(right=0.95, left=0.04, top=1, bottom=0.1)
 
 
 ####
@@ -493,8 +506,8 @@ def cluster_tools(my_array, tools, method, organism, better):
     centroids = kmeans.cluster_centers_
 
     # normalize data to 0-1 range
-    x_values=[]
-    y_values=[]
+    x_values = []
+    y_values = []
     for centroid in centroids:
         x_values.append(centroid[0])
         y_values.append(centroid[1])
@@ -509,7 +522,7 @@ def cluster_tools(my_array, tools, method, organism, better):
     elif better == "bottom-right":
         best_point = [1, 0]
         for x, y in zip(x_norm, y_norm):
-            distances.append(x + (1-y))
+            distances.append(x + (1 - y))
     for i, centroid in enumerate(centroids):
         plt.plot(centroid[0], centroid[1], '*', markersize=20)
         # plt.text(centroid[0], centroid[1], distances[i], color="green", fontsize=18)
@@ -569,11 +582,8 @@ def cluster_tools(my_array, tools, method, organism, better):
     # Z = Z.reshape(xx.shape)
     # plt.contour(xx, yy, Z, cmap=plt.cm.Paired)
 
-
     ##################################################################################################################
     return tools_clusters
-
-
 
 
 ###########################################################################################################
@@ -844,7 +854,7 @@ if __name__ == "__main__":
             else:
                 key = method + "_" + organism
 
-            quartiles_table[key] = [tools_quartiles_squares, tools_quartiles_diagonal]
+            quartiles_table[key] = [tools_quartiles_squares, tools_quartiles_diagonal, tools_clusters]
 
             # ROC CURVES
 
