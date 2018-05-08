@@ -264,14 +264,16 @@ def add_quartile_numbers_to_plot(x_values, means, tools, tools_quartiles):
 
 
 # function that prints a table with the list of tools and the corresponding quartiles
-def print_quartiles_table(tools_quartiles_squares, tools_quartiles_diagonal, method):
+def print_quartiles_table(tools_quartiles_squares, tools_quartiles_diagonal, tools_clusters, method):
     row_names = tools_quartiles_squares.keys()
     quartiles_1 = tools_quartiles_squares.values()
     quartiles_2 = []
+    clusters = []
     for i, val in enumerate(row_names, 0):
         quartiles_2.append(tools_quartiles_diagonal[row_names[i]])
-    colnames = ["TOOL", "Quartile_sqr", "Quartile_diag"]
-    celltxt = zip(row_names, quartiles_1, quartiles_2)
+        clusters.append(tools_clusters[row_names[i]])
+    colnames = ["TOOL", "Quartile_sqr", "Quartile_diag", "Cluster"]
+    celltxt = zip(row_names, quartiles_1, quartiles_2, clusters)
     df = pandas.DataFrame(celltxt)
     vals = df.values
 
@@ -286,9 +288,9 @@ def print_quartiles_table(tools_quartiles_squares, tools_quartiles_diagonal, met
                           cellLoc='center',
                           loc='right',
                           bbox=[1.1, 0.15, 0.5, 0.8],
-                          colWidths=[1.2, 0.5, 0.5],
+                          colWidths=[1.2, 0.5, 0.5, 0.5],
                           cellColours=colors,
-                          colColours=['#ffffff'] * 3)
+                          colColours=['#ffffff'] * 4)
     the_table.auto_set_font_size(False)
     the_table.set_fontsize(8)
     plt.subplots_adjust(right=0.65, bottom=0.2)
@@ -484,44 +486,52 @@ def voronoi_finite_polygons_2d(vor, radius=None):
 #####
 def cluster_tools(my_array, tools, method, organism, better):
     X = np.array(my_array)
-    kmeans = KMeans(n_clusters=4, random_state=0).fit(X)
+    kmeans = KMeans(n_clusters=4, n_init=50, random_state=0).fit(X)
     # print (method, organism)
     cluster_no = kmeans.labels_
-    # cluster_no = [x + 1 for x in cluster_no]
-    # for i, val in enumerate (tools):
-    #     print(tools[i] , "---" , cluster_no[i])
-
-    # for (x, y), num in zip(X, cluster_no):
-    #     plt.text(x, y, num, color="red", fontsize=18)
 
     centroids = kmeans.cluster_centers_
+
+    # normalize data to 0-1 range
+    x_values=[]
+    y_values=[]
+    for centroid in centroids:
+        x_values.append(centroid[0])
+        y_values.append(centroid[1])
+    x_norm, y_norm = normalize_data(x_values, y_values)
     # plt.plot(centroids[0][0], centroids[0][1], '*')
     # get distance from centroids to better corner
     distances = []
     if better == "top-right":
-        best_point = [ax.get_xlim()[1], ax.get_ylim()[1]]
-        for point in centroids:
-            distances.append(np.sqrt((best_point[0] - point[0]) ** 2 + (best_point[1] - point[1]) ** 2))
+        best_point = [1, 1]
+        for x, y in zip(x_norm, y_norm):
+            distances.append(x + y)
     elif better == "bottom-right":
-        best_point = [ax.get_xlim()[1], ax.get_ylim()[1]]
-        for point in centroids:
-            distances.append(np.sqrt((best_point[0] - point[0]) ** 2 + (best_point[1] - point[1]) ** 2))
+        best_point = [1, 0]
+        for x, y in zip(x_norm, y_norm):
+            distances.append(x + (1-y))
+    for i, centroid in enumerate(centroids):
+        plt.plot(centroid[0], centroid[1], '*', markersize=20)
+        # plt.text(centroid[0], centroid[1], distances[i], color="green", fontsize=18)
 
+    # assing ranking to distances array
     output = [0] * len(distances)
-    for i, x in enumerate(sorted(range(len(distances)), key=lambda y: distances[y])):
+    for i, x in enumerate(sorted(range(len(distances)), key=lambda y: distances[y], reverse=True)):
         output[x] = i
 
+    # reorder the clusters according to distance
     for i, val in enumerate(cluster_no):
         for y, num in enumerate(output):
             if val == y:
                 cluster_no[i] = num
 
-    for (x, y), num in zip(X, cluster_no):
+    tools_clusters = {}
+    for (x, y), num, name in zip(X, cluster_no, tools):
+        tools_clusters[name] = num + 1
         plt.text(x, y, num + 1, color="red", fontsize=18)
 
     # # compute Voronoi tesselation
     # vor = Voronoi(centroids)
-    #
     # # plot
     # regions, vertices = voronoi_finite_polygons_2d(vor)
     # # print "--"
@@ -533,6 +543,37 @@ def cluster_tools(my_array, tools, method, organism, better):
     # for region in regions:
     #     polygon = vertices[region]
     #     plt.fill(*zip(*polygon), alpha=0.4)
+
+    #################################################################################################################
+    # # Step size of the mesh. Decrease to increase the quality of the VQ.
+    # h = .02  # point in the mesh [x_min, x_max]x[y_min, y_max].
+    #
+    # # Plot the decision boundary. For that, we will assign a color to each
+    # x_values=[]
+    # y_values=[]
+    # for vals in X:
+    #     x_values.append(vals[0])
+    #     y_values.append(vals[1])
+    # x_min, x_max = min(x_values) - 1, max(x_values) + 1
+    # y_min, y_max = min(y_values) - 1, max(y_values) + 1
+    # xx, yy = np.meshgrid(np.arange(x_min, x_max, h), np.arange(y_min, y_max, h))
+    #
+    # C = 1.0  # SVM regularization parameter
+    # model = (svm.SVC(kernel='poly', degree=4, C=C))
+    # clf = model.fit(X, cluster_no)
+    # # Plot the decision boundary. For that, we will assign a color to each
+    # # point in the mesh [x_min, m_max]x[y_min, y_max].
+    # Z = clf.predict(np.c_[xx.ravel(), yy.ravel()])
+    #
+    # # Put the result into a color plot
+    # Z = Z.reshape(xx.shape)
+    # plt.contour(xx, yy, Z, cmap=plt.cm.Paired)
+
+
+    ##################################################################################################################
+    return tools_clusters
+
+
 
 
 ###########################################################################################################
@@ -792,9 +833,10 @@ if __name__ == "__main__":
             tools_quartiles_squares = plot_square_quartiles(x_values, means, tools, better)
             tools_quartiles_diagonal = plot_diagonal_quartiles(x_values, means, tools, better)
             # add_quartile_numbers_to_plot(x_values, means, tools, tools_quartiles_squares)
-            print_quartiles_table(tools_quartiles_squares, tools_quartiles_diagonal, method)
 
-            cluster_tools(zip(x_values, means), tools, method, organism, better)
+            tools_clusters = cluster_tools(zip(x_values, means), tools, method, organism, better)
+
+            print_quartiles_table(tools_quartiles_squares, tools_quartiles_diagonal, tools_clusters, method)
 
             # add values to the quartiles table dictionary
             if organism == "NULL":
