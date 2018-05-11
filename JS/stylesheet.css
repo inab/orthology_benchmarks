@@ -1,0 +1,66 @@
+
+  
+  .error-line {
+    stroke:black;
+    stroke-dasharray: 2,2;
+  }
+  
+  .error-cap {
+    stroke:black;
+    stroke-width: 1px;
+    stroke-type: solid;
+  }
+  
+  .tooltip {
+    position: absolute;
+    height: auto;
+    width: auto;
+    padding: 15px;
+    background: rgb(51, 139, 255);
+    color: white;
+    font-family: Monospace, Serif;
+    }
+  
+  .tooltip:after {
+      content: " ";
+      position: absolute;
+      top: 50%;
+      right: 100%; /* To the left of the tooltip */
+      margin-top: -10px;
+      border-width: 10px;
+      border-style: solid;
+      border-color: transparent rgb(51, 139, 255) transparent transparent;
+  }
+  
+   .plot-bg {
+     fill:white;
+   }
+
+   body { font: 12px Arial;}
+
+   path { 
+       stroke: transparent;
+       stroke-width: 2;
+       fill: none;
+   }
+   
+   .axis path,
+   .axis line {
+       fill: none;
+       stroke: grey;
+       stroke-width: 1;
+       shape-rendering: crispEdges;
+   }
+   
+   div.tooltip {	
+       position: absolute;			
+       text-align: center;			
+       width: 150px;					
+       height: 50px;					
+       padding: 2px;				
+       font: 12px sans-serif;		
+       background: rgb(51, 139, 255);
+       border: 0px;		
+       border-radius: 8px;			
+       pointer-events: none;			
+   }
