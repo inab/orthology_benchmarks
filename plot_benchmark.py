@@ -10,7 +10,6 @@ import matplotlib.pyplot as plt
 import os
 import random
 import gzip
-#
 from sklearn.cluster import KMeans
 from scipy.spatial import Voronoi
 
@@ -280,6 +279,15 @@ def print_quartiles_table(tools_quartiles_squares, tools_quartiles_diagonal, too
     # set cell colors depending on the quartile
     colors = df.applymap(lambda x: '#66cdaa' if x == 1 else '#7fffd4' if x == 2 else '#ffa07a' if x == 3
     else '#fa8072' if x == 4 else '#ffffff')
+    # grey color scale
+    colors = df.applymap(lambda x: '#919191' if x == 1 else '#B0B0B0' if x == 2 else '#CFCFCF' if x == 3
+    else '#EDEDED' if x == 4 else '#ffffff')
+    # green color scale
+    colors = df.applymap(lambda x: '#238b45' if x == 1 else '#74c476' if x == 2 else '#bae4b3' if x == 3
+    else '#edf8e9' if x == 4 else '#ffffff')
+    # red color scale
+    colors = df.applymap(lambda x: '#fee5d9' if x == 1 else '#fcae91' if x == 2 else '#fb6a4a' if x == 3
+    else '#cb181d' if x == 4 else '#ffffff')
 
     colors = colors.values
 
@@ -369,6 +377,15 @@ def print_full_table(quartiles_table):
     ##
     colors = df.applymap(lambda x: '#66cdaa' if x == 1 else '#7fffd4' if x == 2 else '#ffa07a' if x == 3
     else '#fa8072' if x == 4 else '#ffffff')
+    # grey color scale
+    colors = df.applymap(lambda x: '#919191' if x == 1 else '#B0B0B0' if x == 2 else '#CFCFCF' if x == 3
+    else '#EDEDED' if x == 4 else '#ffffff')
+    # green color scale
+    colors = df.applymap(lambda x: '#238b45' if x == 1 else '#74c476' if x == 2 else '#bae4b3' if x == 3
+    else '#edf8e9' if x == 4 else '#ffffff')
+    # red color scale
+    colors = df.applymap(lambda x: '#fee5d9' if x == 1 else '#fcae91' if x == 2 else '#fb6a4a' if x == 3
+    else '#cb181d' if x == 4 else '#ffffff')
 
     colors = colors.values
 
@@ -523,8 +540,8 @@ def cluster_tools(my_array, tools, method, organism, better):
         best_point = [1, 0]
         for x, y in zip(x_norm, y_norm):
             distances.append(x + (1 - y))
-    for i, centroid in enumerate(centroids):
-        plt.plot(centroid[0], centroid[1], '*', markersize=20)
+    # for i, centroid in enumerate(centroids):
+    #     plt.plot(centroid[0], centroid[1], '*', markersize=20)
         # plt.text(centroid[0], centroid[1], distances[i], color="green", fontsize=18)
 
     # assing ranking to distances array
