@@ -125,8 +125,8 @@ def pareto_frontier(Xs, Ys, maxX=True, maxY=True):
 # funtion that gets quartiles for x and y values
 def plot_square_quartiles(x_values, means, tools, better, percentile=50):
     x_percentile, y_percentile = (np.nanpercentile(x_values, percentile), np.nanpercentile(means, percentile))
-    plt.axvline(x=x_percentile, linestyle='-', color='black', linewidth=0.1)
-    plt.axhline(y=y_percentile, linestyle='-', color='black', linewidth=0.1)
+    # plt.axvline(x=x_percentile, linestyle='-', color='black', linewidth=0.1)
+    # plt.axhline(y=y_percentile, linestyle='-', color='black', linewidth=0.1)
 
     # create a dictionary with tools and their corresponding quartile
     tools_quartiles = {}
@@ -226,9 +226,9 @@ def plot_diagonal_quartiles(x_values, means, tools, better):
     # add plot annotation boxes with info about scores and tool names
     for counter, scr in enumerate(scores):
         plt.annotate(
-            tools[counter] + "\n" +
+            tools[counter] + "\n",
             # str(round(x_norm[counter], 6)) + " * " + str(round(1 - means_norm[counter], 6)) + " = " + str(round(scr, 8)),
-            "score = " + str(round(scr, 3)),
+            # "score = " + str(round(scr, 3)),
             xy=(x_values[counter], means[counter]), xytext=(0, 20),
             textcoords='offset points', ha='right', va='bottom',
             bbox=dict(boxstyle='round,pad=0.5', fc='yellow', alpha=0.15),
@@ -245,9 +245,9 @@ def plot_diagonal_quartiles(x_values, means, tools, better):
     first_quartile, second_quartile, third_quartile = (
         np.nanpercentile(scores, 25), np.nanpercentile(scores, 50), np.nanpercentile(scores, 75))
     # print (first_quartile, second_quartile, third_quartile)
-    draw_diagonal_line(scores_and_values, first_quartile, better, max_x, max_y)
-    draw_diagonal_line(scores_and_values, second_quartile, better, max_x, max_y)
-    draw_diagonal_line(scores_and_values, third_quartile, better, max_x, max_y)
+    # draw_diagonal_line(scores_and_values, first_quartile, better, max_x, max_y)
+    # draw_diagonal_line(scores_and_values, second_quartile, better, max_x, max_y)
+    # draw_diagonal_line(scores_and_values, third_quartile, better, max_x, max_y)
 
     # split in quartiles
     tools_quartiles = get_quartile_points(scores_and_values, first_quartile, second_quartile, third_quartile)
@@ -271,8 +271,8 @@ def print_quartiles_table(tools_quartiles_squares, tools_quartiles_diagonal, too
     for i, val in enumerate(row_names, 0):
         quartiles_2.append(tools_quartiles_diagonal[row_names[i]])
         clusters.append(tools_clusters[row_names[i]])
-    colnames = ["TOOL", "Quartile_sqr", "Quartile_diag", "Cluster"]
-    celltxt = zip(row_names, quartiles_1, quartiles_2, clusters)
+    colnames = ["TOOL", "Cluster"] #, "Quartile_diag", "Cluster"]
+    celltxt = zip(row_names, clusters) #, quartiles_2, clusters)
     df = pandas.DataFrame(celltxt)
     vals = df.values
 
@@ -283,11 +283,10 @@ def print_quartiles_table(tools_quartiles_squares, tools_quartiles_diagonal, too
     colors = df.applymap(lambda x: '#919191' if x == 1 else '#B0B0B0' if x == 2 else '#CFCFCF' if x == 3
     else '#EDEDED' if x == 4 else '#ffffff')
     # green color scale
-    colors = df.applymap(lambda x: '#238b45' if x == 1 else '#74c476' if x == 2 else '#bae4b3' if x == 3
-    else '#edf8e9' if x == 4 else '#ffffff')
+    colors = df.applymap(lambda x: '#238b45' if x == 1 else '#ffffff')
     # red color scale
-    colors = df.applymap(lambda x: '#fee5d9' if x == 1 else '#fcae91' if x == 2 else '#fb6a4a' if x == 3
-    else '#cb181d' if x == 4 else '#ffffff')
+    # colors = df.applymap(lambda x: '#fee5d9' if x == 1 else '#fcae91' if x == 2 else '#fb6a4a' if x == 3
+    # else '#cb181d' if x == 4 else '#ffffff')
 
     colors = colors.values
 
@@ -296,9 +295,9 @@ def print_quartiles_table(tools_quartiles_squares, tools_quartiles_diagonal, too
                           cellLoc='center',
                           loc='right',
                           bbox=[1.1, 0.15, 0.5, 0.8],
-                          colWidths=[1.2, 0.5, 0.5, 0.5],
+                          colWidths=[1.2, 0.5],
                           cellColours=colors,
-                          colColours=['#ffffff'] * 4)
+                          colColours=['#ffffff'] * 2)
     the_table.auto_set_font_size(False)
     the_table.set_fontsize(8)
     plt.subplots_adjust(right=0.65, bottom=0.2)
@@ -323,53 +322,53 @@ def print_full_table(quartiles_table):
         for i in row_names:
             # print (name)
             # print (i, quartiles_table[name][0][i])
-            quartiles_sqr.append(quartiles_table[name][0][i])
-            quartiles_diag.append(quartiles_table[name][1][i])
+            # quartiles_sqr.append(quartiles_table[name][0][i])
+            # quartiles_diag.append(quartiles_table[name][1][i])
             clusters.append(quartiles_table[name][2][i])
-        quartiles_list.append(quartiles_sqr)
-        quartiles_list.append(quartiles_diag)
+        # quartiles_list.append(quartiles_sqr)
+        # quartiles_list.append(quartiles_diag)
         quartiles_list.append(clusters)
-    # print (quartiles_list)
+    print (quartiles_list)
     text = []
     for tool in row_names:
         text.append([tool])
 
     for num, name in enumerate(row_names):
-        for i in range(len(quartiles_table.keys()) * 3):
+        for i in range(len(quartiles_table.keys())):# * 3):
             text[num].append(quartiles_list[i][num])
-    # print (text)
+    print (text)
 
     # get total score for square and diagonal quartiles
     sqr_quartiles_sums = {}
     diag_quartiles_sums = {}
     cluster_sums = {}
     for num, val in enumerate(text):
-        total_sqr = sum(text[num][i] for i in range(1, len(text[num]), 3))
-        total_diag = sum(text[num][i] for i in range(2, len(text[num]), 3))
-        total_clust = sum(text[num][i] for i in range(3, len(text[num]), 3))
-        sqr_quartiles_sums[text[num][0]] = total_sqr
-        diag_quartiles_sums[text[num][0]] = total_diag
+        # total_sqr = sum(text[num][i] for i in range(1, len(text[num]), 1))
+        # total_diag = sum(text[num][i] for i in range(2, len(text[num]), 1))
+        total_clust = sum(text[num][i] for i in range(1, len(text[num]), 1))
+        # sqr_quartiles_sums[text[num][0]] = total_sqr
+        # diag_quartiles_sums[text[num][0]] = total_diag
         cluster_sums[text[num][0]] = total_clust
     # sort tools by that score to rank them
-    sorted_sqr_quartiles_sums = sorted(sqr_quartiles_sums.items(), key=lambda x: x[1])
-    sorted_diag_quartiles_sums = sorted(diag_quartiles_sums.items(), key=lambda x: x[1])
+    # sorted_sqr_quartiles_sums = sorted(sqr_quartiles_sums.items(), key=lambda x: x[1])
+    # sorted_diag_quartiles_sums = sorted(diag_quartiles_sums.items(), key=lambda x: x[1])
     sorted_clust_sums = sorted(cluster_sums.items(), key=lambda x: x[1])
 
     # append to the final table
-    for i, val in enumerate(sorted_sqr_quartiles_sums):
-        for j, lst in enumerate(text):
-            if val[0] == text[j][0]:
-                text[j].append("# " + str(i + 1))
-    for i, val in enumerate(sorted_diag_quartiles_sums):
-        for j, lst in enumerate(text):
-            if val[0] == text[j][0]:
-                text[j].append("# " + str(i + 1))
+    # for i, val in enumerate(sorted_sqr_quartiles_sums):
+    #     for j, lst in enumerate(text):
+    #         if val[0] == text[j][0]:
+    #             text[j].append("# " + str(i + 1))
+    # for i, val in enumerate(sorted_diag_quartiles_sums):
+    #     for j, lst in enumerate(text):
+    #         if val[0] == text[j][0]:
+    #             text[j].append("# " + str(i + 1))
     for i, val in enumerate(sorted_clust_sums):
         for j, lst in enumerate(text):
             if val[0] == text[j][0]:
                 text[j].append("# " + str(i + 1))
 
-    # print (text)
+    print (text)
 
     df = pandas.DataFrame(text)
     vals = df.values
@@ -381,9 +380,8 @@ def print_full_table(quartiles_table):
     colors = df.applymap(lambda x: '#919191' if x == 1 else '#B0B0B0' if x == 2 else '#CFCFCF' if x == 3
     else '#EDEDED' if x == 4 else '#ffffff')
     # green color scale
-    colors = df.applymap(lambda x: '#238b45' if x == 1 else '#74c476' if x == 2 else '#bae4b3' if x == 3
-    else '#edf8e9' if x == 4 else '#ffffff')
-    # red color scale
+    colors = df.applymap(lambda x: '#238b45' if x == 1 else '#ffffff')
+    # # red color scale
     # colors = df.applymap(lambda x: '#fee5d9' if x == 1 else '#fcae91' if x == 2 else '#fb6a4a' if x == 3
     # else '#cb181d' if x == 4 else '#ffffff')
 
@@ -400,32 +398,33 @@ def print_full_table(quartiles_table):
     method_names = sorted(quartiles_table.iterkeys())
     for i, val in enumerate(method_names):
         method_names[i] = method_names[i].replace("_", "\n")
-    method_names = ["BENCHMARKING METHOD -->"] + method_names
+    method_names = ["TOOL / BENCHMARKING METHOD -->"] + method_names
     method_names.append("# RANKING #")
-    header = plt.table(cellText=[[''] * len(method_names)],
-                       colLabels=method_names,
+    header_text = ["K-MEANS CLUSTERING CLASSIFICATION RESULTS"]
+    header = plt.table(cellText=[[''] * 1],
+                       colLabels=header_text,
                        loc='top',
-                       bbox=[-0.0255, 0.76, 1.052, 0.11],
-                       colWidths=[0.16, 0.081, 0.081, 0.081, 0.081, 0.081, 0.081, 0.081, 0.081, 0.081, 0.081, 0.084],
+                       bbox=[0.09, 0.92, 0.82, 0.11],
+                       colWidths=[0.5],
 
-                       colColours=['#ffffff'] * len(method_names)
+                       colColours=['#ffffff'] * 1
                        )
     header.auto_set_font_size(False)
-    header.set_fontsize(9)
+    header.set_fontsize(12)
     the_table = ax.table(cellText=vals,
-                         colLabels=colnames,
+                         colLabels=method_names,
                          cellLoc='center',
                          loc='center',
                          # bbox=[1.1, 0.15, 0.5, 0.8])
-                         colWidths=[0.16, 0.027, 0.027, 0.027, 0.027, 0.027, 0.027, 0.027, 0.027, 0.027, 0.027, 0.027,
-                                    0.027, 0.027, 0.027, 0.027, 0.027, 0.027, 0.027, 0.027, 0.027, 0.027, 0.027, 0.027,
-                                    0.027, 0.027, 0.027, 0.027, 0.027, 0.027, 0.027, 0.028, 0.028, 0.028],
+                         colWidths=[0.16, 0.06, 0.06, 0.06, 0.06, 0.06, 0.06, 0.06, 0.06, 0.06, 0.06, 0.06],
                          cellColours=colors,
                          colColours=['#ffffff'] * len(df.columns))
     fig.tight_layout()
     the_table.auto_set_font_size(False)
     the_table.set_fontsize(9)
-    plt.subplots_adjust(right=0.95, left=0.04, top=1, bottom=0.1)
+    the_table.scale(1, 1.5)
+    plt.subplots_adjust(right=0.95, left=0.04, top=0.9, bottom=0.1)
+     
 
 
 ####
@@ -649,7 +648,6 @@ if __name__ == "__main__":
             errors_x = []
 
             # loop over all files in input directory to get information
-            print (method, organism)
             for filename in os.listdir(input_dir):
                 # check if file is empty and delete if so
                 if os.stat(input_dir + filename).st_size == 0 or filename == ".DS_Store":
@@ -665,7 +663,6 @@ if __name__ == "__main__":
                     errors.append(predictive_pos_value_CI)
                 else:
                     tool_name, x_val, mean, conf = read_tsv_file_numerical(filename, method)
-                    print (tool_name, x_val, mean, conf)
                     tools.append(tool_name)
                     x_values.append(x_val)
                     means.append(mean)
@@ -820,44 +817,44 @@ if __name__ == "__main__":
                              xytext=(-30, 30), textcoords='offset points',
                              ha="right", va="bottom",
                              arrowprops=dict(facecolor='black', shrink=0.05, width=0.9))
-                my_text1 = plt.text(0.99, 0.15, '1',
-                                    verticalalignment='bottom', horizontalalignment='right',
-                                    transform=ax.transAxes, fontsize=25)
-                my_text2 = plt.text(0.01, 0.15, '2',
-                                    verticalalignment='bottom', horizontalalignment='left',
-                                    transform=ax.transAxes, fontsize=25)
-                my_text3 = plt.text(0.99, 0.85, '3',
-                                    verticalalignment='top', horizontalalignment='right',
-                                    transform=ax.transAxes, fontsize=25)
-                my_text4 = plt.text(0.01, 0.85, '4',
-                                    verticalalignment='top', horizontalalignment='left',
-                                    transform=ax.transAxes, fontsize=25)
-                my_text1.set_alpha(.2)
-                my_text2.set_alpha(.2)
-                my_text3.set_alpha(.2)
-                my_text4.set_alpha(.2)
+                # my_text1 = plt.text(0.99, 0.15, '1',
+                #                     verticalalignment='bottom', horizontalalignment='right',
+                #                     transform=ax.transAxes, fontsize=25)
+                # my_text2 = plt.text(0.01, 0.15, '2',
+                #                     verticalalignment='bottom', horizontalalignment='left',
+                #                     transform=ax.transAxes, fontsize=25)
+                # my_text3 = plt.text(0.99, 0.85, '3',
+                #                     verticalalignment='top', horizontalalignment='right',
+                #                     transform=ax.transAxes, fontsize=25)
+                # my_text4 = plt.text(0.01, 0.85, '4',
+                #                     verticalalignment='top', horizontalalignment='left',
+                #                     transform=ax.transAxes, fontsize=25)
+                # my_text1.set_alpha(.2)
+                # my_text2.set_alpha(.2)
+                # my_text3.set_alpha(.2)
+                # my_text4.set_alpha(.2)
             elif better == 'top-right':
                 plt.annotate('better', xy=(0.98, 0.95), xycoords='axes fraction',
                              xytext=(-30, -30), textcoords='offset points',
                              ha="right", va="top",
                              arrowprops=dict(facecolor='black', shrink=0.05, width=0.9))
-                my_text1 = plt.text(0.99, 0.85, '1',
-                                    verticalalignment='top', horizontalalignment='right',
-                                    transform=ax.transAxes, fontsize=25)
-                my_text2 = plt.text(0.01, 0.85, '2',
-                                    verticalalignment='top', horizontalalignment='left',
-                                    transform=ax.transAxes, fontsize=25)
-                my_text3 = plt.text(0.99, 0.15, '3',
-                                    verticalalignment='bottom', horizontalalignment='right',
-                                    transform=ax.transAxes, fontsize=25)
-                my_text4 = plt.text(0.01, 0.15, '4',
-                                    verticalalignment='bottom', horizontalalignment='left',
-                                    transform=ax.transAxes, fontsize=25)
+                # my_text1 = plt.text(0.99, 0.85, '1',
+                #                     verticalalignment='top', horizontalalignment='right',
+                #                     transform=ax.transAxes, fontsize=25)
+                # my_text2 = plt.text(0.01, 0.85, '2',
+                #                     verticalalignment='top', horizontalalignment='left',
+                #                     transform=ax.transAxes, fontsize=25)
+                # my_text3 = plt.text(0.99, 0.15, '3',
+                #                     verticalalignment='bottom', horizontalalignment='right',
+                #                     transform=ax.transAxes, fontsize=25)
+                # my_text4 = plt.text(0.01, 0.15, '4',
+                #                     verticalalignment='bottom', horizontalalignment='left',
+                #                     transform=ax.transAxes, fontsize=25)
 
-                my_text1.set_alpha(.2)
-                my_text2.set_alpha(.2)
-                my_text3.set_alpha(.2)
-                my_text4.set_alpha(.2)
+                # my_text1.set_alpha(.2)
+                # my_text2.set_alpha(.2)
+                # my_text3.set_alpha(.2)
+                # my_text4.set_alpha(.2)
             # plot quartiles
             tools_quartiles_squares = plot_square_quartiles(x_values, means, tools, better)
             tools_quartiles_diagonal = plot_diagonal_quartiles(x_values, means, tools, better)
