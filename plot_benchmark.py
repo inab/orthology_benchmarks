@@ -271,7 +271,7 @@ def print_quartiles_table(tools_quartiles_squares, tools_quartiles_diagonal, too
     for i, val in enumerate(row_names, 0):
         quartiles_2.append(tools_quartiles_diagonal[row_names[i]])
         clusters.append(tools_clusters[row_names[i]])
-    colnames = ["TOOL", "Quartile_sqr", "Quartile_diag", "Cluster"]
+    colnames = ["TOOL", "Quar_sqr", "Quar_diag", "Cluster"]
     celltxt = zip(row_names, quartiles_1, quartiles_2, clusters)
     df = pandas.DataFrame(celltxt)
     vals = df.values
@@ -286,8 +286,8 @@ def print_quartiles_table(tools_quartiles_squares, tools_quartiles_diagonal, too
     colors = df.applymap(lambda x: '#238b45' if x == 1 else '#74c476' if x == 2 else '#bae4b3' if x == 3
     else '#edf8e9' if x == 4 else '#ffffff')
     # red color scale
-    colors = df.applymap(lambda x: '#fee5d9' if x == 1 else '#fcae91' if x == 2 else '#fb6a4a' if x == 3
-    else '#cb181d' if x == 4 else '#ffffff')
+    # colors = df.applymap(lambda x: '#fee5d9' if x == 1 else '#fcae91' if x == 2 else '#fb6a4a' if x == 3
+    # else '#cb181d' if x == 4 else '#ffffff')
 
     colors = colors.values
 
@@ -300,9 +300,36 @@ def print_quartiles_table(tools_quartiles_squares, tools_quartiles_diagonal, too
                           cellColours=colors,
                           colColours=['#ffffff'] * 4)
     the_table.auto_set_font_size(False)
-    the_table.set_fontsize(8)
+    the_table.set_fontsize(12)
     plt.subplots_adjust(right=0.65, bottom=0.2)
 
+#
+def custom_colors(colors):
+    # colors = df.applymap(lambda x: '#fee5d9' if x == 1 else '#fcae91' if x == 2 else '#fb6a4a' if x == 3
+    # else '#cb181d' if x == 4 else '#ffffff')
+    v1='#74c476'
+    v2='#bae4b3'
+    r1='#fb6a4a'
+    r2='#fcae91'
+    w='#ffffff'
+    my_codes = [[v2,v1], [r2,r1], [r1,r2], [r1,r2], [r2,r1], [v2,v1], [r2,r1], [v1,v2], [r1,r1], [r2,r1], [r1,r1], [v2,v1], [w,w], [v1,v2], [v2,v1]]
+    for i, val in enumerate(colors.iloc[:, 0]):
+        colors.iloc[i,32]=my_codes[i][0]
+        colors.iloc[i, 33] = my_codes[i][1]
+    colors.iloc[5,26] = '#238b45'
+    colors.iloc[5, 27] = '#238b45'
+    colors.iloc[6, 27] = '#238b45'
+    colors.iloc[7, 26] = '#238b45'
+    colors.iloc[7, 26] = '#238b45'
+    colors.iloc[9, 25] = '#238b45'
+    colors.iloc[9, 26] = '#238b45'
+    colors.iloc[9, 27] = '#238b45'
+    colors.iloc[11, 27] = '#238b45'
+    colors.iloc[14, 25] = '#238b45'
+    colors.iloc[14, 26] = '#238b45'
+    colors.iloc[14, 27] = '#238b45'
+
+    return colors
 
 # function that prints a table with the list of tools and the corresponding quartiles
 def print_full_table(quartiles_table):
@@ -312,7 +339,7 @@ def print_full_table(quartiles_table):
         colnames.append("SQR")
         colnames.append("DIAG")
         colnames.append("CLUST  ")
-    colnames.extend(["# SQR", "# DIAG", "# CLUST"])
+    colnames.extend(["#SQR", "#DIAG", "#CLUST"])
     row_names = quartiles_table[next(iter(quartiles_table))][0].keys()
     quartiles_list = []
 
@@ -383,9 +410,13 @@ def print_full_table(quartiles_table):
     # green color scale
     colors = df.applymap(lambda x: '#238b45' if x == 1 else '#74c476' if x == 2 else '#bae4b3' if x == 3
     else '#edf8e9' if x == 4 else '#ffffff')
+    colors = df.applymap(lambda x: '#238b45' if x == 1 else '#ffffff')
+    colors = df.applymap(lambda x: '#ffffff')
     # red color scale
     # colors = df.applymap(lambda x: '#fee5d9' if x == 1 else '#fcae91' if x == 2 else '#fb6a4a' if x == 3
     # else '#cb181d' if x == 4 else '#ffffff')
+
+    colors = custom_colors(colors)
 
     colors = colors.values
 
@@ -400,12 +431,14 @@ def print_full_table(quartiles_table):
     method_names = sorted(quartiles_table.iterkeys())
     for i, val in enumerate(method_names):
         method_names[i] = method_names[i].replace("_", "\n")
+        method_names[i] = method_names[i].replace("Generalized\nSTD", "G-STD")
+        method_names[i] = method_names[i].replace("\ntest", "")
     method_names = ["BENCHMARKING METHOD -->"] + method_names
     method_names.append("# RANKING #")
     header = plt.table(cellText=[[''] * len(method_names)],
                        colLabels=method_names,
                        loc='top',
-                       bbox=[-0.0255, 0.76, 1.052, 0.11],
+                       bbox=[-0.0265, 0.76, 1.0535, 0.11],
                        colWidths=[0.16, 0.081, 0.081, 0.081, 0.081, 0.081, 0.081, 0.081, 0.081, 0.081, 0.081, 0.084],
 
                        colColours=['#ffffff'] * len(method_names)
@@ -424,7 +457,7 @@ def print_full_table(quartiles_table):
                          colColours=['#ffffff'] * len(df.columns))
     fig.tight_layout()
     the_table.auto_set_font_size(False)
-    the_table.set_fontsize(9)
+    the_table.set_fontsize(13)
     plt.subplots_adjust(right=0.95, left=0.04, top=1, bottom=0.1)
 
 
@@ -560,7 +593,7 @@ def cluster_tools(my_array, tools, method, organism, better):
         tools_clusters[name] = num + 1
         plt.text(x, y, num + 1, color="red", fontsize=18)
 
-    # # compute Voronoi tesselation
+    # compute Voronoi tesselation
     # vor = Voronoi(centroids)
     # # plot
     # regions, vertices = voronoi_finite_polygons_2d(vor)
@@ -728,18 +761,20 @@ if __name__ == "__main__":
                        "x", "X",
                        "D",
                        "d", "|", "_"]
+            colors = ['#5b2a49', '#a91310', '#9693b0', '#e7afd7', '#fb7f6a', '#0566e5', '#00bdc8', '#cf4119', '#8b123f',
+                      '#b35ccc', '#dbf6a6', '#c0b596', '#516e85', '#1343c3', '#7b88be']
             for i, val in enumerate(means, 0):
-                new_color = "#%06x" % random.randint(0, 0xFFFFFF)
-                marker_style = markers[random.randint(0, len(markers) - 1)]
+                # new_color = "#%06x" % random.randint(0, 0xFFFFFF)
+                # marker_style = markers[random.randint(0, len(markers) - 1)]
                 if not errors_x:
-                    ax.errorbar(x_values[i], means[i], errors[i], linestyle='None', marker=marker_style,
-                                markersize='8', markerfacecolor=new_color, markeredgecolor=new_color, capsize=4,
-                                ecolor=new_color, label=tools[i])
+                    ax.errorbar(x_values[i], means[i], errors[i], linestyle='None', marker=markers[i],
+                                markersize='8', markerfacecolor=colors[i], markeredgecolor=colors[i], capsize=4,
+                                ecolor=colors[i], label=tools[i])
 
                 else:
-                    ax.errorbar(x_values[i], means[i], errors_x[i], errors[i], linestyle='None', marker=marker_style,
-                                markersize='8', markerfacecolor=new_color, markeredgecolor=new_color, capsize=4,
-                                ecolor=new_color, label=tools[i])
+                    ax.errorbar(x_values[i], means[i], errors_x[i], errors[i], linestyle='None', marker=markers[i],
+                                markersize='8', markerfacecolor=colors[i], markeredgecolor=colors[i], capsize=4,
+                                ecolor=colors[i], label=tools[i])
 
             # change plot style
             # set plot title depending on the analysed tool

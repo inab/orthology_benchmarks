@@ -125,8 +125,8 @@ def pareto_frontier(Xs, Ys, maxX=True, maxY=True):
 # funtion that gets quartiles for x and y values
 def plot_square_quartiles(x_values, means, tools, better, percentile=50):
     x_percentile, y_percentile = (np.nanpercentile(x_values, percentile), np.nanpercentile(means, percentile))
-    plt.axvline(x=x_percentile, linestyle='-', color='black', linewidth=0.1)
-    plt.axhline(y=y_percentile, linestyle='-', color='black', linewidth=0.1)
+    plt.axvline(x=x_percentile, linestyle='-', color='black', linewidth=1.5)
+    plt.axhline(y=y_percentile, linestyle='-', color='black', linewidth=1.5)
 
     # create a dictionary with tools and their corresponding quartile
     tools_quartiles = {}
@@ -725,18 +725,20 @@ if __name__ == "__main__":
                        "x", "X",
                        "D",
                        "d", "|", "_"]
+            colors = ['#5b2a49', '#a91310', '#9693b0', '#e7afd7', '#fb7f6a', '#0566e5', '#00bdc8', '#cf4119', '#8b123f',
+                      '#b35ccc', '#dbf6a6', '#c0b596', '#516e85', '#1343c3', '#7b88be']
             for i, val in enumerate(means, 0):
-                new_color = "#%06x" % random.randint(0, 0xFFFFFF)
-                marker_style = markers[random.randint(0, len(markers) - 1)]
+                # new_color = "#%06x" % random.randint(0, 0xFFFFFF)
+                # marker_style = markers[random.randint(0, len(markers) - 1)]
                 if not errors_x:
-                    ax.errorbar(x_values[i], means[i], errors[i], linestyle='None', marker=marker_style,
-                                markersize='8', markerfacecolor=new_color, markeredgecolor=new_color, capsize=4,
-                                ecolor=new_color, label=tools[i])
+                    ax.errorbar(x_values[i], means[i], errors[i], linestyle='None', marker=markers[i],
+                                markersize='8', markerfacecolor=colors[i], markeredgecolor=colors[i], capsize=4,
+                                ecolor=colors[i], label=tools[i])
 
                 else:
-                    ax.errorbar(x_values[i], means[i], errors_x[i], errors[i], linestyle='None', marker=marker_style,
-                                markersize='8', markerfacecolor=new_color, markeredgecolor=new_color, capsize=4,
-                                ecolor=new_color, label=tools[i])
+                    ax.errorbar(x_values[i], means[i], errors_x[i], errors[i], linestyle='None', marker=markers[i],
+                                markersize='8', markerfacecolor=colors[i], markeredgecolor=colors[i], capsize=4,
+                                ecolor=colors[i], label=tools[i])
 
             # change plot style
             # set plot title depending on the analysed tool

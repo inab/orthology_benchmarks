@@ -189,7 +189,7 @@ def draw_diagonal_line(scores_and_values, quartile, better, max_x, max_y):
         x_coords = (half_point[0] + max_x, half_point[0] - max_x)
         y_coords = (half_point[1] - max_y, half_point[1] + max_y)
 
-    plt.plot(x_coords, y_coords, linestyle='--', linewidth=0.5)
+    plt.plot(x_coords, y_coords, linestyle='--', linewidth=1.5)
 
 
 # funtion that splits the analysed tools into four quartiles, according to the asigned score
@@ -299,7 +299,7 @@ def print_quartiles_table(tools_quartiles_squares, tools_quartiles_diagonal, too
                           cellColours=colors,
                           colColours=['#ffffff'] * 2)
     the_table.auto_set_font_size(False)
-    the_table.set_fontsize(8)
+    the_table.set_fontsize(12)
     plt.subplots_adjust(right=0.65, bottom=0.2)
 
 
@@ -398,7 +398,9 @@ def print_full_table(quartiles_table):
     method_names = sorted(quartiles_table.iterkeys())
     for i, val in enumerate(method_names):
         method_names[i] = method_names[i].replace("_", "\n")
-    method_names = ["TOOL / BENCHMARKING METHOD -->"] + method_names
+        method_names[i] = method_names[i].replace("Generalized\nSTD", "G-STD")
+        method_names[i] = method_names[i].replace("\ntest", "")
+    method_names = ["TOOL / BENCH. METHOD -->"] + method_names
     method_names.append("# RANKING #")
     header_text = ["DIAGONAL QUARTILES CLASSIFICATION RESULTS"]
     header = plt.table(cellText=[[''] * 1],
@@ -410,7 +412,7 @@ def print_full_table(quartiles_table):
                        colColours=['#ffffff'] * 1
                        )
     header.auto_set_font_size(False)
-    header.set_fontsize(12)
+    header.set_fontsize(11)
     the_table = ax.table(cellText=vals,
                          colLabels=method_names,
                          cellLoc='center',
@@ -421,7 +423,7 @@ def print_full_table(quartiles_table):
                          colColours=['#ffffff'] * len(df.columns))
     fig.tight_layout()
     the_table.auto_set_font_size(False)
-    the_table.set_fontsize(9)
+    the_table.set_fontsize(12)
     the_table.scale(1, 1.5)
     plt.subplots_adjust(right=0.95, left=0.04, top=0.9, bottom=0.1)
      
@@ -725,18 +727,20 @@ if __name__ == "__main__":
                        "x", "X",
                        "D",
                        "d", "|", "_"]
+            colors = ['#5b2a49', '#a91310', '#9693b0', '#e7afd7', '#fb7f6a', '#0566e5', '#00bdc8', '#cf4119', '#8b123f',
+                      '#b35ccc', '#dbf6a6', '#c0b596', '#516e85', '#1343c3', '#7b88be']
             for i, val in enumerate(means, 0):
-                new_color = "#%06x" % random.randint(0, 0xFFFFFF)
-                marker_style = markers[random.randint(0, len(markers) - 1)]
+                # new_color = "#%06x" % random.randint(0, 0xFFFFFF)
+                # marker_style = markers[random.randint(0, len(markers) - 1)]
                 if not errors_x:
-                    ax.errorbar(x_values[i], means[i], errors[i], linestyle='None', marker=marker_style,
-                                markersize='8', markerfacecolor=new_color, markeredgecolor=new_color, capsize=4,
-                                ecolor=new_color, label=tools[i])
+                    ax.errorbar(x_values[i], means[i], errors[i], linestyle='None', marker=markers[i],
+                                markersize='8', markerfacecolor=colors[i], markeredgecolor=colors[i], capsize=4,
+                                ecolor=colors[i], label=tools[i])
 
                 else:
-                    ax.errorbar(x_values[i], means[i], errors_x[i], errors[i], linestyle='None', marker=marker_style,
-                                markersize='8', markerfacecolor=new_color, markeredgecolor=new_color, capsize=4,
-                                ecolor=new_color, label=tools[i])
+                    ax.errorbar(x_values[i], means[i], errors_x[i], errors[i], linestyle='None', marker=markers[i],
+                                markersize='8', markerfacecolor=colors[i], markeredgecolor=colors[i], capsize=4,
+                                ecolor=colors[i], label=tools[i])
 
             # change plot style
             # set plot title depending on the analysed tool
