@@ -7,6 +7,14 @@ loadurl = function (){
                 "https://dev-openebench.bsc.es/api/scientific/Dataset/QfO:QfO4_STD_Fungi_Hieranoid2_output.json",
                 "https://dev-openebench.bsc.es/api/scientific/Dataset/QfO:QfO4_STD_Fungi_InParanoid_output.json",
                 "https://dev-openebench.bsc.es/api/scientific/Dataset/QfO:QfO4_STD_Fungi_MetaPhOrs_output.json",
+                "https://dev-openebench.bsc.es/api/scientific/Dataset/QfO:QfO4_STD_Fungi_OMA-GETHOGs_output.json",
+                "https://dev-openebench.bsc.es/api/scientific/Dataset/QfO:QfO4_STD_Fungi_OMA-Groups_output.json",
+                "https://dev-openebench.bsc.es/api/scientific/Dataset/QfO:QfO4_STD_Fungi_OMA-Pairs_output.json",
+                "https://dev-openebench.bsc.es/api/scientific/Dataset/QfO:QfO4_STD_Fungi_Orthoinspector_output.json",
+                "https://dev-openebench.bsc.es/api/scientific/Dataset/QfO:QfO4_STD_Fungi_PANTHER-all_output.json",
+                "https://dev-openebench.bsc.es/api/scientific/Dataset/QfO:QfO4_STD_Fungi_PANTHER-LDO_output.json",
+                "https://dev-openebench.bsc.es/api/scientific/Dataset/QfO:QfO4_STD_Fungi_PhylomeDB_output.json",
+                "https://dev-openebench.bsc.es/api/scientific/Dataset/QfO:QfO4_STD_Fungi_RBH-BBH_output.json",
                 "https://dev-openebench.bsc.es/api/scientific/Dataset/QfO:QfO4_STD_Fungi_InParanoidCore_output.json"
               ]
     // var urls = ['https://rawgit.com/inab/benchmarking-data-model/master/prototype-data/QfO_complete_data/ECtest_EggNOG_output.json']
@@ -98,7 +106,7 @@ createChart = function (data){
   var max_y = d3.max(data, function(d) { return d.y; });
   var yScale = d3.scaleLinear()
   .range([height, 0])
-  .domain([min_y - 0.2*(max_y-min_y), max_y + 0.2*(max_y-min_y)]).nice();
+  .domain([min_y - 0.3*(max_y-min_y), max_y + 0.3*(max_y-min_y)]).nice();
   var xAxis = d3.axisBottom(xScale).ticks(12),
   yAxis = d3.axisLeft(yScale).ticks(12 * height / width);
 
