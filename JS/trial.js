@@ -46,7 +46,6 @@ function get_data(urls){
  }
   
 createChart = function (data){
-
   var tooltip = d3.select("body").append("div")
   .attr("class", "tooltip")
   .style("visibility", "hidden");
@@ -223,7 +222,7 @@ createChart = function (data){
           .duration(1000)		
           .style("opacity", 0);	
   });
-  get_square_quartiles(data, svg, xScale, yScale);
+  get_square_quartiles(data, svg, xScale, yScale, []);
   
 
         
@@ -242,6 +241,7 @@ createChart = function (data){
   });
 
   // draw legend colored rectangles
+  let removed_tools = []; // this array stores the tools when the user clicks on them
   legend.append("rect")
   .attr("x", width + 18)
   .attr("width", 18)
@@ -249,8 +249,10 @@ createChart = function (data){
   .style("fill", color)
   .on('click', function(d) {
     //console.log("dots",dots)
-    d3.select("#x_quartile").style("opacity", 0);
-    d3.select("#y_quartile").style("opacity", 0);
+    // d3.select("#x_quartile").style("opacity", 0);
+    // d3.select("#y_quartile").style("opacity", 0);
+    svg.selectAll("#x_quartile").remove();
+    svg.selectAll("#y_quartile").remove();
     dot = d3.select("text#" +d.replace(/[\. ()/-]/g, "_"))
     var ID = dot._groups[0][0].id
 
@@ -267,16 +269,28 @@ createChart = function (data){
       d3.select("#top"+ID).style("opacity", 1);
       d3.select("#bottom"+ID).style("opacity", 1);
       d3.select("#line"+ID).style("opacity", 1);
+      // recalculate the quartiles after removing the tools
+      let index = $.inArray(ID, removed_tools);
+      removed_tools.splice(index, 1);
+      get_square_quartiles(data, svg, xScale, yScale, removed_tools);
+      //change the legend opacity to keep track of hidden tools
+      d3.select(this).style("opacity", 1);
+      d3.select("text#" +d.replace(/[\. ()/-]/g, "_")).style("opacity", 1);
 
     } else {
       d3.select("#"+ID).style("opacity", 0);
       d3.select("#top"+ID).style("opacity", 0);
       d3.select("#bottom"+ID).style("opacity", 0);
       d3.select("#line"+ID).style("opacity", 0);
+      removed_tools.push(ID);
+      get_square_quartiles(data, svg, xScale, yScale, removed_tools);
+      //change the legend opacity to keep track of hidden tools
+      d3.select(this).style("opacity", 0.2);
+      d3.select("text#" +d.replace(/[\. ()/-]/g, "_")).style("opacity", 0.2);
     }
-
       
   });
+
 
 
   // draw legend text
@@ -295,9 +309,20 @@ createChart = function (data){
 
 
 
-function get_square_quartiles(data, svg, xScale, yScale) {
-  var x_values = data.map(a => a.x).sort(function(a, b){return a - b});
-  var y_values = data.map(a => a.y).sort(function(a, b){return a - b});
+function get_square_quartiles(data, svg, xScale, yScale, removed_tools) {
+  // remove from the data array the participants that the user has hidden (removed_tools)
+  // create a new array where the tools that have not been hidden will be stored
+  let tools_not_hidden = [];
+  data.forEach(element => {
+    let index = $.inArray(element.toolname, removed_tools);
+    if (index == -1){
+      tools_not_hidden.push(element);
+    }
+  });
+  
+  // compute the quartiles over the new seet of data
+  var x_values = tools_not_hidden.map(a => a.x).sort(function(a, b){return a - b});
+  var y_values = tools_not_hidden.map(a => a.y).sort(function(a, b){return a - b});
 
   var quantile_x = d3.quantile(x_values, 0.5);
   var quantile_y = d3.quantile(y_values, 0.5);
