@@ -283,7 +283,8 @@ def print_quartiles_table(tools_quartiles_squares, tools_quartiles_diagonal, too
     colors = df.applymap(lambda x: '#919191' if x == 1 else '#B0B0B0' if x == 2 else '#CFCFCF' if x == 3
     else '#EDEDED' if x == 4 else '#ffffff')
     # green color scale
-    colors = df.applymap(lambda x: '#238b45' if x == 1 else '#ffffff')
+    colors = df.applymap(lambda x: '#238b45' if x == 1 else '#74c476' if x == 2 else '#bae4b3' if x == 3
+    else '#edf8e9' if x == 4 else '#ffffff')
     # red color scale
     # colors = df.applymap(lambda x: '#fee5d9' if x == 1 else '#fcae91' if x == 2 else '#fb6a4a' if x == 3
     # else '#cb181d' if x == 4 else '#ffffff')
@@ -798,20 +799,20 @@ if __name__ == "__main__":
             if y_lims[0] >= 1000:
                 ax.get_yaxis().set_major_formatter(plt.FuncFormatter(lambda y, loc: "{:,}".format(int(y))))
 
-            # get pareto frontier and plot
-            p_frontX, p_frontY = pareto_frontier(x_values, means, maxX=max_x, maxY=max_y)
-            plt.plot(p_frontX, p_frontY, linestyle='--', color='grey', linewidth=1)
-            # append edges to pareto frontier
-            if better == 'bottom-right':
-                left_edge = [[x_lims[0], p_frontX[-1]], [p_frontY[-1], p_frontY[-1]]]
-                right_edge = [[p_frontX[0], p_frontX[0]], [p_frontY[0], y_lims[1]]]
-                plt.plot(left_edge[0], left_edge[1], right_edge[0], right_edge[1], linestyle='--', color='red',
-                         linewidth=1)
-            elif better == 'top-right':
-                left_edge = [[x_lims[0], p_frontX[-1]], [p_frontY[-1], p_frontY[-1]]]
-                right_edge = [[p_frontX[0], p_frontX[0]], [p_frontY[0], y_lims[0]]]
-                plt.plot(left_edge[0], left_edge[1], right_edge[0], right_edge[1], linestyle='--', color='red',
-                         linewidth=1)
+            # # get pareto frontier and plot
+            # p_frontX, p_frontY = pareto_frontier(x_values, means, maxX=max_x, maxY=max_y)
+            # plt.plot(p_frontX, p_frontY, linestyle='--', color='grey', linewidth=1)
+            # # append edges to pareto frontier
+            # if better == 'bottom-right':
+            #     left_edge = [[x_lims[0], p_frontX[-1]], [p_frontY[-1], p_frontY[-1]]]
+            #     right_edge = [[p_frontX[0], p_frontX[0]], [p_frontY[0], y_lims[1]]]
+            #     plt.plot(left_edge[0], left_edge[1], right_edge[0], right_edge[1], linestyle='--', color='red',
+            #              linewidth=1)
+            # elif better == 'top-right':
+            #     left_edge = [[x_lims[0], p_frontX[-1]], [p_frontY[-1], p_frontY[-1]]]
+            #     right_edge = [[p_frontX[0], p_frontX[0]], [p_frontY[0], y_lims[0]]]
+            #     plt.plot(left_edge[0], left_edge[1], right_edge[0], right_edge[1], linestyle='--', color='red',
+            #              linewidth=1)
 
             # add 'better' annotation and quartile numbers to plot
             if better == 'bottom-right':

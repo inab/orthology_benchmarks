@@ -41,7 +41,8 @@
       margin-top: -10px;
       border-width: 10px;
       border-style: solid;
-      border-color: transparent rgb(0, 0, 0) transparent transparent;
+      border-color: transparent transparent transparent transparent;
+      /* border-color: transparent rgb(0, 0, 0) transparent transparent; */
   }
   
    .plot-bg {

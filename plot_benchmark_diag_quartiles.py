@@ -283,7 +283,8 @@ def print_quartiles_table(tools_quartiles_squares, tools_quartiles_diagonal, too
     colors = df.applymap(lambda x: '#919191' if x == 1 else '#B0B0B0' if x == 2 else '#CFCFCF' if x == 3
     else '#EDEDED' if x == 4 else '#ffffff')
     # green color scale
-    colors = df.applymap(lambda x: '#238b45' if x == 1 else '#ffffff')
+    colors = df.applymap(lambda x: '#238b45' if x == 1 else '#74c476' if x == 2 else '#bae4b3' if x == 3
+    else '#edf8e9' if x == 4 else '#ffffff')
     # red color scale
     # colors = df.applymap(lambda x: '#fee5d9' if x == 1 else '#fcae91' if x == 2 else '#fb6a4a' if x == 3
     # else '#cb181d' if x == 4 else '#ffffff')

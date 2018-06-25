@@ -1,23 +1,40 @@
 
 loadurl = function (){
 
-    var urls = ["https://dev-openebench.bsc.es/api/scientific/Dataset/QfO:QfO4_STD_Fungi_EggNOG_output.json", 
-                "https://dev-openebench.bsc.es/api/scientific/Dataset/QfO:QfO4_STD_Fungi_RSD_output.json",
-                "https://dev-openebench.bsc.es/api/scientific/Dataset/QfO:QfO4_STD_Fungi_EnsemblCompara_output.json",
-                "https://dev-openebench.bsc.es/api/scientific/Dataset/QfO:QfO4_STD_Fungi_Hieranoid2_output.json",
-                "https://dev-openebench.bsc.es/api/scientific/Dataset/QfO:QfO4_STD_Fungi_InParanoid_output.json",
-                "https://dev-openebench.bsc.es/api/scientific/Dataset/QfO:QfO4_STD_Fungi_MetaPhOrs_output.json",
-                "https://dev-openebench.bsc.es/api/scientific/Dataset/QfO:QfO4_STD_Fungi_OMA-GETHOGs_output.json",
-                "https://dev-openebench.bsc.es/api/scientific/Dataset/QfO:QfO4_STD_Fungi_OMA-Groups_output.json",
-                "https://dev-openebench.bsc.es/api/scientific/Dataset/QfO:QfO4_STD_Fungi_OMA-Pairs_output.json",
-                "https://dev-openebench.bsc.es/api/scientific/Dataset/QfO:QfO4_STD_Fungi_Orthoinspector_output.json",
-                "https://dev-openebench.bsc.es/api/scientific/Dataset/QfO:QfO4_STD_Fungi_PANTHER-all_output.json",
-                "https://dev-openebench.bsc.es/api/scientific/Dataset/QfO:QfO4_STD_Fungi_PANTHER-LDO_output.json",
-                "https://dev-openebench.bsc.es/api/scientific/Dataset/QfO:QfO4_STD_Fungi_PhylomeDB_output.json",
-                "https://dev-openebench.bsc.es/api/scientific/Dataset/QfO:QfO4_STD_Fungi_RBH-BBH_output.json",
-                "https://dev-openebench.bsc.es/api/scientific/Dataset/QfO:QfO4_STD_Fungi_InParanoidCore_output.json"
-              ]
-    // var urls = ['https://rawgit.com/inab/benchmarking-data-model/master/prototype-data/QfO_complete_data/ECtest_EggNOG_output.json']
+    // var urls = ["https://dev-openebench.bsc.es/api/scientific/Dataset/QfO:QfO4_STD_Fungi_EggNOG_output.json", 
+    //             "https://dev-openebench.bsc.es/api/scientific/Dataset/QfO:QfO4_STD_Fungi_RSD_output.json",
+    //             "https://dev-openebench.bsc.es/api/scientific/Dataset/QfO:QfO4_STD_Fungi_EnsemblCompara_output.json",
+    //             "https://dev-openebench.bsc.es/api/scientific/Dataset/QfO:QfO4_STD_Fungi_Hieranoid2_output.json",
+    //             "https://dev-openebench.bsc.es/api/scientific/Dataset/QfO:QfO4_STD_Fungi_InParanoid_output.json",
+    //             "https://dev-openebench.bsc.es/api/scientific/Dataset/QfO:QfO4_STD_Fungi_MetaPhOrs_output.json",
+    //             "https://dev-openebench.bsc.es/api/scientific/Dataset/QfO:QfO4_STD_Fungi_OMA-GETHOGs_output.json",
+    //             "https://dev-openebench.bsc.es/api/scientific/Dataset/QfO:QfO4_STD_Fungi_OMA-Groups_output.json",
+    //             "https://dev-openebench.bsc.es/api/scientific/Dataset/QfO:QfO4_STD_Fungi_OMA-Pairs_output.json",
+    //             "https://dev-openebench.bsc.es/api/scientific/Dataset/QfO:QfO4_STD_Fungi_Orthoinspector_output.json",
+    //             "https://dev-openebench.bsc.es/api/scientific/Dataset/QfO:QfO4_STD_Fungi_PANTHER-all_output.json",
+    //             "https://dev-openebench.bsc.es/api/scientific/Dataset/QfO:QfO4_STD_Fungi_PANTHER-LDO_output.json",
+    //             "https://dev-openebench.bsc.es/api/scientific/Dataset/QfO:QfO4_STD_Fungi_PhylomeDB_output.json",
+    //             "https://dev-openebench.bsc.es/api/scientific/Dataset/QfO:QfO4_STD_Fungi_RBH-BBH_output.json",
+    //             "https://dev-openebench.bsc.es/api/scientific/Dataset/QfO:QfO4_STD_Fungi_InParanoidCore_output.json"
+    //           ]
+    
+      var urls = ["https://dev-openebench.bsc.es/api/scientific/Dataset/QfO:QfO4_STD_Eukaryota_EggNOG_output.json", 
+              "https://dev-openebench.bsc.es/api/scientific/Dataset/QfO:QfO4_STD_Eukaryota_RSD_output.json",
+              "https://dev-openebench.bsc.es/api/scientific/Dataset/QfO:QfO4_STD_Eukaryota_EnsemblCompara_output.json",
+              "https://dev-openebench.bsc.es/api/scientific/Dataset/QfO:QfO4_STD_Eukaryota_Hieranoid2_output.json",
+              "https://dev-openebench.bsc.es/api/scientific/Dataset/QfO:QfO4_STD_Eukaryota_InParanoid_output.json",
+              "https://dev-openebench.bsc.es/api/scientific/Dataset/QfO:QfO4_STD_Eukaryota_MetaPhOrs_output.json",
+              "https://dev-openebench.bsc.es/api/scientific/Dataset/QfO:QfO4_STD_Eukaryota_OMA-GETHOGs_output.json",
+              "https://dev-openebench.bsc.es/api/scientific/Dataset/QfO:QfO4_STD_Eukaryota_OMA-Groups_output.json",
+              "https://dev-openebench.bsc.es/api/scientific/Dataset/QfO:QfO4_STD_Eukaryota_OMA-Pairs_output.json",
+              "https://dev-openebench.bsc.es/api/scientific/Dataset/QfO:QfO4_STD_Eukaryota_Orthoinspector_output.json",
+              "https://dev-openebench.bsc.es/api/scientific/Dataset/QfO:QfO4_STD_Eukaryota_PANTHER-all_output.json",
+              "https://dev-openebench.bsc.es/api/scientific/Dataset/QfO:QfO4_STD_Eukaryota_PANTHER-LDO_output.json",
+              "https://dev-openebench.bsc.es/api/scientific/Dataset/QfO:QfO4_STD_Eukaryota_PhylomeDB_output.json",
+              "https://dev-openebench.bsc.es/api/scientific/Dataset/QfO:QfO4_STD_Eukaryota_RBH-BBH_output.json",
+              "https://dev-openebench.bsc.es/api/scientific/Dataset/QfO:QfO4_STD_Eukaryota_InParanoidCore_output.json"
+            ]
+
     get_data(urls)
   
        
@@ -214,16 +231,16 @@ createChart = function (data){
         .duration(100)		
         .style("opacity", .9);		
     div	.html(d.toolname + "<br/>"  + formatComma(d.x) + "<br/>"  + formatDecimal(d.y))	
-        .style("left", (d3.event.pageX+10) + "px")		
-        .style("top", (d3.event.pageY-25) + "px");
+        .style("left", (d3.event.pageX) + "px")		
+        .style("top", (d3.event.pageY) + "px");
     })					
   .on("mouseout", function(d) {		
       div.transition()		
-          .duration(1000)		
+          .duration(1500)		
           .style("opacity", 0);	
   });
-  get_square_quartiles(data, svg, xScale, yScale, []);
-  
+  get_square_quartiles(data, svg, xScale, yScale, div, []);
+  get_diagonal_quartiles(data, svg, xScale, yScale, div, [])
 
         
   // --------------------------------------- 
@@ -248,11 +265,12 @@ createChart = function (data){
   .attr("height", 18)
   .style("fill", color)
   .on('click', function(d) {
-    //console.log("dots",dots)
-    // d3.select("#x_quartile").style("opacity", 0);
-    // d3.select("#y_quartile").style("opacity", 0);
+
     svg.selectAll("#x_quartile").remove();
     svg.selectAll("#y_quartile").remove();
+    svg.selectAll("#diag_quartile_0").remove();
+    svg.selectAll("#diag_quartile_1").remove();
+    svg.selectAll("#diag_quartile_2").remove();
     dot = d3.select("text#" +d.replace(/[\. ()/-]/g, "_"))
     var ID = dot._groups[0][0].id
 
@@ -272,7 +290,8 @@ createChart = function (data){
       // recalculate the quartiles after removing the tools
       let index = $.inArray(ID, removed_tools);
       removed_tools.splice(index, 1);
-      get_square_quartiles(data, svg, xScale, yScale, removed_tools);
+      get_square_quartiles(data, svg, xScale, yScale, div, removed_tools);
+      get_diagonal_quartiles(data, svg, xScale, yScale, div, removed_tools);
       //change the legend opacity to keep track of hidden tools
       d3.select(this).style("opacity", 1);
       d3.select("text#" +d.replace(/[\. ()/-]/g, "_")).style("opacity", 1);
@@ -282,8 +301,9 @@ createChart = function (data){
       d3.select("#top"+ID).style("opacity", 0);
       d3.select("#bottom"+ID).style("opacity", 0);
       d3.select("#line"+ID).style("opacity", 0);
-      removed_tools.push(ID);
-      get_square_quartiles(data, svg, xScale, yScale, removed_tools);
+      removed_tools.push(ID.replace(/_/g, "-"));
+      get_square_quartiles(data, svg, xScale, yScale, div, removed_tools);
+      get_diagonal_quartiles(data, svg, xScale, yScale, div, removed_tools);
       //change the legend opacity to keep track of hidden tools
       d3.select(this).style("opacity", 0.2);
       d3.select("text#" +d.replace(/[\. ()/-]/g, "_")).style("opacity", 0.2);
@@ -309,7 +329,7 @@ createChart = function (data){
 
 
 
-function get_square_quartiles(data, svg, xScale, yScale, removed_tools) {
+function get_square_quartiles(data, svg, xScale, yScale, div, removed_tools) {
   // remove from the data array the participants that the user has hidden (removed_tools)
   // create a new array where the tools that have not been hidden will be stored
   let tools_not_hidden = [];
@@ -319,7 +339,7 @@ function get_square_quartiles(data, svg, xScale, yScale, removed_tools) {
       tools_not_hidden.push(element);
     }
   });
-  
+  // console.log(tools_not_hidden, removed_tools);
   // compute the quartiles over the new seet of data
   var x_values = tools_not_hidden.map(a => a.x).sort(function(a, b){return a - b});
   var y_values = tools_not_hidden.map(a => a.y).sort(function(a, b){return a - b});
@@ -330,6 +350,7 @@ function get_square_quartiles(data, svg, xScale, yScale, removed_tools) {
   var x_axis = xScale.domain();
   var y_axis = yScale.domain();
 
+  var formatComma = d3.format(",");
   svg.append("line")
         .attr("x1", xScale(quantile_x))
         .attr("y1", yScale(y_axis[0]))
@@ -343,7 +364,7 @@ function get_square_quartiles(data, svg, xScale, yScale, removed_tools) {
           div.transition()		
               .duration(100)		
               .style("opacity", .9);		
-          div	.html(formatComma(quantile_x) )	
+          div	.html("X quartile = " + formatComma( quantile_x) )	
               .style("left", (d3.event.pageX) + "px")		
               .style("top", (d3.event.pageY) + "px");
           })					
@@ -366,17 +387,148 @@ function get_square_quartiles(data, svg, xScale, yScale, removed_tools) {
         div.transition()		
             .duration(100)		
             .style("opacity", .9);		
-        div	.html(formatComma(quantile_y) )	
+        div	.html("Y quartile = " + formatComma(quantile_y) )	
             .style("left", (d3.event.pageX) + "px")		
             .style("top", (d3.event.pageY) + "px");
         })					
       .on("mouseout", function(d) {		
           div.transition()		
-              .duration(1000)		
+              .duration(1500)		
               .style("opacity", 0);	
       });
 };
 
+function get_diagonal_quartiles(data, svg, xScale, yScale, div, removed_tools) {
+  // remove from the data array the participants that the user has hidden (removed_tools)
+  // create a new array where the tools that have not been hidden will be stored
+  let tools_not_hidden = [];
+  data.forEach(element => {
+    let index = $.inArray(element.toolname, removed_tools);
+    if (index == -1){
+      tools_not_hidden.push(element);
+    }
+  });
+  // console.log(tools_not_hidden, removed_tools);
+  // compute the quartiles over the new seet of data
+  var x_values = tools_not_hidden.map(a => a.x);
+  var y_values = tools_not_hidden.map(a => a.y);
+  // get distance to lowest score corner
+
+    // normalize data to 0-1 range
+    var normalized_values = normalize_data(x_values, y_values);
+    var [x_norm, y_norm] = [normalized_values[0], normalized_values[1]];
+    
+    var max_x = Math.max.apply(null, x_values);
+    var max_y = Math.max.apply(null, y_values);
+    // # compute the scores for each of the tool. based on their distance to the x and y axis
+    var scores = []
+    var better = "bottom-right";
+    // var scores_coords = []; //this object will store the scores and the coordinates
+    // for (var i = 0; i < x_norm.length; i++) {
+    //     if (better == "bottom-right"){
+    //         scores.push(x_norm[i] + (1 - y_norm[i]));
+    //         scores_coords.push([x_norm[i] + (1 - y_norm[i]), x_values[i], y_values[i]]);
+    //     } else if (better == "top-right"){
+    //         scores.push(x_norm[i] + y_norm[i]);
+    //         scores_coords.push([x_norm[i] + y_norm[i], x_values[i], y_values[i]]);
+    //     };
+    // };
+  
+    var scores_coords = {}; //this object will store the scores and the coordinates
+    for (var i = 0; i < x_norm.length; i++) {
+        if (better == "bottom-right"){
+            scores.push(x_norm[i] + (1 - y_norm[i]));
+            scores_coords[x_norm[i] + (1 - y_norm[i])] =  [x_values[i], y_values[i]];
+        } else if (better == "top-right"){
+            scores.push(x_norm[i] + y_norm[i]);
+            scores_coords[x_norm[i] + y_norm[i]] = [x_values[i], y_values[i]];
+        };
+    };
+
+    // sort the scores together with coords
+
+    // sort the scores and compute quartiles
+  scores.sort(function(a, b){return b-a});
+  var first_quartile = d3.quantile(scores, 0.25);
+  var second_quartile = d3.quantile(scores, 0.5);
+  var third_quartile = d3.quantile(scores, 0.75);
+  
+  // console.log (first_quartile, second_quartile, third_quartile, scores);
+  // console.log(first_quartile, second_quartile, third_quartile);
+  var coords = [get_diagonal_line(scores, scores_coords, first_quartile, better, max_x, max_y), get_diagonal_line(scores, scores_coords, second_quartile, better, max_x, max_y), get_diagonal_line(scores, scores_coords, third_quartile, better, max_x, max_y)];
+  
+  var index = 0;
+  coords.forEach(line => {
+    var [x_coords, y_coords] = [line[0], line[1]];
+    svg.append("line")
+          .attr("x1", xScale(x_coords[0]))
+          .attr("y1", yScale(y_coords[0]))
+          .attr("x2", xScale(x_coords[1]))
+          .attr("y2", yScale(y_coords[1]))  
+          .attr("id", function (d) { return "diag_quartile_" + index;})
+          .attr("stroke", "red")
+          .style("stroke-dasharray", ("3, 3"))
+          .style("opacity", 0.5);
+          // .on("mouseover", function(d) {	
+          //   div.transition()		
+          //       .duration(100)		
+          //       .style("opacity", .9);		
+          //   div	.html("X quartile = " + formatComma( quantile_x) )	
+          //       .style("left", (d3.event.pageX) + "px")		
+          //       .style("top", (d3.event.pageY) + "px");
+          //   })					
+          // .on("mouseout", function(d) {		
+          //     div.transition()		
+          //         .duration(1000)		
+          //         .style("opacity", 0);	
+          // });
+    index += 1;
+  });
+
+};
+
+function normalize_data(x_values, y_values){
+
+  var maxX = Math.max.apply(null, x_values);
+  var maxY = Math.max.apply(null, y_values);
+  
+  var x_norm = x_values.map(function(e) {  
+    return e / maxX;
+  });
+
+  var y_norm = y_values.map(function(e) {  
+    return e / maxY;
+  });
+
+  return [x_norm, y_norm];
+};
+
+function get_diagonal_line(scores, scores_coords, quartile, better, max_x, max_y){
+
+  for (var i = 0; i < scores.length; i++) {
+    // # find out which are the two points that contain the percentile value
+    if (scores[i] <= quartile){
+
+        var target = [[scores_coords[scores[i - 1]][0], scores_coords[scores[i - 1]][1]],
+                  [scores_coords[scores[i]][0], scores_coords[scores[i]][1]]];
+        break;
+    };
+  };
+  // console.log(scores_coords);
+  // # get the the mid point between the two, where the quartile line will pass
+  var half_point = [(target[0][0] + target[1][0]) / 2, (target[0][1] + target[1][1]) / 2];
+
+  // # draw the line depending on which is the optimal corner
+  if (better == "bottom-right"){
+      var x_coords = [half_point[0] - max_x, half_point[0] + max_x];
+      var y_coords = [half_point[1] - max_y, half_point[1] + max_y];
+  } else if (better == "top-right"){
+      var x_coords = [half_point[0] + max_x, half_point[0] - max_x];
+      var y_coords = [half_point[1] - max_y, half_point[1] + max_y];   
+  };
+
+  return [x_coords, y_coords];
+};
   
 loadurl ();
 
