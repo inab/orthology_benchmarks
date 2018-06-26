@@ -39,6 +39,9 @@ loadurl = function (){
   
        
 };
+// var $input = $('<input type="button" value="new button" />');
+// $input.appendTo($("#plot"));
+// $( "#plot" ).css( "border", "3px solid red" );
 
 function get_data(urls){
   Promise.all(urls.map(url =>
@@ -67,12 +70,10 @@ createChart = function (data){
   .attr("class", "tooltip")
   .style("visibility", "hidden");
 
-  var margin = {top: 20, right: 80, bottom: 30, left: 50},
-  width = 960 - margin.left - margin.right,
+  var margin = {top: 20, right: 200, bottom: 30, left: 40},
+  width = 1200 - margin.left - margin.right,
   height = 500 - margin.top - margin.bottom;
 
-  var margin = {top: 20, right: 200, bottom: 30, left: 40};
-  // let data = randomPoints(10);
 
   var xScale = d3.scaleLinear()
         .range([0, width])
@@ -240,7 +241,7 @@ createChart = function (data){
           .style("opacity", 0);	
   });
   get_square_quartiles(data, svg, xScale, yScale, div, []);
-  get_diagonal_quartiles(data, svg, xScale, yScale, div, [])
+  get_diagonal_quartiles(data, svg, xScale, yScale, div, width, height, []);
 
         
   // --------------------------------------- 
@@ -291,7 +292,7 @@ createChart = function (data){
       let index = $.inArray(ID, removed_tools);
       removed_tools.splice(index, 1);
       get_square_quartiles(data, svg, xScale, yScale, div, removed_tools);
-      get_diagonal_quartiles(data, svg, xScale, yScale, div, removed_tools);
+      get_diagonal_quartiles(data, svg, xScale, yScale, div, width, height, removed_tools);
       //change the legend opacity to keep track of hidden tools
       d3.select(this).style("opacity", 1);
       d3.select("text#" +d.replace(/[\. ()/-]/g, "_")).style("opacity", 1);
@@ -303,7 +304,7 @@ createChart = function (data){
       d3.select("#line"+ID).style("opacity", 0);
       removed_tools.push(ID.replace(/_/g, "-"));
       get_square_quartiles(data, svg, xScale, yScale, div, removed_tools);
-      get_diagonal_quartiles(data, svg, xScale, yScale, div, removed_tools);
+      get_diagonal_quartiles(data, svg, xScale, yScale, div, width, height, removed_tools);
       //change the legend opacity to keep track of hidden tools
       d3.select(this).style("opacity", 0.2);
       d3.select("text#" +d.replace(/[\. ()/-]/g, "_")).style("opacity", 0.2);
@@ -358,7 +359,7 @@ function get_square_quartiles(data, svg, xScale, yScale, div, removed_tools) {
         .attr("y2", yScale(y_axis[1]))
         .attr("id", function (d) { return "x_quartile";})
         .attr("stroke", "black")
-        .style("stroke-dasharray", ("3, 3"))
+        .style("stroke-dasharray", ("10, 5"))
         .style("opacity", 0.5)
         .on("mouseover", function(d) {	
           div.transition()		
@@ -381,7 +382,7 @@ function get_square_quartiles(data, svg, xScale, yScale, div, removed_tools) {
       .attr("y2", yScale(quantile_y))
       .attr("id", function (d) { return "y_quartile";})
       .attr("stroke", "black")
-      .style("stroke-dasharray", ("3, 3"))
+      .style("stroke-dasharray", ("10, 5"))
       .style("opacity", 0.5)
       .on("mouseover", function(d) {	
         div.transition()		
@@ -398,7 +399,7 @@ function get_square_quartiles(data, svg, xScale, yScale, div, removed_tools) {
       });
 };
 
-function get_diagonal_quartiles(data, svg, xScale, yScale, div, removed_tools) {
+function get_diagonal_quartiles(data, svg, xScale, yScale, div, width, height, removed_tools) {
   // remove from the data array the participants that the user has hidden (removed_tools)
   // create a new array where the tools that have not been hidden will be stored
   let tools_not_hidden = [];
@@ -455,33 +456,39 @@ function get_diagonal_quartiles(data, svg, xScale, yScale, div, removed_tools) {
   
   // console.log (first_quartile, second_quartile, third_quartile, scores);
   // console.log(first_quartile, second_quartile, third_quartile);
-  var coords = [get_diagonal_line(scores, scores_coords, first_quartile, better, max_x, max_y), get_diagonal_line(scores, scores_coords, second_quartile, better, max_x, max_y), get_diagonal_line(scores, scores_coords, third_quartile, better, max_x, max_y)];
+  var coords = [get_diagonal_line(scores, scores_coords, first_quartile, better, max_x, max_y), 
+    get_diagonal_line(scores, scores_coords, second_quartile, better, max_x, max_y), 
+    get_diagonal_line(scores, scores_coords, third_quartile, better, max_x, max_y)];
   
+
+  
+
+
+
+  // var svg = d3.select(".plot-bg").append("line")
+
   var index = 0;
+  var min_x = 4000;
+  var min_y = 0.035;
   coords.forEach(line => {
     var [x_coords, y_coords] = [line[0], line[1]];
     svg.append("line")
+          .attr("clip-path","url(#clip)")
           .attr("x1", xScale(x_coords[0]))
           .attr("y1", yScale(y_coords[0]))
           .attr("x2", xScale(x_coords[1]))
           .attr("y2", yScale(y_coords[1]))  
           .attr("id", function (d) { return "diag_quartile_" + index;})
           .attr("stroke", "red")
-          .style("stroke-dasharray", ("3, 3"))
+          .style("stroke-dasharray", ("10, 5"))
           .style("opacity", 0.5);
-          // .on("mouseover", function(d) {	
-          //   div.transition()		
-          //       .duration(100)		
-          //       .style("opacity", .9);		
-          //   div	.html("X quartile = " + formatComma( quantile_x) )	
-          //       .style("left", (d3.event.pageX) + "px")		
-          //       .style("top", (d3.event.pageY) + "px");
-          //   })					
-          // .on("mouseout", function(d) {		
-          //     div.transition()		
-          //         .duration(1000)		
-          //         .style("opacity", 0);	
-          // });
+
+    svg.append("clipPath")
+      .attr("id", "clip")
+      .append("rect")
+      .attr("width", width)
+      .attr("height", height);
+
     index += 1;
   });
 
