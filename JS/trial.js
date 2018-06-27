@@ -39,9 +39,14 @@ loadurl = function (){
   
        
 };
-// var $input = $('<input type="button" value="new button" />');
-// $input.appendTo($("#plot"));
-// $( "#plot" ).css( "border", "3px solid red" );
+
+var maindata;
+var mainsvg;
+var mainxscale,mainyscale,maindiv,mainwidth,mainheight,mainremovedtools;
+
+var input = $('<input onclick="createChart(maindata)" type="checkbox" id="id1" name="squares" value="squares" checked> SQUARE QUARTILES<br><input onclick="createChart(maindata)" type="checkbox" id="id2" name="diagonal" value="diagonal"> DIAGONAL QUARTILES<br>');
+input.appendTo($("#plot"));
+$( "#plot" ).css( "border", "3px solid red" );
 
 function get_data(urls){
   Promise.all(urls.map(url =>
@@ -62,8 +67,29 @@ function get_data(urls){
       jo['e'] = array[i].metrics[2].result.value;
       full_json.push(jo)    
   }
+  maindata = full_json;
   createChart(full_json);    
  }
+ function compute_classification(data, svg, xScale, yScale, div, width, height, []) {
+  console.log(data);
+
+  if (document.getElementById("id1").checked == true && document.getElementById("id2").checked != true) {
+    console.log("a")
+    // get_diagonal_quartiles(data, svg, xScale, yScale, div, width, height, []);
+    get_square_quartiles(data, svg, xScale, yScale, div, []);
+  }  else if (document.getElementById("id1").checked != true && document.getElementById("id2").checked == true) {
+    console.log("b")
+     get_diagonal_quartiles(data, svg, xScale, yScale, div, width, height, []);
+    } else if (document.getElementById("id1").checked == true && document.getElementById("id2").checked == true){
+      get_square_quartiles(data, svg, xScale, yScale, div, []);
+      get_diagonal_quartiles(data, svg, xScale, yScale, div, width, height, []);
+    }
+  // }else if(document.getElementById("id1").checked == true){
+  //   get_square_quartiles(data, svg, xScale, yScale, div, []);
+  // }else if(document.getElementById("id2").checked == true){
+  //   get_diagonal_quartiles(data, svg, xScale, yScale, div, width, height, []);
+  // }
+}
   
 createChart = function (data){
   var tooltip = d3.select("body").append("div")
@@ -102,6 +128,8 @@ createChart = function (data){
 
   var formatComma = d3.format(",");
   var formatDecimal = d3.format(".4f");
+
+  d3.select("svg").remove();
 
   var svg = d3.select("#plot").append("svg")
     .attr("width", width + margin.left + margin.right)
@@ -175,36 +203,8 @@ createChart = function (data){
     return yScale(d.y - d.e);
   });
 
-      
-  // // Add Scatter Points
-  // svg.append("g").attr("class", "scatter")
-  // .selectAll("circle")
-  // .data(data).enter()
-  // .append('circle')
-  // .attr("cx", function(d) {
-  // return xScale(d.x);
-  // })
-  // .attr("cy", function(d) {
-  // return yScale(d.y);
-  // })
-  // .attr("r", 5)
-
-  // .on("mouseover", function(d) {		
-  //   div.transition()		
-  //       .duration(200)		
-  //       .style("opacity", .9);		
-  //   div	.html(formatComma(d.x) + "<br/>"  + formatDecimal(d.y))	
-  //       .style("left", (d3.event.pageX+10) + "px")		
-  //       .style("top", (d3.event.pageY-10) + "px");	
-  //   })					
-  // .on("mouseout", function(d) {		
-  //     div.transition()		
-  //         .duration(500)		
-  //         .style("opacity", 0);	
-  // });
 
   var symbol = d3.symbol();
-  // var symbols_types = [d3.symbolSquare]
 
     // setup fill color
   var cValue = function(d) {
@@ -219,31 +219,29 @@ createChart = function (data){
     .append("path");
     
   dots.attr("d", symbol.type(function(){return d3.symbolSquare}))
-  .attr("id", function (d) {  return d.toolname.replace(/[\. ()/-]/g, "_");})
-  .attr("class","line")
-  .attr('transform',function(d){ return "translate("+xScale(d.x)+","+yScale(d.y)+")"; })
-  .attr("r", 6)
-  // .style("fill", function (d){return "#" + Math.random().toString(16).slice(2, 8)})
-  .style("fill", function(d) {
-    return color(cValue(d));
-  })
-  .on("mouseover", function(d) {	
+    .attr("id", function (d) {  return d.toolname.replace(/[\. ()/-]/g, "_");})
+    .attr("class","line")
+    .attr('transform',function(d){ return "translate("+xScale(d.x)+","+yScale(d.y)+")"; })
+    .attr("r", 6)
+    // .style("fill", function (d){return "#" + Math.random().toString(16).slice(2, 8)})
+    .style("fill", function(d) {
+      return color(cValue(d));
+    })
+    .on("mouseover", function(d) {	
     div.transition()		
-        .duration(100)		
-        .style("opacity", .9);		
-    div	.html(d.toolname + "<br/>"  + formatComma(d.x) + "<br/>"  + formatDecimal(d.y))	
-        .style("left", (d3.event.pageX) + "px")		
-        .style("top", (d3.event.pageY) + "px");
+          .duration(100)		
+          .style("opacity", .9);		
+      div	.html(d.toolname + "<br/>"  + formatComma(d.x) + "<br/>"  + formatDecimal(d.y))	
+          .style("left", (d3.event.pageX) + "px")		
+          .style("top", (d3.event.pageY) + "px");
     })					
   .on("mouseout", function(d) {		
       div.transition()		
           .duration(1500)		
           .style("opacity", 0);	
   });
-  get_square_quartiles(data, svg, xScale, yScale, div, []);
-  get_diagonal_quartiles(data, svg, xScale, yScale, div, width, height, []);
 
-        
+
   // --------------------------------------- 
   //									LEGENDE
   // ---------------------------------------
@@ -324,8 +322,15 @@ createChart = function (data){
   .text(function(d) {
     return d;
   });
+  var mainremovedtools = removed_tools;
+  var mainsvg  = svg;
+  var mainxscale = xScale;
+  var mainyscale = yScale;
+  var maindiv = div;
+  var mainwidth = width;
+  var mainheight = height;
 
-
+  compute_classification(data, svg, xScale, yScale, div, width, height, []);
 };
 
 
