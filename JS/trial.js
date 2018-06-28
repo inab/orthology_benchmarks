@@ -35,14 +35,12 @@ loadurl = function (){
               "https://dev-openebench.bsc.es/api/scientific/Dataset/QfO:QfO4_STD_Eukaryota_InParanoidCore_output.json"
             ]
 
-    get_data(urls)
+    get_data(urls);
   
        
 };
 
 var maindata;
-var mainsvg;
-var mainxscale,mainyscale,maindiv,mainwidth,mainheight,mainremovedtools;
 
 var input = $('<input onclick="createChart(maindata)" type="checkbox" id="id1" name="squares" value="squares" checked> SQUARE QUARTILES<br><input onclick="createChart(maindata)" type="checkbox" id="id2" name="diagonal" value="diagonal"> DIAGONAL QUARTILES<br>');
 input.appendTo($("#plot"));
@@ -65,154 +63,162 @@ function get_data(urls){
       jo['x'] = array[i].metrics[0].result.value;
       jo['y'] = array[i].metrics[1].result.value;
       jo['e'] = array[i].metrics[2].result.value;
-      full_json.push(jo)    
+      full_json.push(jo);    
   }
   maindata = full_json;
   createChart(full_json);    
  }
- function compute_classification(data, svg, xScale, yScale, div, width, height, mainremovedtools) {
-  console.log(data);
+
+ function compute_classification(data, svg, xScale, yScale, div, width, height, removed_tools) {
 
   if (document.getElementById("id1").checked == true && document.getElementById("id2").checked != true) {
-    console.log("a")
-    // get_diagonal_quartiles(data, svg, xScale, yScale, div, width, height, []);
-    get_square_quartiles(data, svg, xScale, yScale, div, mainremovedtools);
+
+    get_square_quartiles(data, svg, xScale, yScale, div, removed_tools);
   }  else if (document.getElementById("id1").checked != true && document.getElementById("id2").checked == true) {
-    console.log("b")
-     get_diagonal_quartiles(data, svg, xScale, yScale, div, width, height, mainremovedtools);
+     get_diagonal_quartiles(data, svg, xScale, yScale, div, width, height, removed_tools);
     } else if (document.getElementById("id1").checked == true && document.getElementById("id2").checked == true){
-      get_square_quartiles(data, svg, xScale, yScale, div, mainremovedtools);
-      get_diagonal_quartiles(data, svg, xScale, yScale, div, width, height, mainremovedtools);
+      get_square_quartiles(data, svg, xScale, yScale, div, removed_tools);
+      get_diagonal_quartiles(data, svg, xScale, yScale, div, width, height, removed_tools);
     }
-  // }else if(document.getElementById("id1").checked == true){
-  //   get_square_quartiles(data, svg, xScale, yScale, div, []);
-  // }else if(document.getElementById("id2").checked == true){
-  //   get_diagonal_quartiles(data, svg, xScale, yScale, div, width, height, []);
-  // }
-}
+  
+  }
   
 createChart = function (data){
+
+  // define chart paramters
   var tooltip = d3.select("body").append("div")
   .attr("class", "tooltip")
   .style("visibility", "hidden");
 
   var margin = {top: 20, right: 200, bottom: 30, left: 40},
-  width = 1200 - margin.left - margin.right,
-  height = 500 - margin.top - margin.bottom;
+    width = 1200 - margin.left - margin.right,
+    height = 500 - margin.top - margin.bottom;
 
 
   var xScale = d3.scaleLinear()
-        .range([0, width])
-        .domain([d3.min(data, function(d) { return d.x; }), d3.max(data, function(d) { return d.x; })]).nice();
+    .range([0, width])
+    .domain([d3.min(data, function(d) { return d.x; }), d3.max(data, function(d) { return d.x; })]).nice();
 
   var min_y = d3.min(data, function(d) { return d.y; });
   var max_y = d3.max(data, function(d) { return d.y; });
   var yScale = d3.scaleLinear()
-  .range([height, 0])
-  .domain([min_y - 0.3*(max_y-min_y), max_y + 0.3*(max_y-min_y)]).nice();
+    .range([height, 0])
+    .domain([min_y - 0.3*(max_y-min_y), max_y + 0.3*(max_y-min_y)]).nice();
+
   var xAxis = d3.axisBottom(xScale).ticks(12),
-  yAxis = d3.axisLeft(yScale).ticks(12 * height / width);
+      yAxis = d3.axisLeft(yScale).ticks(12 * height / width);
 
   let line = d3.line()
-  .x(function(d) {
-    return xScale(d.x);
-  })
-  .y(function(d) {
-    return yScale(d.y);
-  });
+    .x(function(d) {
+      return xScale(d.x);
+    })
+    .y(function(d) {
+      return yScale(d.y);
+    });
 
-    // Define the div for the tooltip
+  // Define the div for the tooltip
   var div = d3.select("body").append("div")	
-  .attr("class", "tooltip")				
-  .style("opacity", 0);
+    .attr("class", "tooltip")				
+    .style("opacity", 0);
 
-  var formatComma = d3.format(",");
-  var formatDecimal = d3.format(".4f");
-
+  // append the svg element
   d3.select("svg").remove();
 
   var svg = d3.select("#plot").append("svg")
     .attr("width", width + margin.left + margin.right)
     .attr("height", height + margin.top + margin.bottom)
-  .append("g")
+    .append("g")
     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
     
   svg.append("g").append("rect").attr("width", width).attr("height", height).attr("class", "plot-bg");
 
   // Add Axis labels
   svg.append("g").attr("class", "axis axis--x")
-  .attr("transform", "translate(" + 0 + "," + height + ")")
-  .call(xAxis);
+    .attr("transform", "translate(" + 0 + "," + height + ")")
+    .call(xAxis);
 
   svg.append("g").attr("class", "axis axis--y").call(yAxis);
 
+  let removed_tools = []; // this array stores the tools when the user clicks on them
+
+  append_dots_errobars_legend (svg, data, xScale, yScale, div, width, height, removed_tools);
+
+  // draw_legend (data, svg, xScale, yScale, div, width, height, removed_tools);
+
+  compute_classification(data, svg, xScale, yScale, div, width, height, removed_tools);
+
+};
+
+function append_dots_errobars_legend (svg, data, xScale, yScale, div, width, height, removed_tools){
+
   // Add Error Line
   svg.append("g").selectAll("line")
-  .data(data).enter()
-  .append("line")
-  .attr("class", "error-line")
-  .attr("id", function (d) { return "line"+d.toolname.replace(/[\. ()/-]/g, "_");})
-  .attr("x1", function(d) {
-    return xScale(d.x);
-  })
-  .attr("y1", function(d) {
-    return yScale(d.y + d.e);
-  })
-  .attr("x2", function(d) {
-    return xScale(d.x);
-  })
-  .attr("y2", function(d) {
-    return yScale(d.y - d.e);
-  });
+      .data(data).enter()
+      .append("line")
+      .attr("class", "error-line")
+      .attr("id", function (d) { return "line"+d.toolname.replace(/[\. ()/-]/g, "_");})
+      .attr("x1", function(d) {
+        return xScale(d.x);
+      })
+      .attr("y1", function(d) {
+        return yScale(d.y + d.e);
+      })
+      .attr("x2", function(d) {
+        return xScale(d.x);
+      })
+      .attr("y2", function(d) {
+        return yScale(d.y - d.e);
+      });
 
   // Add Error Top Cap
   svg.append("g").selectAll("line")
-  .data(data).enter()
-  .append("line")
-  .attr("id", function (d) { return "top"+d.toolname.replace(/[\. ()/-]/g, "_");})
-  .attr("class", "error-cap")
-  .attr("x1", function(d) {
-    return xScale(d.x) - 4;
-  })
-  .attr("y1", function(d) {
-    return yScale(d.y + d.e);
-  })
-  .attr("x2", function(d) {
-    return xScale(d.x) + 4;
-  })
-  .attr("y2", function(d) {
-    return yScale(d.y + d.e);
-  });
+      .data(data).enter()
+      .append("line")
+      .attr("id", function (d) { return "top"+d.toolname.replace(/[\. ()/-]/g, "_");})
+      .attr("class", "error-cap")
+      .attr("x1", function(d) {
+        return xScale(d.x) - 4;
+      })
+      .attr("y1", function(d) {
+        return yScale(d.y + d.e);
+      })
+      .attr("x2", function(d) {
+        return xScale(d.x) + 4;
+      })
+      .attr("y2", function(d) {
+        return yScale(d.y + d.e);
+      });
 
   // Add Error Bottom Cap
   svg.append("g").selectAll("line")
-  .data(data).enter()
-  .append("line")
-  .attr("id", function (d) { return "bottom"+d.toolname.replace(/[\. ()/-]/g, "_");})
-  .attr("class", "error-cap")
-  .attr("x1", function(d) {
-    return xScale(d.x) - 4;
-  })
-  .attr("y1", function(d) {
-    return yScale(d.y - d.e);
-  })
-  .attr("x2", function(d) {
-    return xScale(d.x) + 4;
-  })
-  .attr("y2", function(d) {
-    return yScale(d.y - d.e);
-  });
+      .data(data).enter()
+      .append("line")
+      .attr("id", function (d) { return "bottom"+d.toolname.replace(/[\. ()/-]/g, "_");})
+      .attr("class", "error-cap")
+      .attr("x1", function(d) {
+        return xScale(d.x) - 4;
+      })
+      .attr("y1", function(d) {
+        return yScale(d.y - d.e);
+      })
+      .attr("x2", function(d) {
+        return xScale(d.x) + 4;
+      })
+      .attr("y2", function(d) {
+        return yScale(d.y - d.e);
+      });
 
-
+  // add dots
   var symbol = d3.symbol();
-
-    // setup fill color
+  // setup fill color
   var cValue = function(d) {
     return d.toolname;
   },
   color = d3.scaleOrdinal(d3.schemeCategory20);
 
-  // console.log(color);
+  var formatComma = d3.format(",");
+  var formatDecimal = d3.format(".4f");
+
   var dots =svg.selectAll(".dots")
     .data(data)
     .enter()
@@ -223,127 +229,180 @@ createChart = function (data){
     .attr("class","line")
     .attr('transform',function(d){ return "translate("+xScale(d.x)+","+yScale(d.y)+")"; })
     .attr("r", 6)
-    // .style("fill", function (d){return "#" + Math.random().toString(16).slice(2, 8)})
     .style("fill", function(d) {
       return color(cValue(d));
     })
     .on("mouseover", function(d) {	
-    div.transition()		
-          .duration(100)		
-          .style("opacity", .9);		
-      div	.html(d.toolname + "<br/>"  + formatComma(d.x) + "<br/>"  + formatDecimal(d.y))	
-          .style("left", (d3.event.pageX) + "px")		
-          .style("top", (d3.event.pageY) + "px");
-    })					
-  .on("mouseout", function(d) {		
       div.transition()		
-          .duration(1500)		
-          .style("opacity", 0);	
-  });
+        .duration(100)		
+        .style("opacity", .9);		
+      div.html(d.toolname + "<br/>"  + formatComma(d.x) + "<br/>"  + formatDecimal(d.y))	
+        .style("left", (d3.event.pageX) + "px")		
+        .style("top", (d3.event.pageY) + "px");
+    })					
+    .on("mouseout", function(d) {		
+      div.transition()		
+        .duration(1500)		
+        .style("opacity", 0);	
+    });
+
+    // --------------------------------------- 
+    //									LEGENDE
+    // ---------------------------------------
+
+    var legend = svg.selectAll(".legend")
+      .data(color.domain())
+      .enter().append("g")
+      .attr("class", "legend")
+      .attr("transform", function(d, i) {
+        return "translate(0," + i * 20 + ")";
+      });
+
+    
+
+    // draw legend colored rectangles
+    legend.append("rect")
+          .attr("x", width + 18)
+          .attr("width", 18)
+          .attr("height", 18)
+          .style("fill", color)
+          .on('click', function(d) {
+
+            svg.selectAll("#x_quartile").remove();
+            svg.selectAll("#y_quartile").remove();
+            svg.selectAll("#diag_quartile_0").remove();
+            svg.selectAll("#diag_quartile_1").remove();
+            svg.selectAll("#diag_quartile_2").remove();
+            dot = d3.select("text#" +d.replace(/[\. ()/-]/g, "_"))
+            var ID = dot._groups[0][0].id
+
+            var blockopacity = d3.select("#"+ID).style("opacity");
+            var topopacity = d3.select("#top"+ID).style("opacity");
+            var bottomopacity = d3.select("#bottom"+ID).style("opacity");
+            var lineopacity =  d3.select("#line"+ID).style("opacity");
+
+            if (blockopacity == 0) {
+              d3.select("#"+ID).style("opacity", 1);
+              d3.select("#top"+ID).style("opacity", 1);
+              d3.select("#bottom"+ID).style("opacity", 1);
+              d3.select("#line"+ID).style("opacity", 1);
+              // recalculate the quartiles after removing the tools
+              let index = $.inArray(ID, removed_tools);
+              removed_tools.splice(index, 1);
+              compute_classification(data, svg, xScale, yScale, div, width, height, removed_tools);
+              //change the legend opacity to keep track of hidden tools
+              d3.select(this).style("opacity", 1);
+              d3.select("text#" +d.replace(/[\. ()/-]/g, "_")).style("opacity", 1);
+
+            } else {
+              d3.select("#"+ID).style("opacity", 0);
+              d3.select("#top"+ID).style("opacity", 0);
+              d3.select("#bottom"+ID).style("opacity", 0);
+              d3.select("#line"+ID).style("opacity", 0);
+              removed_tools.push(ID.replace(/_/g, "-"));
+              compute_classification(data, svg, xScale, yScale, div, width, height, removed_tools);
+              //change the legend opacity to keep track of hidden tools
+              d3.select(this).style("opacity", 0.2);
+              d3.select("text#" +d.replace(/[\. ()/-]/g, "_")).style("opacity", 0.2);
+            }
+              
+          });
 
 
-  // --------------------------------------- 
-  //									LEGENDE
-  // ---------------------------------------
 
-  // draw legend
-  var legend = svg.selectAll(".legend")
-  .data(color.domain())
-  .enter().append("g")
-  .attr("class", "legend")
-  .attr("transform", function(d, i) {
-    // return "translate(" + i * 50 + "," + i * 0 + ")";
-    return "translate(0," + i * 20 + ")";
-  });
-
-  // draw legend colored rectangles
-  let removed_tools = []; // this array stores the tools when the user clicks on them
-  legend.append("rect")
-  .attr("x", width + 18)
-  .attr("width", 18)
-  .attr("height", 18)
-  .style("fill", color)
-  .on('click', function(d) {
-
-    svg.selectAll("#x_quartile").remove();
-    svg.selectAll("#y_quartile").remove();
-    svg.selectAll("#diag_quartile_0").remove();
-    svg.selectAll("#diag_quartile_1").remove();
-    svg.selectAll("#diag_quartile_2").remove();
-    dot = d3.select("text#" +d.replace(/[\. ()/-]/g, "_"))
-    var ID = dot._groups[0][0].id
-
-    // hide or show the elements block
-    //  var active   = ID.active ? false : true,
-    //  newOpacity = active ? 0 : 1;
-    var blockopacity = d3.select("#"+ID).style("opacity");
-    var topopacity = d3.select("#top"+ID).style("opacity");
-    var bottomopacity = d3.select("#bottom"+ID).style("opacity");
-    var lineopacity =  d3.select("#line"+ID).style("opacity");
-
-    if (blockopacity == 0) {
-      d3.select("#"+ID).style("opacity", 1);
-      d3.select("#top"+ID).style("opacity", 1);
-      d3.select("#bottom"+ID).style("opacity", 1);
-      d3.select("#line"+ID).style("opacity", 1);
-      // recalculate the quartiles after removing the tools
-      let index = $.inArray(ID, removed_tools);
-      removed_tools.splice(index, 1);
-      compute_classification(data, svg, xScale, yScale, div, width, height, removed_tools);
-      //change the legend opacity to keep track of hidden tools
-      d3.select(this).style("opacity", 1);
-      d3.select("text#" +d.replace(/[\. ()/-]/g, "_")).style("opacity", 1);
-
-    } else {
-      d3.select("#"+ID).style("opacity", 0);
-      d3.select("#top"+ID).style("opacity", 0);
-      d3.select("#bottom"+ID).style("opacity", 0);
-      d3.select("#line"+ID).style("opacity", 0);
-      removed_tools.push(ID.replace(/_/g, "-"));
-      compute_classification(data, svg, xScale, yScale, div, width, height, removed_tools);
-      //change the legend opacity to keep track of hidden tools
-      d3.select(this).style("opacity", 0.2);
-      d3.select("text#" +d.replace(/[\. ()/-]/g, "_")).style("opacity", 0.2);
-    }
-      
-  });
+    // draw legend text
+    legend.append("text")
+          .attr("x", width + 40)
+          .attr("y", 9)
+          .attr("id", function (d) { return d.replace(/[\. ()/-]/g, "_");})
+          .attr("dy", ".35em")
+          .style("text-anchor", "start")
+          .text(function(d) {
+            return d;
+          });
 
 
-
-  // draw legend text
-  legend.append("text")
-  .attr("x", width + 40)
-  .attr("y", 9)
-  .attr("id", function (d) { return d.replace(/[\. ()/-]/g, "_");})
-  .attr("dy", ".35em")
-  .style("text-anchor", "start")
-  .text(function(d) {
-    return d;
-  });
-  var mainremovedtools = removed_tools;
-  var mainsvg  = svg;
-  var mainxscale = xScale;
-  var mainyscale = yScale;
-  var maindiv = div;
-  var mainwidth = width;
-  var mainheight = height;
-
-  compute_classification(data, svg, xScale, yScale, div, width, height, removed_tools);
 };
 
+function draw_legend (data, svg, xScale, yScale, div, width, height, removed_tools) {
 
+    var legend = svg.selectAll(".legend")
+      .data(color.domain())
+      .enter().append("g")
+      .attr("class", "legend")
+      .attr("transform", function(d, i) {
+        return "translate(0," + i * 20 + ")";
+      });
+
+    
+
+    // draw legend colored rectangles
+    legend.append("rect")
+          .attr("x", width + 18)
+          .attr("width", 18)
+          .attr("height", 18)
+          .style("fill", color)
+          .on('click', function(d) {
+
+            svg.selectAll("#x_quartile").remove();
+            svg.selectAll("#y_quartile").remove();
+            svg.selectAll("#diag_quartile_0").remove();
+            svg.selectAll("#diag_quartile_1").remove();
+            svg.selectAll("#diag_quartile_2").remove();
+            dot = d3.select("text#" +d.replace(/[\. ()/-]/g, "_"))
+            var ID = dot._groups[0][0].id
+
+            var blockopacity = d3.select("#"+ID).style("opacity");
+            var topopacity = d3.select("#top"+ID).style("opacity");
+            var bottomopacity = d3.select("#bottom"+ID).style("opacity");
+            var lineopacity =  d3.select("#line"+ID).style("opacity");
+
+            if (blockopacity == 0) {
+              d3.select("#"+ID).style("opacity", 1);
+              d3.select("#top"+ID).style("opacity", 1);
+              d3.select("#bottom"+ID).style("opacity", 1);
+              d3.select("#line"+ID).style("opacity", 1);
+              // recalculate the quartiles after removing the tools
+              let index = $.inArray(ID, removed_tools);
+              removed_tools.splice(index, 1);
+              compute_classification(data, svg, xScale, yScale, div, width, height, removed_tools);
+              //change the legend opacity to keep track of hidden tools
+              d3.select(this).style("opacity", 1);
+              d3.select("text#" +d.replace(/[\. ()/-]/g, "_")).style("opacity", 1);
+
+            } else {
+              d3.select("#"+ID).style("opacity", 0);
+              d3.select("#top"+ID).style("opacity", 0);
+              d3.select("#bottom"+ID).style("opacity", 0);
+              d3.select("#line"+ID).style("opacity", 0);
+              removed_tools.push(ID.replace(/_/g, "-"));
+              compute_classification(data, svg, xScale, yScale, div, width, height, removed_tools);
+              //change the legend opacity to keep track of hidden tools
+              d3.select(this).style("opacity", 0.2);
+              d3.select("text#" +d.replace(/[\. ()/-]/g, "_")).style("opacity", 0.2);
+            }
+              
+          });
+
+
+
+    // draw legend text
+    legend.append("text")
+          .attr("x", width + 40)
+          .attr("y", 9)
+          .attr("id", function (d) { return d.replace(/[\. ()/-]/g, "_");})
+          .attr("dy", ".35em")
+          .style("text-anchor", "start")
+          .text(function(d) {
+            return d;
+          });
+
+};
 
 function get_square_quartiles(data, svg, xScale, yScale, div, removed_tools) {
-  // remove from the data array the participants that the user has hidden (removed_tools)
-  // create a new array where the tools that have not been hidden will be stored
-  let tools_not_hidden = [];
-  data.forEach(element => {
-    let index = $.inArray(element.toolname, removed_tools);
-    if (index == -1){
-      tools_not_hidden.push(element);
-    }
-  });
-  // console.log(tools_not_hidden, removed_tools);
+  
+  var tools_not_hidden = remove_hidden_tools(data, removed_tools);
+
   // compute the quartiles over the new seet of data
   var x_values = tools_not_hidden.map(a => a.x).sort(function(a, b){return a - b});
   var y_values = tools_not_hidden.map(a => a.y).sort(function(a, b){return a - b});
@@ -355,142 +414,122 @@ function get_square_quartiles(data, svg, xScale, yScale, div, removed_tools) {
   var y_axis = yScale.domain();
 
   var formatComma = d3.format(",");
-  svg.append("line")
-        .attr("x1", xScale(quantile_x))
-        .attr("y1", yScale(y_axis[0]))
-        .attr("x2", xScale(quantile_x))
-        .attr("y2", yScale(y_axis[1]))
-        .attr("id", function (d) { return "x_quartile";})
-        .attr("stroke", "black")
-        .style("stroke-dasharray", ("10, 5"))
-        .style("opacity", 0.5)
-        .on("mouseover", function(d) {	
-          div.transition()		
-              .duration(100)		
-              .style("opacity", .9);		
-          div	.html("X quartile = " + formatComma( quantile_x) )	
-              .style("left", (d3.event.pageX) + "px")		
-              .style("top", (d3.event.pageY) + "px");
-          })					
-        .on("mouseout", function(d) {		
-            div.transition()		
-                .duration(1000)		
-                .style("opacity", 0);	
-        });
 
   svg.append("line")
-      .attr("x1", xScale(x_axis[0]))
-      .attr("y1", yScale(quantile_y))
-      .attr("x2", xScale(x_axis[1]))
-      .attr("y2", yScale(quantile_y))
-      .attr("id", function (d) { return "y_quartile";})
-      .attr("stroke", "black")
-      .style("stroke-dasharray", ("10, 5"))
-      .style("opacity", 0.5)
-      .on("mouseover", function(d) {	
-        div.transition()		
-            .duration(100)		
-            .style("opacity", .9);		
-        div	.html("Y quartile = " + formatComma(quantile_y) )	
-            .style("left", (d3.event.pageX) + "px")		
-            .style("top", (d3.event.pageY) + "px");
-        })					
-      .on("mouseout", function(d) {		
-          div.transition()		
-              .duration(1500)		
-              .style("opacity", 0);	
-      });
+    .attr("x1", xScale(quantile_x))
+    .attr("y1", yScale(y_axis[0]))
+    .attr("x2", xScale(quantile_x))
+    .attr("y2", yScale(y_axis[1]))
+    .attr("id", function (d) { return "x_quartile";})
+    .attr("stroke", "black")
+    .style("stroke-dasharray", ("10, 5"))
+    .style("opacity", 0.5)
+    .on("mouseover", function(d) {	
+      div.transition()		
+         .duration(100)		
+         .style("opacity", .9);		
+      div.html("X quartile = " + formatComma( quantile_x) )	
+         .style("left", (d3.event.pageX) + "px")		
+         .style("top", (d3.event.pageY) + "px");
+    })					
+    .on("mouseout", function(d) {		
+      div.transition()		
+         .duration(1000)		
+         .style("opacity", 0);	
+    });
+
+  svg.append("line")
+    .attr("x1", xScale(x_axis[0]))
+    .attr("y1", yScale(quantile_y))
+    .attr("x2", xScale(x_axis[1]))
+    .attr("y2", yScale(quantile_y))
+    .attr("id", function (d) { return "y_quartile";})
+    .attr("stroke", "black")
+    .style("stroke-dasharray", ("10, 5"))
+    .style("opacity", 0.5)
+    .on("mouseover", function(d) {	
+      div.transition()		
+         .duration(100)		
+         .style("opacity", .9);		
+      div	.html("Y quartile = " + formatComma(quantile_y) )	
+          .style("left", (d3.event.pageX) + "px")		
+          .style("top", (d3.event.pageY) + "px");
+    })					
+    .on("mouseout", function(d) {		
+      div.transition()		
+         .duration(1500)		
+         .style("opacity", 0);	
+    });
+
 };
 
 function get_diagonal_quartiles(data, svg, xScale, yScale, div, width, height, removed_tools) {
-  // remove from the data array the participants that the user has hidden (removed_tools)
-  // create a new array where the tools that have not been hidden will be stored
-  let tools_not_hidden = [];
-  data.forEach(element => {
-    let index = $.inArray(element.toolname, removed_tools);
-    if (index == -1){
-      tools_not_hidden.push(element);
-    }
-  });
-  // console.log(tools_not_hidden, removed_tools);
-  // compute the quartiles over the new seet of data
+
+  var tools_not_hidden = remove_hidden_tools(data, removed_tools);
+
   var x_values = tools_not_hidden.map(a => a.x);
   var y_values = tools_not_hidden.map(a => a.y);
+
   // get distance to lowest score corner
 
-    // normalize data to 0-1 range
-    var normalized_values = normalize_data(x_values, y_values);
-    var [x_norm, y_norm] = [normalized_values[0], normalized_values[1]];
-    
-    var max_x = Math.max.apply(null, x_values);
-    var max_y = Math.max.apply(null, y_values);
-    // # compute the scores for each of the tool. based on their distance to the x and y axis
-    var scores = []
-    var better = "bottom-right";
-    // var scores_coords = []; //this object will store the scores and the coordinates
-    // for (var i = 0; i < x_norm.length; i++) {
-    //     if (better == "bottom-right"){
-    //         scores.push(x_norm[i] + (1 - y_norm[i]));
-    //         scores_coords.push([x_norm[i] + (1 - y_norm[i]), x_values[i], y_values[i]]);
-    //     } else if (better == "top-right"){
-    //         scores.push(x_norm[i] + y_norm[i]);
-    //         scores_coords.push([x_norm[i] + y_norm[i], x_values[i], y_values[i]]);
-    //     };
-    // };
+  // normalize data to 0-1 range
+  var normalized_values = normalize_data(x_values, y_values);
+  var [x_norm, y_norm] = [normalized_values[0], normalized_values[1]];
   
-    var scores_coords = {}; //this object will store the scores and the coordinates
-    for (var i = 0; i < x_norm.length; i++) {
-        if (better == "bottom-right"){
-            scores.push(x_norm[i] + (1 - y_norm[i]));
-            scores_coords[x_norm[i] + (1 - y_norm[i])] =  [x_values[i], y_values[i]];
-        } else if (better == "top-right"){
-            scores.push(x_norm[i] + y_norm[i]);
-            scores_coords[x_norm[i] + y_norm[i]] = [x_values[i], y_values[i]];
-        };
+  var max_x = Math.max.apply(null, x_values);
+  var max_y = Math.max.apply(null, y_values);
+
+  // # compute the scores for each of the tool. based on their distance to the x and y axis
+  var scores = []
+  var better = "bottom-right";
+  var scores_coords = {}; //this object will store the scores and the coordinates
+  for (var i = 0; i < x_norm.length; i++) {
+
+    if (better == "bottom-right"){
+      scores.push(x_norm[i] + (1 - y_norm[i]));
+      scores_coords[x_norm[i] + (1 - y_norm[i])] =  [x_values[i], y_values[i]];
+    } 
+    else if (better == "top-right"){
+      scores.push(x_norm[i] + y_norm[i]);
+      scores_coords[x_norm[i] + y_norm[i]] = [x_values[i], y_values[i]];
     };
 
-    // sort the scores together with coords
+  };
 
-    // sort the scores and compute quartiles
+  // sort the scores and compute quartiles
   scores.sort(function(a, b){return b-a});
+
   var first_quartile = d3.quantile(scores, 0.25);
   var second_quartile = d3.quantile(scores, 0.5);
   var third_quartile = d3.quantile(scores, 0.75);
-  
-  // console.log (first_quartile, second_quartile, third_quartile, scores);
-  // console.log(first_quartile, second_quartile, third_quartile);
+
+  // compute the diagonal line coords
   var coords = [get_diagonal_line(scores, scores_coords, first_quartile, better, max_x, max_y), 
-    get_diagonal_line(scores, scores_coords, second_quartile, better, max_x, max_y), 
-    get_diagonal_line(scores, scores_coords, third_quartile, better, max_x, max_y)];
+                get_diagonal_line(scores, scores_coords, second_quartile, better, max_x, max_y), 
+                get_diagonal_line(scores, scores_coords, third_quartile, better, max_x, max_y)
+              ];
   
-
-  
-
-
-
-  // var svg = d3.select(".plot-bg").append("line")
-
+  // append the 3 lines to the svg
   var index = 0;
-  var min_x = 4000;
-  var min_y = 0.035;
+
   coords.forEach(line => {
     var [x_coords, y_coords] = [line[0], line[1]];
     svg.append("line")
-          .attr("clip-path","url(#clip)")
-          .attr("x1", xScale(x_coords[0]))
-          .attr("y1", yScale(y_coords[0]))
-          .attr("x2", xScale(x_coords[1]))
-          .attr("y2", yScale(y_coords[1]))  
-          .attr("id", function (d) { return "diag_quartile_" + index;})
-          .attr("stroke", "red")
-          .style("stroke-dasharray", ("10, 5"))
-          .style("opacity", 0.5);
+       .attr("clip-path","url(#clip)")
+       .attr("x1", xScale(x_coords[0]))
+       .attr("y1", yScale(y_coords[0]))
+       .attr("x2", xScale(x_coords[1]))
+       .attr("y2", yScale(y_coords[1]))  
+       .attr("id", function (d) { return "diag_quartile_" + index;})
+       .attr("stroke", "red")
+       .style("stroke-dasharray", ("10, 5"))
+       .style("opacity", 0.5);
 
     svg.append("clipPath")
-      .attr("id", "clip")
-      .append("rect")
-      .attr("width", width)
-      .attr("height", height);
+       .attr("id", "clip")
+       .append("rect")
+       .attr("width", width)
+       .attr("height", height);
 
     index += 1;
   });
@@ -539,7 +578,22 @@ function get_diagonal_line(scores, scores_coords, quartile, better, max_x, max_y
 
   return [x_coords, y_coords];
 };
-  
+
+function remove_hidden_tools(data, removed_tools){
+  // remove from the data array the participants that the user has hidden (removed_tools)
+  // create a new array where the tools that have not been hidden will be stored
+  let tools_not_hidden = [];
+  data.forEach(element => {
+    let index = $.inArray(element.toolname, removed_tools);
+    if (index == -1){
+      tools_not_hidden.push(element);
+    }
+  });
+
+  return tools_not_hidden;
+
+};
+
 loadurl ();
 
   
