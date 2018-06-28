@@ -46,7 +46,7 @@ var mainxscale,mainyscale,maindiv,mainwidth,mainheight,mainremovedtools;
 
 var input = $('<input onclick="createChart(maindata)" type="checkbox" id="id1" name="squares" value="squares" checked> SQUARE QUARTILES<br><input onclick="createChart(maindata)" type="checkbox" id="id2" name="diagonal" value="diagonal"> DIAGONAL QUARTILES<br>');
 input.appendTo($("#plot"));
-$( "#plot" ).css( "border", "3px solid red" );
+$( "#plot" ).css( "border", "3px solid black" );
 
 function get_data(urls){
   Promise.all(urls.map(url =>
@@ -70,19 +70,19 @@ function get_data(urls){
   maindata = full_json;
   createChart(full_json);    
  }
- function compute_classification(data, svg, xScale, yScale, div, width, height, []) {
+ function compute_classification(data, svg, xScale, yScale, div, width, height, mainremovedtools) {
   console.log(data);
 
   if (document.getElementById("id1").checked == true && document.getElementById("id2").checked != true) {
     console.log("a")
     // get_diagonal_quartiles(data, svg, xScale, yScale, div, width, height, []);
-    get_square_quartiles(data, svg, xScale, yScale, div, []);
+    get_square_quartiles(data, svg, xScale, yScale, div, mainremovedtools);
   }  else if (document.getElementById("id1").checked != true && document.getElementById("id2").checked == true) {
     console.log("b")
-     get_diagonal_quartiles(data, svg, xScale, yScale, div, width, height, []);
+     get_diagonal_quartiles(data, svg, xScale, yScale, div, width, height, mainremovedtools);
     } else if (document.getElementById("id1").checked == true && document.getElementById("id2").checked == true){
-      get_square_quartiles(data, svg, xScale, yScale, div, []);
-      get_diagonal_quartiles(data, svg, xScale, yScale, div, width, height, []);
+      get_square_quartiles(data, svg, xScale, yScale, div, mainremovedtools);
+      get_diagonal_quartiles(data, svg, xScale, yScale, div, width, height, mainremovedtools);
     }
   // }else if(document.getElementById("id1").checked == true){
   //   get_square_quartiles(data, svg, xScale, yScale, div, []);
@@ -289,8 +289,7 @@ createChart = function (data){
       // recalculate the quartiles after removing the tools
       let index = $.inArray(ID, removed_tools);
       removed_tools.splice(index, 1);
-      get_square_quartiles(data, svg, xScale, yScale, div, removed_tools);
-      get_diagonal_quartiles(data, svg, xScale, yScale, div, width, height, removed_tools);
+      compute_classification(data, svg, xScale, yScale, div, width, height, removed_tools);
       //change the legend opacity to keep track of hidden tools
       d3.select(this).style("opacity", 1);
       d3.select("text#" +d.replace(/[\. ()/-]/g, "_")).style("opacity", 1);
@@ -301,8 +300,7 @@ createChart = function (data){
       d3.select("#bottom"+ID).style("opacity", 0);
       d3.select("#line"+ID).style("opacity", 0);
       removed_tools.push(ID.replace(/_/g, "-"));
-      get_square_quartiles(data, svg, xScale, yScale, div, removed_tools);
-      get_diagonal_quartiles(data, svg, xScale, yScale, div, width, height, removed_tools);
+      compute_classification(data, svg, xScale, yScale, div, width, height, removed_tools);
       //change the legend opacity to keep track of hidden tools
       d3.select(this).style("opacity", 0.2);
       d3.select("text#" +d.replace(/[\. ()/-]/g, "_")).style("opacity", 0.2);
@@ -330,7 +328,7 @@ createChart = function (data){
   var mainwidth = width;
   var mainheight = height;
 
-  compute_classification(data, svg, xScale, yScale, div, width, height, []);
+  compute_classification(data, svg, xScale, yScale, div, width, height, removed_tools);
 };
 
 
