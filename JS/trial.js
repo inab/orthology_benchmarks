@@ -141,15 +141,21 @@ createChart = function (data){
 
   let removed_tools = []; // this array stores the tools when the user clicks on them
 
-  append_dots_errobars_legend (svg, data, xScale, yScale, div, width, height, removed_tools);
+   // setup fill color
+  var cValue_func = function(d) {
+    return d.toolname;
+  },
+  color_func = d3.scaleOrdinal(d3.schemeCategory20);
 
-  // draw_legend (data, svg, xScale, yScale, div, width, height, removed_tools);
+  append_dots_errobars (svg, data, xScale, yScale, div, cValue_func, color_func);
+
+  draw_legend (data, svg, xScale, yScale, div, width, height, removed_tools, color_func, color_func.domain());
 
   compute_classification(data, svg, xScale, yScale, div, width, height, removed_tools);
 
 };
 
-function append_dots_errobars_legend (svg, data, xScale, yScale, div, width, height, removed_tools){
+function append_dots_errobars (svg, data, xScale, yScale, div, cValue, color){
 
   // Add Error Line
   svg.append("g").selectAll("line")
@@ -210,11 +216,6 @@ function append_dots_errobars_legend (svg, data, xScale, yScale, div, width, hei
 
   // add dots
   var symbol = d3.symbol();
-  // setup fill color
-  var cValue = function(d) {
-    return d.toolname;
-  },
-  color = d3.scaleOrdinal(d3.schemeCategory20);
 
   var formatComma = d3.format(",");
   var formatDecimal = d3.format(".4f");
@@ -245,157 +246,79 @@ function append_dots_errobars_legend (svg, data, xScale, yScale, div, width, hei
         .duration(1500)		
         .style("opacity", 0);	
     });
-
-    // --------------------------------------- 
-    //									LEGENDE
-    // ---------------------------------------
-
-    var legend = svg.selectAll(".legend")
-      .data(color.domain())
-      .enter().append("g")
-      .attr("class", "legend")
-      .attr("transform", function(d, i) {
-        return "translate(0," + i * 20 + ")";
-      });
-
     
-
-    // draw legend colored rectangles
-    legend.append("rect")
-          .attr("x", width + 18)
-          .attr("width", 18)
-          .attr("height", 18)
-          .style("fill", color)
-          .on('click', function(d) {
-
-            svg.selectAll("#x_quartile").remove();
-            svg.selectAll("#y_quartile").remove();
-            svg.selectAll("#diag_quartile_0").remove();
-            svg.selectAll("#diag_quartile_1").remove();
-            svg.selectAll("#diag_quartile_2").remove();
-            dot = d3.select("text#" +d.replace(/[\. ()/-]/g, "_"))
-            var ID = dot._groups[0][0].id
-
-            var blockopacity = d3.select("#"+ID).style("opacity");
-            var topopacity = d3.select("#top"+ID).style("opacity");
-            var bottomopacity = d3.select("#bottom"+ID).style("opacity");
-            var lineopacity =  d3.select("#line"+ID).style("opacity");
-
-            if (blockopacity == 0) {
-              d3.select("#"+ID).style("opacity", 1);
-              d3.select("#top"+ID).style("opacity", 1);
-              d3.select("#bottom"+ID).style("opacity", 1);
-              d3.select("#line"+ID).style("opacity", 1);
-              // recalculate the quartiles after removing the tools
-              let index = $.inArray(ID, removed_tools);
-              removed_tools.splice(index, 1);
-              compute_classification(data, svg, xScale, yScale, div, width, height, removed_tools);
-              //change the legend opacity to keep track of hidden tools
-              d3.select(this).style("opacity", 1);
-              d3.select("text#" +d.replace(/[\. ()/-]/g, "_")).style("opacity", 1);
-
-            } else {
-              d3.select("#"+ID).style("opacity", 0);
-              d3.select("#top"+ID).style("opacity", 0);
-              d3.select("#bottom"+ID).style("opacity", 0);
-              d3.select("#line"+ID).style("opacity", 0);
-              removed_tools.push(ID.replace(/_/g, "-"));
-              compute_classification(data, svg, xScale, yScale, div, width, height, removed_tools);
-              //change the legend opacity to keep track of hidden tools
-              d3.select(this).style("opacity", 0.2);
-              d3.select("text#" +d.replace(/[\. ()/-]/g, "_")).style("opacity", 0.2);
-            }
-              
-          });
-
-
-
-    // draw legend text
-    legend.append("text")
-          .attr("x", width + 40)
-          .attr("y", 9)
-          .attr("id", function (d) { return d.replace(/[\. ()/-]/g, "_");})
-          .attr("dy", ".35em")
-          .style("text-anchor", "start")
-          .text(function(d) {
-            return d;
-          });
-
-
 };
 
-function draw_legend (data, svg, xScale, yScale, div, width, height, removed_tools) {
-
-    var legend = svg.selectAll(".legend")
-      .data(color.domain())
-      .enter().append("g")
-      .attr("class", "legend")
-      .attr("transform", function(d, i) {
-        return "translate(0," + i * 20 + ")";
-      });
-
+function draw_legend (data, svg, xScale, yScale, div, width, height, removed_tools, color, color_domain) {
     
+  var legend = svg.selectAll(".legend")
+    .data(color_domain)
+    .enter().append("g")
+    .attr("class", "legend")
+    .attr("transform", function(d, i) {
+      return "translate(0," + i * 20 + ")";
+    });
 
-    // draw legend colored rectangles
-    legend.append("rect")
-          .attr("x", width + 18)
-          .attr("width", 18)
-          .attr("height", 18)
-          .style("fill", color)
-          .on('click', function(d) {
+  // draw legend colored rectangles
+  legend.append("rect")
+        .attr("x", width + 18)
+        .attr("width", 18)
+        .attr("height", 18)
+        .style("fill", color)
+        .on('click', function(d) {
 
-            svg.selectAll("#x_quartile").remove();
-            svg.selectAll("#y_quartile").remove();
-            svg.selectAll("#diag_quartile_0").remove();
-            svg.selectAll("#diag_quartile_1").remove();
-            svg.selectAll("#diag_quartile_2").remove();
-            dot = d3.select("text#" +d.replace(/[\. ()/-]/g, "_"))
-            var ID = dot._groups[0][0].id
+          svg.selectAll("#x_quartile").remove();
+          svg.selectAll("#y_quartile").remove();
+          svg.selectAll("#diag_quartile_0").remove();
+          svg.selectAll("#diag_quartile_1").remove();
+          svg.selectAll("#diag_quartile_2").remove();
+          dot = d3.select("text#" +d.replace(/[\. ()/-]/g, "_"))
+          var ID = dot._groups[0][0].id
 
-            var blockopacity = d3.select("#"+ID).style("opacity");
-            var topopacity = d3.select("#top"+ID).style("opacity");
-            var bottomopacity = d3.select("#bottom"+ID).style("opacity");
-            var lineopacity =  d3.select("#line"+ID).style("opacity");
+          var blockopacity = d3.select("#"+ID).style("opacity");
+          var topopacity = d3.select("#top"+ID).style("opacity");
+          var bottomopacity = d3.select("#bottom"+ID).style("opacity");
+          var lineopacity =  d3.select("#line"+ID).style("opacity");
 
-            if (blockopacity == 0) {
-              d3.select("#"+ID).style("opacity", 1);
-              d3.select("#top"+ID).style("opacity", 1);
-              d3.select("#bottom"+ID).style("opacity", 1);
-              d3.select("#line"+ID).style("opacity", 1);
-              // recalculate the quartiles after removing the tools
-              let index = $.inArray(ID, removed_tools);
-              removed_tools.splice(index, 1);
-              compute_classification(data, svg, xScale, yScale, div, width, height, removed_tools);
-              //change the legend opacity to keep track of hidden tools
-              d3.select(this).style("opacity", 1);
-              d3.select("text#" +d.replace(/[\. ()/-]/g, "_")).style("opacity", 1);
+          if (blockopacity == 0) {
+            d3.select("#"+ID).style("opacity", 1);
+            d3.select("#top"+ID).style("opacity", 1);
+            d3.select("#bottom"+ID).style("opacity", 1);
+            d3.select("#line"+ID).style("opacity", 1);
+            // recalculate the quartiles after removing the tools
+            let index = $.inArray(ID, removed_tools);
+            removed_tools.splice(index, 1);
+            compute_classification(data, svg, xScale, yScale, div, width, height, removed_tools);
+            //change the legend opacity to keep track of hidden tools
+            d3.select(this).style("opacity", 1);
+            d3.select("text#" +d.replace(/[\. ()/-]/g, "_")).style("opacity", 1);
 
-            } else {
-              d3.select("#"+ID).style("opacity", 0);
-              d3.select("#top"+ID).style("opacity", 0);
-              d3.select("#bottom"+ID).style("opacity", 0);
-              d3.select("#line"+ID).style("opacity", 0);
-              removed_tools.push(ID.replace(/_/g, "-"));
-              compute_classification(data, svg, xScale, yScale, div, width, height, removed_tools);
-              //change the legend opacity to keep track of hidden tools
-              d3.select(this).style("opacity", 0.2);
-              d3.select("text#" +d.replace(/[\. ()/-]/g, "_")).style("opacity", 0.2);
-            }
-              
-          });
+          } else {
+            d3.select("#"+ID).style("opacity", 0);
+            d3.select("#top"+ID).style("opacity", 0);
+            d3.select("#bottom"+ID).style("opacity", 0);
+            d3.select("#line"+ID).style("opacity", 0);
+            removed_tools.push(ID.replace(/_/g, "-"));
+            compute_classification(data, svg, xScale, yScale, div, width, height, removed_tools);
+            //change the legend opacity to keep track of hidden tools
+            d3.select(this).style("opacity", 0.2);
+            d3.select("text#" +d.replace(/[\. ()/-]/g, "_")).style("opacity", 0.2);
+          }
+            
+        });
 
 
 
-    // draw legend text
-    legend.append("text")
-          .attr("x", width + 40)
-          .attr("y", 9)
-          .attr("id", function (d) { return d.replace(/[\. ()/-]/g, "_");})
-          .attr("dy", ".35em")
-          .style("text-anchor", "start")
-          .text(function(d) {
-            return d;
-          });
+  // draw legend text
+  legend.append("text")
+        .attr("x", width + 40)
+        .attr("y", 9)
+        .attr("id", function (d) { return d.replace(/[\. ()/-]/g, "_");})
+        .attr("dy", ".35em")
+        .style("text-anchor", "start")
+        .text(function(d) {
+          return d;
+        });
 
 };
 
