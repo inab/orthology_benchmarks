@@ -96,7 +96,7 @@ createChart = function (data){
   // .attr("class", "tooltip")
   // .style("visibility", "hidden");
 
-  var margin = {top: 20, right: 200, bottom: 30, left: 40},
+  var margin = {top: 20, right: 200, bottom: 100, left: 40},
     width = 1200 - margin.left - margin.right,
     height = 500 - margin.top - margin.bottom;
 
@@ -155,7 +155,7 @@ createChart = function (data){
 
   append_dots_errobars (svg, data, xScale, yScale, div, cValue_func, color_func);
 
-  draw_legend (data, svg, xScale, yScale, div, width, height, removed_tools, color_func, color_func.domain());
+  draw_legend (data, svg, xScale, yScale, div, width, height, removed_tools, color_func, color_func.domain(), margin);
 
   compute_classification(data, svg, xScale, yScale, div, width, height, removed_tools);
 
@@ -259,16 +259,17 @@ function append_dots_errobars (svg, data, xScale, yScale, div, cValue, color){
     
 };
 
-function draw_legend (data, svg, xScale, yScale, div, width, height, removed_tools, color, color_domain) {
-    
+function draw_legend (data, svg, xScale, yScale, div, width, height, removed_tools, color, color_domain, margin) {
+
+  //set number of elements per legend row
+  var n = 5;
+
   var legend = svg.selectAll(".legend")
     .data(color_domain)
     .enter().append("g")
     .attr("class", "legend")
-    .attr("transform", function(d, i) {
-      return "translate(0," + i * 20 + ")";
-    });
-
+    .attr("transform", function(d, i) { return "translate(" + (-width+i%n*200) + "," + (height + 40 + Math.floor(i/n) * 20) + ")"; });
+  
   // draw legend colored rectangles
   legend.append("rect")
         .attr("x", width + 18)
