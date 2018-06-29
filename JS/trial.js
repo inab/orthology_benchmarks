@@ -53,9 +53,10 @@ function get_data(urls){
   )).then(results => {
     join_all_json(results)
   })
- };
+};
  
- function join_all_json(array){
+function join_all_json(array){
+
   let full_json  = [];
   for (var i = 0; i < array.length; i++) {
       let jo = {};
@@ -66,29 +67,34 @@ function get_data(urls){
       full_json.push(jo);    
   }
   maindata = full_json;
-  createChart(full_json);    
- }
+  createChart(full_json);
+    
+}
 
- function compute_classification(data, svg, xScale, yScale, div, width, height, removed_tools) {
+function compute_classification(data, svg, xScale, yScale, div, width, height, removed_tools) {
 
   if (document.getElementById("id1").checked == true && document.getElementById("id2").checked != true) {
 
     get_square_quartiles(data, svg, xScale, yScale, div, removed_tools);
-  }  else if (document.getElementById("id1").checked != true && document.getElementById("id2").checked == true) {
-     get_diagonal_quartiles(data, svg, xScale, yScale, div, width, height, removed_tools);
-    } else if (document.getElementById("id1").checked == true && document.getElementById("id2").checked == true){
-      get_square_quartiles(data, svg, xScale, yScale, div, removed_tools);
-      get_diagonal_quartiles(data, svg, xScale, yScale, div, width, height, removed_tools);
-    }
-  
+  }  
+  else if (document.getElementById("id1").checked != true && document.getElementById("id2").checked == true) {
+
+    get_diagonal_quartiles(data, svg, xScale, yScale, div, width, height, removed_tools);
+  } 
+  else if (document.getElementById("id1").checked == true && document.getElementById("id2").checked == true){
+
+    get_square_quartiles(data, svg, xScale, yScale, div, removed_tools);
+    get_diagonal_quartiles(data, svg, xScale, yScale, div, width, height, removed_tools);
   }
+  
+}
   
 createChart = function (data){
 
   // define chart paramters
-  var tooltip = d3.select("body").append("div")
-  .attr("class", "tooltip")
-  .style("visibility", "hidden");
+  // var tooltip = d3.select("body").append("div")
+  // .attr("class", "tooltip")
+  // .style("visibility", "hidden");
 
   var margin = {top: 20, right: 200, bottom: 30, left: 40},
     width = 1200 - margin.left - margin.right,
@@ -117,10 +123,10 @@ createChart = function (data){
     });
 
   // Define the div for the tooltip
-  var div = d3.select("body").append("div")	
+  var div = d3.select("body").append("div")
     .attr("class", "tooltip")				
     .style("opacity", 0);
-
+    
   // append the svg element
   d3.select("svg").remove();
 
@@ -226,26 +232,30 @@ function append_dots_errobars (svg, data, xScale, yScale, div, cValue, color){
     .append("path");
     
   dots.attr("d", symbol.type(function(){return d3.symbolSquare}))
-    .attr("id", function (d) {  return d.toolname.replace(/[\. ()/-]/g, "_");})
-    .attr("class","line")
-    .attr('transform',function(d){ return "translate("+xScale(d.x)+","+yScale(d.y)+")"; })
-    .attr("r", 6)
-    .style("fill", function(d) {
-      return color(cValue(d));
-    })
-    .on("mouseover", function(d) {	
-      div.transition()		
-        .duration(100)		
-        .style("opacity", .9);		
-      div.html(d.toolname + "<br/>"  + formatComma(d.x) + "<br/>"  + formatDecimal(d.y))	
-        .style("left", (d3.event.pageX) + "px")		
-        .style("top", (d3.event.pageY) + "px");
-    })					
-    .on("mouseout", function(d) {		
-      div.transition()		
-        .duration(1500)		
-        .style("opacity", 0);	
-    });
+      .attr("id", function (d) {  return d.toolname.replace(/[\. ()/-]/g, "_");})
+      .attr("class","line")
+      .attr('transform',function(d){ return "translate("+xScale(d.x)+","+yScale(d.y)+")"; })
+      .attr("r", 6)
+      .style("fill", function(d) {
+        return color(cValue(d));
+      })
+      .on("mouseover", function(d) {
+        // show tooltip only if the tool is visible
+        var ID = d.toolname.replace(/[\. ()/-]/g, "_");
+        if (d3.select("#"+ID).style("opacity") == 1) {
+          div.transition()		
+              .duration(100)		
+              .style("opacity", .9);		
+          div.html(d.toolname + "<br/>"  + formatComma(d.x) + "<br/>"  + formatDecimal(d.y))	
+              .style("left", (d3.event.pageX) + "px")		
+              .style("top", (d3.event.pageY) + "px");
+        }
+      })					
+      .on("mouseout", function(d) {		
+        div.transition()		
+          .duration(1500)		
+          .style("opacity", 0);	
+      });
     
 };
 
@@ -266,7 +276,7 @@ function draw_legend (data, svg, xScale, yScale, div, width, height, removed_too
         .attr("height", 18)
         .style("fill", color)
         .on('click', function(d) {
-
+          // remove the existing classification lines (if any)
           svg.selectAll("#x_quartile").remove();
           svg.selectAll("#y_quartile").remove();
           svg.selectAll("#diag_quartile_0").remove();
@@ -279,7 +289,8 @@ function draw_legend (data, svg, xScale, yScale, div, width, height, removed_too
           var topopacity = d3.select("#top"+ID).style("opacity");
           var bottomopacity = d3.select("#bottom"+ID).style("opacity");
           var lineopacity =  d3.select("#line"+ID).style("opacity");
-
+          
+          // change the opacity to 0 or 1 depending on the current state
           if (blockopacity == 0) {
             d3.select("#"+ID).style("opacity", 1);
             d3.select("#top"+ID).style("opacity", 1);
