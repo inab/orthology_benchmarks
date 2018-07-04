@@ -778,8 +778,8 @@ if __name__ == "__main__":
                              box.width, box.height * 0.75])
 
             # Put a legend below current axis
-            plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.12), markerscale=0.7,
-                       fancybox=True, shadow=True, ncol=5, prop={'size': 9})
+            plt.legend(loc='upper center', bbox_to_anchor=(0.7, -0.12), markerscale=0.7,
+                       fancybox=True, shadow=True, ncol=5, prop={'size': 12})
 
             # get which corner of the plot corresponds to better performance (depending on tool)
             if method == "STD" or method == "Generalized_STD":
@@ -802,19 +802,19 @@ if __name__ == "__main__":
                 ax.get_yaxis().set_major_formatter(plt.FuncFormatter(lambda y, loc: "{:,}".format(int(y))))
 
             # get pareto frontier and plot
-            p_frontX, p_frontY = pareto_frontier(x_values, means, maxX=max_x, maxY=max_y)
-            plt.plot(p_frontX, p_frontY, linestyle='--', color='grey', linewidth=1)
-            # append edges to pareto frontier
-            if better == 'bottom-right':
-                left_edge = [[x_lims[0], p_frontX[-1]], [p_frontY[-1], p_frontY[-1]]]
-                right_edge = [[p_frontX[0], p_frontX[0]], [p_frontY[0], y_lims[1]]]
-                plt.plot(left_edge[0], left_edge[1], right_edge[0], right_edge[1], linestyle='--', color='red',
-                         linewidth=1)
-            elif better == 'top-right':
-                left_edge = [[x_lims[0], p_frontX[-1]], [p_frontY[-1], p_frontY[-1]]]
-                right_edge = [[p_frontX[0], p_frontX[0]], [p_frontY[0], y_lims[0]]]
-                plt.plot(left_edge[0], left_edge[1], right_edge[0], right_edge[1], linestyle='--', color='red',
-                         linewidth=1)
+            # p_frontX, p_frontY = pareto_frontier(x_values, means, maxX=max_x, maxY=max_y)
+            # plt.plot(p_frontX, p_frontY, linestyle='--', color='grey', linewidth=1)
+            # # append edges to pareto frontier
+            # if better == 'bottom-right':
+            #     left_edge = [[x_lims[0], p_frontX[-1]], [p_frontY[-1], p_frontY[-1]]]
+            #     right_edge = [[p_frontX[0], p_frontX[0]], [p_frontY[0], y_lims[1]]]
+            #     plt.plot(left_edge[0], left_edge[1], right_edge[0], right_edge[1], linestyle='--', color='red',
+            #              linewidth=1)
+            # elif better == 'top-right':
+            #     left_edge = [[x_lims[0], p_frontX[-1]], [p_frontY[-1], p_frontY[-1]]]
+            #     right_edge = [[p_frontX[0], p_frontX[0]], [p_frontY[0], y_lims[0]]]
+            #     plt.plot(left_edge[0], left_edge[1], right_edge[0], right_edge[1], linestyle='--', color='red',
+            #              linewidth=1)
 
             # add 'better' annotation and quartile numbers to plot
             if better == 'bottom-right':

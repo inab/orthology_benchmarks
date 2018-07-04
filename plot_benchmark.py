@@ -768,12 +768,12 @@ if __name__ == "__main__":
                 # marker_style = markers[random.randint(0, len(markers) - 1)]
                 if not errors_x:
                     ax.errorbar(x_values[i], means[i], errors[i], linestyle='None', marker=markers[i],
-                                markersize='8', markerfacecolor=colors[i], markeredgecolor=colors[i], capsize=4,
+                                markersize='10', markerfacecolor=colors[i], markeredgecolor=colors[i], capsize=6,
                                 ecolor=colors[i], label=tools[i])
 
                 else:
                     ax.errorbar(x_values[i], means[i], errors_x[i], errors[i], linestyle='None', marker=markers[i],
-                                markersize='8', markerfacecolor=colors[i], markeredgecolor=colors[i], capsize=4,
+                                markersize='10', markerfacecolor=colors[i], markeredgecolor=colors[i], capsize=6,
                                 ecolor=colors[i], label=tools[i])
 
             # change plot style
@@ -812,7 +812,7 @@ if __name__ == "__main__":
 
             # Put a legend below current axis
             plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.12), markerscale=0.7,
-                       fancybox=True, shadow=True, ncol=5, prop={'size': 9})
+                       fancybox=True, shadow=True, ncol=5, prop={'size': 12})
 
             # get which corner of the plot corresponds to better performance (depending on tool)
             if method == "STD" or method == "Generalized_STD":

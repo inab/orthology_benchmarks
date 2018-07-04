@@ -223,17 +223,17 @@ def plot_diagonal_quartiles(x_values, means, tools, better):
         elif better == "top-right":
             scores.append(x_norm[i] + means_norm[i])
 
-    # add plot annotation boxes with info about scores and tool names
-    for counter, scr in enumerate(scores):
-        plt.annotate(
-            tools[counter] + "\n",
-            # str(round(x_norm[counter], 6)) + " * " + str(round(1 - means_norm[counter], 6)) + " = " + str(round(scr, 8)),
-            # "score = " + str(round(scr, 3)),
-            xy=(x_values[counter], means[counter]), xytext=(0, 20),
-            textcoords='offset points', ha='right', va='bottom',
-            bbox=dict(boxstyle='round,pad=0.5', fc='yellow', alpha=0.15),
-            size=7,
-            arrowprops=dict(arrowstyle='->', connectionstyle='arc3,rad=0'))
+    # # add plot annotation boxes with info about scores and tool names
+    # for counter, scr in enumerate(scores):
+    #     plt.annotate(
+    #         tools[counter] + "\n",
+    #         # str(round(x_norm[counter], 6)) + " * " + str(round(1 - means_norm[counter], 6)) + " = " + str(round(scr, 8)),
+    #         # "score = " + str(round(scr, 3)),
+    #         xy=(x_values[counter], means[counter]), xytext=(0, 20),
+    #         textcoords='offset points', ha='right', va='bottom',
+    #         bbox=dict(boxstyle='round,pad=0.5', fc='yellow', alpha=0.15),
+    #         size=7,
+    #         arrowprops=dict(arrowstyle='->', connectionstyle='arc3,rad=0'))
 
     # region sort the list in descending order
     scores_and_values = sorted([[scores[i], x_values[i], means[i], tools[i]] for i, val in enumerate(scores, 0)],
@@ -300,7 +300,7 @@ def print_quartiles_table(tools_quartiles_squares, tools_quartiles_diagonal, too
                           cellColours=colors,
                           colColours=['#ffffff'] * 2)
     the_table.auto_set_font_size(False)
-    the_table.set_fontsize(8)
+    the_table.set_fontsize(12)
     plt.subplots_adjust(right=0.65, bottom=0.2)
 
 
@@ -399,7 +399,9 @@ def print_full_table(quartiles_table):
     method_names = sorted(quartiles_table.iterkeys())
     for i, val in enumerate(method_names):
         method_names[i] = method_names[i].replace("_", "\n")
-    method_names = ["TOOL / BENCHMARKING METHOD -->"] + method_names
+        method_names[i] = method_names[i].replace("Generalized\nSTD", "G-STD")
+        method_names[i] = method_names[i].replace("\ntest", "")
+    method_names = ["TOOL / BENCH. METHOD -->"] + method_names
     method_names.append("# RANKING #")
     header_text = ["SQUARE QUARTILES CLASSIFICATION RESULTS"]
     header = plt.table(cellText=[[''] * 1],
@@ -411,7 +413,7 @@ def print_full_table(quartiles_table):
                        colColours=['#ffffff'] * 1
                        )
     header.auto_set_font_size(False)
-    header.set_fontsize(12)
+    header.set_fontsize(11)
     the_table = ax.table(cellText=vals,
                          colLabels=method_names,
                          cellLoc='center',
@@ -422,7 +424,7 @@ def print_full_table(quartiles_table):
                          colColours=['#ffffff'] * len(df.columns))
     fig.tight_layout()
     the_table.auto_set_font_size(False)
-    the_table.set_fontsize(9)
+    the_table.set_fontsize(12)
     the_table.scale(1, 1.5)
     plt.subplots_adjust(right=0.95, left=0.04, top=0.9, bottom=0.1)
      
@@ -733,12 +735,12 @@ if __name__ == "__main__":
                 # marker_style = markers[random.randint(0, len(markers) - 1)]
                 if not errors_x:
                     ax.errorbar(x_values[i], means[i], errors[i], linestyle='None', marker=markers[i],
-                                markersize='8', markerfacecolor=colors[i], markeredgecolor=colors[i], capsize=4,
+                                markersize='10', markerfacecolor=colors[i], markeredgecolor=colors[i], capsize=6,
                                 ecolor=colors[i], label=tools[i])
 
                 else:
                     ax.errorbar(x_values[i], means[i], errors_x[i], errors[i], linestyle='None', marker=markers[i],
-                                markersize='8', markerfacecolor=colors[i], markeredgecolor=colors[i], capsize=4,
+                                markersize='10', markerfacecolor=colors[i], markeredgecolor=colors[i], capsize=6,
                                 ecolor=colors[i], label=tools[i])
 
             # change plot style
@@ -776,8 +778,8 @@ if __name__ == "__main__":
                              box.width, box.height * 0.75])
 
             # Put a legend below current axis
-            plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.12), markerscale=0.7,
-                       fancybox=True, shadow=True, ncol=5, prop={'size': 9})
+            plt.legend(loc='upper center', bbox_to_anchor=(0.7, -0.12), markerscale=0.7,
+                       fancybox=True, shadow=True, ncol=5, prop={'size': 12})
 
             # get which corner of the plot corresponds to better performance (depending on tool)
             if method == "STD" or method == "Generalized_STD":
