@@ -1,41 +1,12 @@
 
 loadurl = function (){
-
-    // var urls = ["https://dev-openebench.bsc.es/api/scientific/Dataset/QfO:QfO4_STD_Fungi_EggNOG_output.json", 
-    //             "https://dev-openebench.bsc.es/api/scientific/Dataset/QfO:QfO4_STD_Fungi_RSD_output.json",
-    //             "https://dev-openebench.bsc.es/api/scientific/Dataset/QfO:QfO4_STD_Fungi_EnsemblCompara_output.json",
-    //             "https://dev-openebench.bsc.es/api/scientific/Dataset/QfO:QfO4_STD_Fungi_Hieranoid2_output.json",
-    //             "https://dev-openebench.bsc.es/api/scientific/Dataset/QfO:QfO4_STD_Fungi_InParanoid_output.json",
-    //             "https://dev-openebench.bsc.es/api/scientific/Dataset/QfO:QfO4_STD_Fungi_MetaPhOrs_output.json",
-    //             "https://dev-openebench.bsc.es/api/scientific/Dataset/QfO:QfO4_STD_Fungi_OMA-GETHOGs_output.json",
-    //             "https://dev-openebench.bsc.es/api/scientific/Dataset/QfO:QfO4_STD_Fungi_OMA-Groups_output.json",
-    //             "https://dev-openebench.bsc.es/api/scientific/Dataset/QfO:QfO4_STD_Fungi_OMA-Pairs_output.json",
-    //             "https://dev-openebench.bsc.es/api/scientific/Dataset/QfO:QfO4_STD_Fungi_Orthoinspector_output.json",
-    //             "https://dev-openebench.bsc.es/api/scientific/Dataset/QfO:QfO4_STD_Fungi_PANTHER-all_output.json",
-    //             "https://dev-openebench.bsc.es/api/scientific/Dataset/QfO:QfO4_STD_Fungi_PANTHER-LDO_output.json",
-    //             "https://dev-openebench.bsc.es/api/scientific/Dataset/QfO:QfO4_STD_Fungi_PhylomeDB_output.json",
-    //             "https://dev-openebench.bsc.es/api/scientific/Dataset/QfO:QfO4_STD_Fungi_RBH-BBH_output.json",
-    //             "https://dev-openebench.bsc.es/api/scientific/Dataset/QfO:QfO4_STD_Fungi_InParanoidCore_output.json"
-    //           ]
-    
-      var urls = ["https://dev-openebench.bsc.es/api/scientific/Dataset/QfO:QfO4_STD_Eukaryota_EggNOG_output.json", 
-              "https://dev-openebench.bsc.es/api/scientific/Dataset/QfO:QfO4_STD_Eukaryota_RSD_output.json",
-              "https://dev-openebench.bsc.es/api/scientific/Dataset/QfO:QfO4_STD_Eukaryota_EnsemblCompara_output.json",
-              "https://dev-openebench.bsc.es/api/scientific/Dataset/QfO:QfO4_STD_Eukaryota_Hieranoid2_output.json",
-              "https://dev-openebench.bsc.es/api/scientific/Dataset/QfO:QfO4_STD_Eukaryota_InParanoid_output.json",
-              "https://dev-openebench.bsc.es/api/scientific/Dataset/QfO:QfO4_STD_Eukaryota_MetaPhOrs_output.json",
-              "https://dev-openebench.bsc.es/api/scientific/Dataset/QfO:QfO4_STD_Eukaryota_OMA-GETHOGs_output.json",
-              "https://dev-openebench.bsc.es/api/scientific/Dataset/QfO:QfO4_STD_Eukaryota_OMA-Groups_output.json",
-              "https://dev-openebench.bsc.es/api/scientific/Dataset/QfO:QfO4_STD_Eukaryota_OMA-Pairs_output.json",
-              "https://dev-openebench.bsc.es/api/scientific/Dataset/QfO:QfO4_STD_Eukaryota_Orthoinspector_output.json",
-              "https://dev-openebench.bsc.es/api/scientific/Dataset/QfO:QfO4_STD_Eukaryota_PANTHER-all_output.json",
-              "https://dev-openebench.bsc.es/api/scientific/Dataset/QfO:QfO4_STD_Eukaryota_PANTHER-LDO_output.json",
-              "https://dev-openebench.bsc.es/api/scientific/Dataset/QfO:QfO4_STD_Eukaryota_PhylomeDB_output.json",
-              "https://dev-openebench.bsc.es/api/scientific/Dataset/QfO:QfO4_STD_Eukaryota_RBH-BBH_output.json",
-              "https://dev-openebench.bsc.es/api/scientific/Dataset/QfO:QfO4_STD_Eukaryota_InParanoidCore_output.json"
-            ]
-
-    get_data(urls);
+    var benchmarking_event = "QfO4_STD_Eukaryota";
+    // var benchmarking_event = "QfO4_STD_Fungi";
+    // var benchmarking_event = "QfO4_ECtest";
+    // var benchmarking_event = "QfO4_GOtest";
+    // var benchmarking_event = "QfO4_TreeFam-A";    
+    var url = "https://dev-openebench.bsc.es/api/scientific/Dataset/?query=" + benchmarking_event + "&fmt=json";
+    get_data(url);
   
        
 };
@@ -46,15 +17,27 @@ var input = $('<input onclick="createChart(maindata)" type="checkbox" id="id1" n
 input.appendTo($("#plot"));
 $( "#plot" ).css( "border", "3px solid black" );
 
-function get_data(urls){
-  Promise.all(urls.map(url =>
-    fetch(url)
-    .then(resp => resp.json())
-  )).then(results => {
-    join_all_json(results)
+function get_data(url){
+
+  fetchUrl(url).then(results => {
+    join_all_json(results.Dataset);
   })
+
 };
- 
+
+async function fetchUrl(url) {
+  try {
+
+    let request = await fetch(url);
+    let result = await request.text();
+      return JSON.parse(result);
+    }
+    catch (err) {
+      console.log(`Invalid Url Error: ${err.stack} `);
+    }
+
+}
+
 function join_all_json(array){
 
   let full_json  = [];
@@ -96,7 +79,7 @@ createChart = function (data){
   // .attr("class", "tooltip")
   // .style("visibility", "hidden");
 
-  var margin = {top: 20, right: 200, bottom: 100, left: 40},
+  var margin = {top: 20, right: 40, bottom: 80 + (data.length)/(16/17), left: 40},
     width = 1200 - margin.left - margin.right,
     height = 500 - margin.top - margin.bottom;
 
