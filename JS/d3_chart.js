@@ -53,21 +53,15 @@ function join_all_json(array){
 
 function compute_classification(data, svg, xScale, yScale, div, width, height, removed_tools) {
 
-  if (document.getElementById("id1").checked == true && document.getElementById("id2").checked != true) {
+  if (document.getElementById("id1").checked == true) {
 
     get_square_quartiles(data, svg, xScale, yScale, div, removed_tools);
     append_quartile_numbers_to_plot (svg, xScale, yScale, better);
   }  
-  else if (document.getElementById("id1").checked != true && document.getElementById("id2").checked == true) {
+  else if (document.getElementById("id2").checked == true) {
 
     get_diagonal_quartiles(data, svg, xScale, yScale, div, width, height, removed_tools, better);
   } 
-  else if (document.getElementById("id1").checked == true && document.getElementById("id2").checked == true){
-
-    get_square_quartiles(data, svg, xScale, yScale, div, removed_tools);
-    append_quartile_numbers_to_plot (svg, xScale, yScale, better);
-    get_diagonal_quartiles(data, svg, xScale, yScale, div, width, height, removed_tools, better);
-  }
   
 }
   
@@ -567,16 +561,31 @@ function remove_hidden_tools(data, removed_tools){
 
 };
 
+function uncheck (){
+  if (document.getElementById("id1").checked == true){
+    $( "#id1" ).prop( "checked", false );
+  }
+};
+
 var maindata;
 var better = "bottom-right";
 
-var input = $('<input onclick="createChart(maindata)" type="checkbox" id="id1" name="squares" value="squares" checked> SQUARE QUARTILES<br><input onclick="createChart(maindata)" type="checkbox" id="id2" name="diagonal" value="diagonal"> DIAGONAL QUARTILES<br>');
+var input = $('<input onclick="createChart(maindata)" type="radio" id="id1" name="method" value="squares" checked>\
+                <label for="id1">SQUARE QUARTILES</label>\
+              <input onclick="createChart(maindata)" type="radio" id="id2" name="method" value="diagonal">\
+                &#8195;&#8195;<label for="id2">DIAGONAL QUARTILES</label>\
+              <input onclick="createChart(maindata)" type="radio" id="id3" name="method" value="none">\
+                &#8195;&#8195;<label for="id3">NO CLASSIFICATION</label><br>' );
+               
+               
 input.appendTo($("#plot"));
 $( "#plot" ).css( "border", "3px solid black" );
 
 loadurl ();
 
+
+
+
+
   
-  
-  
-  
+ 
