@@ -329,6 +329,17 @@ def custom_colors(colors):
     colors.iloc[14, 26] = '#238b45'
     colors.iloc[14, 27] = '#238b45'
 
+    colors.iloc[6, 19] = '#238b45'
+    colors.iloc[6, 20] = '#238b45'
+    colors.iloc[7, 19] = '#238b45'
+    colors.iloc[9, 20] = '#238b45'
+    colors.iloc[11, 20] = '#238b45'
+    colors.iloc[11, 21] = '#238b45'
+    colors.iloc[13, 19] = '#238b45'
+    colors.iloc[13, 20] = '#238b45'
+    colors.iloc[14, 21] = '#238b45'
+
+
     return colors
 
 # function that prints a table with the list of tools and the corresponding quartiles

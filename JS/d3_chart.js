@@ -46,6 +46,46 @@ function join_all_json(array){
       jo['e'] = array[i].metrics[2].result.value;
       full_json.push(jo);    
   }
+  
+  var jo = {};
+  jo['toolname'] = "prueba1";
+  jo['x'] = 11000;
+  jo['y'] = 0.06;
+  jo['e'] = 0.004;
+  full_json.push(jo); 
+  var jo2 = {}; 
+  jo2['toolname'] = "prueba2";
+  jo2['x'] = 13000;
+  jo2['y'] = 0.08;
+  jo2['e'] = 0.004;
+  full_json.push(jo2);
+  var jo3 = {};
+  jo3['toolname'] = "prueba3";
+  jo3['x'] = 11000;
+  jo3['y'] = 0.06;
+  jo3['e'] = 0.004;
+  full_json.push(jo3); 
+  var jo4 = {}; 
+  jo4['toolname'] = "prueba4";
+  jo4['x'] = 15000;
+  jo4['y'] = 0.08;
+  jo4['e'] = 0.004;
+  full_json.push(jo4);
+  var jo5 = {};
+  jo5['toolname'] = "prueba5";
+  jo5['x'] = 11000;
+  jo5['y'] = 0.06;
+  jo5['e'] = 0.004;
+  full_json.push(jo5); 
+  var jo6 = {};
+  jo6['toolname'] = "prueba6";
+  jo6['x'] = 4500;
+  jo6['y'] = 0.06;
+  jo6['e'] = 0.004;
+  full_json.push(jo6);
+
+
+
   maindata = full_json;
   createChart(full_json);
     
@@ -64,15 +104,20 @@ function compute_classification(data, svg, xScale, yScale, div, width, height, r
   } 
   
 }
+
+function compute_chart_height(data){
+
+  if (data.length%5 == 0){
+    return (40 + (20 * (Math.trunc(data.length/5))));
+  } else if (data.lenght%5 != 0) {
+    return (40 + (20 * (Math.trunc(data.length/5)+1)));
+  } 
   
+};
+
 createChart = function (data){
 
-  // define chart paramters
-  // var tooltip = d3.select("body").append("div")
-  // .attr("class", "tooltip")
-  // .style("visibility", "hidden");
-
-  var margin = {top: 20, right: 40, bottom: 80 + (data.length)/(16/17), left: 40},
+  var margin = {top: 20, right: 40, bottom: compute_chart_height(data), left: 40},
     width = 1200 - margin.left - margin.right,
     height = 500 - margin.top - margin.bottom;
 
