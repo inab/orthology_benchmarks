@@ -1,15 +1,35 @@
+import * as d3 from 'd3';
+import './app.css';
+import $ from "jquery";
 
+// ./node_modules/.bin/webpack-cli src/app.js --output=build/build.js
 
-loadurl = function (){
-    var benchmarking_event = "QfO4_STD_Eukaryota";
-    // var benchmarking_event = "QfO4_STD_Fungi";
-    // var benchmarking_event = "QfO4_ECtest";
-    // var benchmarking_event = "QfO4_GOtest";
-    // var benchmarking_event = "QfO4_TreeFam-A";    
-    var url = "https://dev-openebench.bsc.es/api/scientific/Dataset/?query=" + benchmarking_event + "&fmt=json";
-    get_data(url);
-  
-       
+let divid;
+let MAIN_DATA;
+function loadurl(){
+
+    let x = document.getElementsByClassName("benchmarkingChart");
+    // console.log(x)
+    
+    
+    let i = 0;
+    let dataId;
+
+    for(const y of x){
+      // console.log(y);
+      dataId = y.getAttribute('data-id');
+      divid = dataId+i;
+      // y.id=divid;
+      i++;
+    }
+    // let benchmarking_event = "QfO4_STD_Eukaryota";
+    // let benchmarking_event = "QfO4_STD_Fungi";
+    // let benchmarking_event = "QfO:QfO4_ECtest";
+    // let benchmarking_event = "QfO4_GOtest";
+    // let benchmarking_event = "QfO4_TreeFam-A";    
+    
+    let url = "https://dev-openebench.bsc.es/api/scientific/Dataset/?query=" + dataId + "&fmt=json";
+    get_data(url);    
 };
 
 
@@ -36,70 +56,38 @@ async function fetchUrl(url) {
 }
 
 function join_all_json(array){
-
-  let full_json  = [];
-  for (var i = 0; i < array.length; i++) {
-      let jo = {};
-      jo['toolname'] = array[i].name.split('.')[0];
-      jo['x'] = array[i].metrics[0].result.value;
-      jo['y'] = array[i].metrics[1].result.value;
-      jo['e'] = array[i].metrics[2].result.value;
-      full_json.push(jo);    
-  }
+  try{
+    let full_json  = [];
+    for (let i = 0; i < array.length; i++) {
+        let jo = {};
+        jo['toolname'] = array[i].name.split('.')[0];
+        jo['x'] = array[i].metrics[0].result.value;
+        jo['y'] = array[i].metrics[1].result.value;
+        jo['e'] = array[i].metrics[2].result.value;
+        full_json.push(jo);    
+    }
+    
   
-  var jo = {};
-  jo['toolname'] = "prueba1";
-  jo['x'] = 11000;
-  jo['y'] = 0.06;
-  jo['e'] = 0.004;
-  full_json.push(jo); 
-  var jo2 = {}; 
-  jo2['toolname'] = "prueba2";
-  jo2['x'] = 13000;
-  jo2['y'] = 0.08;
-  jo2['e'] = 0.004;
-  full_json.push(jo2);
-  var jo3 = {};
-  jo3['toolname'] = "prueba3";
-  jo3['x'] = 11000;
-  jo3['y'] = 0.06;
-  jo3['e'] = 0.004;
-  full_json.push(jo3); 
-  var jo4 = {}; 
-  jo4['toolname'] = "prueba4";
-  jo4['x'] = 15000;
-  jo4['y'] = 0.08;
-  jo4['e'] = 0.004;
-  full_json.push(jo4);
-  var jo5 = {};
-  jo5['toolname'] = "prueba5";
-  jo5['x'] = 11000;
-  jo5['y'] = 0.06;
-  jo5['e'] = 0.004;
-  full_json.push(jo5); 
-  var jo6 = {};
-  jo6['toolname'] = "prueba6";
-  jo6['x'] = 4500;
-  jo6['y'] = 0.06;
-  jo6['e'] = 0.004;
-  full_json.push(jo6);
+    MAIN_DATA = full_json;
+    createChart(full_json);
+  }catch(err){
+    console.log(`Invalid Url Error: ${err.stack} `);
+  }
 
-
-
-  maindata = full_json;
-  createChart(full_json);
     
 }
 
+function onQuartileChange(){  
+  createChart(MAIN_DATA);
+}
+
 function compute_classification(data, svg, xScale, yScale, div, width, height, removed_tools) {
-
+  let better = "bottom-right";
   if (document.getElementById("id1").checked == true) {
-
     get_square_quartiles(data, svg, xScale, yScale, div, removed_tools);
     append_quartile_numbers_to_plot (svg, xScale, yScale, better);
   }  
   else if (document.getElementById("id2").checked == true) {
-
     get_diagonal_quartiles(data, svg, xScale, yScale, div, width, height, removed_tools, better);
   } 
   
@@ -115,24 +103,24 @@ function compute_chart_height(data){
   
 };
 
-createChart = function (data){
-
-  var margin = {top: 20, right: 40, bottom: compute_chart_height(data), left: 40},
+function createChart (data){
+  // console.log(data)
+  let margin = {top: 20, right: 40, bottom: compute_chart_height(data), left: 40},
     width = 1200 - margin.left - margin.right,
     height = 500 - margin.top - margin.bottom;
 
 
-  var xScale = d3.scaleLinear()
+  let xScale = d3.scaleLinear()
     .range([0, width])
     .domain([d3.min(data, function(d) { return d.x; }), d3.max(data, function(d) { return d.x; })]).nice();
 
-  var min_y = d3.min(data, function(d) { return d.y; });
-  var max_y = d3.max(data, function(d) { return d.y; });
-  var yScale = d3.scaleLinear()
+  let min_y = d3.min(data, function(d) { return d.y; });
+  let max_y = d3.max(data, function(d) { return d.y; });
+  let yScale = d3.scaleLinear()
     .range([height, 0])
     .domain([min_y - 0.3*(max_y-min_y), max_y + 0.3*(max_y-min_y)]).nice();
 
-  var xAxis = d3.axisBottom(xScale).ticks(12),
+  let xAxis = d3.axisBottom(xScale).ticks(12),
       yAxis = d3.axisLeft(yScale).ticks(12 * height / width);
 
   let line = d3.line()
@@ -144,14 +132,14 @@ createChart = function (data){
     });
 
   // Define the div for the tooltip
-  var div = d3.select("body").append("div")
-    .attr("class", "tooltip")				
-    .style("opacity", 0);
-    
+  
+  let div = d3.select('#plot').append("div").attr("class", "tooltip").style("opacity", 0);
+  
   // append the svg element
-  d3.select("svg").remove();
-
-  var svg = d3.select("#plot").append("svg")
+  d3.select(".chartclass").remove();
+    // console.log(d3.select("svg").remove());
+  let svg = d3.select('#plot').append("svg")
+    .attr('class','chartclass')
     .attr("width", width + margin.left + margin.right)
     .attr("height", height + margin.top + margin.bottom)
     .append("g")
@@ -169,10 +157,10 @@ createChart = function (data){
   let removed_tools = []; // this array stores the tools when the user clicks on them
 
    // setup fill color
-  var cValue_func = function(d) {
+  let cValue_func = function(d) {
     return d.toolname;
   },
-  color_func = d3.scaleOrdinal(d3.schemeCategory20);
+  color_func = d3.scaleOrdinal(d3.schemePaired);
 
   append_dots_errobars (svg, data, xScale, yScale, div, cValue_func, color_func);
 
@@ -242,12 +230,12 @@ function append_dots_errobars (svg, data, xScale, yScale, div, cValue, color){
       });
 
   // add dots
-  var symbol = d3.symbol();
+  let symbol = d3.symbol();
 
-  var formatComma = d3.format(",");
-  var formatDecimal = d3.format(".4f");
+  let formatComma = d3.format(",");
+  let formatDecimal = d3.format(".4f");
 
-  var dots =svg.selectAll(".dots")
+  let dots =svg.selectAll(".dots")
     .data(data)
     .enter()
     .append("path");
@@ -262,7 +250,7 @@ function append_dots_errobars (svg, data, xScale, yScale, div, cValue, color){
       })
       .on("mouseover", function(d) {
         // show tooltip only if the tool is visible
-        var ID = d.toolname.replace(/[\. ()/-]/g, "_");
+        let ID = d.toolname.replace(/[\. ()/-]/g, "_");
         if (d3.select("#"+ID).style("opacity") == 1) {
           div.transition()		
               .duration(100)		
@@ -283,9 +271,9 @@ function append_dots_errobars (svg, data, xScale, yScale, div, cValue, color){
 function draw_legend (data, svg, xScale, yScale, div, width, height, removed_tools, color, color_domain, margin) {
 
   //set number of elements per legend row
-  var n = 5;
+  let n = 5;
 
-  var legend = svg.selectAll(".legend")
+  let legend = svg.selectAll(".legend")
     .data(color_domain)
     .enter().append("g")
     .attr("class", "legend")
@@ -309,13 +297,13 @@ function draw_legend (data, svg, xScale, yScale, div, width, height, removed_too
           svg.selectAll("#num_bottom_left").remove();
           svg.selectAll("#num_top_left").remove();
 
-          dot = d3.select("text#" +d.replace(/[\. ()/-]/g, "_"))
-          var ID = dot._groups[0][0].id
+          let dot = d3.select("text#" +d.replace(/[\. ()/-]/g, "_"))
+          let ID = dot._groups[0][0].id
 
-          var blockopacity = d3.select("#"+ID).style("opacity");
-          var topopacity = d3.select("#top"+ID).style("opacity");
-          var bottomopacity = d3.select("#bottom"+ID).style("opacity");
-          var lineopacity =  d3.select("#line"+ID).style("opacity");
+          let blockopacity = d3.select("#"+ID).style("opacity");
+          let topopacity = d3.select("#top"+ID).style("opacity");
+          let bottomopacity = d3.select("#bottom"+ID).style("opacity");
+          let lineopacity =  d3.select("#line"+ID).style("opacity");
           
           // change the opacity to 0 or 1 depending on the current state
           if (blockopacity == 0) {
@@ -362,19 +350,19 @@ function draw_legend (data, svg, xScale, yScale, div, width, height, removed_too
 
 function get_square_quartiles(data, svg, xScale, yScale, div, removed_tools) {
   
-  var tools_not_hidden = remove_hidden_tools(data, removed_tools);
+  let tools_not_hidden = remove_hidden_tools(data, removed_tools);
 
   // compute the quartiles over the new seet of data
-  var x_values = tools_not_hidden.map(a => a.x).sort(function(a, b){return a - b});
-  var y_values = tools_not_hidden.map(a => a.y).sort(function(a, b){return a - b});
+  let x_values = tools_not_hidden.map(a => a.x).sort(function(a, b){return a - b});
+  let y_values = tools_not_hidden.map(a => a.y).sort(function(a, b){return a - b});
 
-  var quantile_x = d3.quantile(x_values, 0.5);
-  var quantile_y = d3.quantile(y_values, 0.5);
+  let quantile_x = d3.quantile(x_values, 0.5);
+  let quantile_y = d3.quantile(y_values, 0.5);
 
-  var x_axis = xScale.domain();
-  var y_axis = yScale.domain();
+  let x_axis = xScale.domain();
+  let y_axis = yScale.domain();
 
-  var formatComma = d3.format(",");
+  let formatComma = d3.format(",");
 
   svg.append("line")
     .attr("x1", xScale(quantile_x))
@@ -426,23 +414,25 @@ function get_square_quartiles(data, svg, xScale, yScale, div, removed_tools) {
 
 function append_quartile_numbers_to_plot (svg, xScale, yScale, better){
 
-  var x_axis = xScale.domain();
-  var y_axis = yScale.domain();
+  let x_axis = xScale.domain();
+  let y_axis = yScale.domain();
 
+  let num_bottom_right,num_bottom_left,num_top_right,num_top_left;
   // append quartile numbers to plot
   if (better == "bottom-right"){
-    var num_bottom_right = "1";
-    var num_bottom_left = "2";
-    var num_top_right = "3";
-    var num_top_left = "4";
+     num_bottom_right = "1";
+     num_bottom_left = "2";
+     num_top_right = "3";
+     num_top_left = "4";
   } 
   else if (better == "top-right"){
-    var num_bottom_right = "3";
-    var num_bottom_left = "4";
-    var num_top_right = "1";
-    var num_top_left = "2";
+     num_bottom_right = "3";
+     num_bottom_left = "4";
+     num_top_right = "1";
+     num_top_left = "2";
   };
 
+  
   svg.append("text")
   .attr("id", function (d) { return "num_bottom_right";})
   .attr("x", xScale(x_axis[1]-(0.05*(x_axis[1]-x_axis[0]))))
@@ -478,24 +468,24 @@ function append_quartile_numbers_to_plot (svg, xScale, yScale, better){
 }
 function get_diagonal_quartiles(data, svg, xScale, yScale, div, width, height, removed_tools, better) {
 
-  var tools_not_hidden = remove_hidden_tools(data, removed_tools);
+  let tools_not_hidden = remove_hidden_tools(data, removed_tools);
 
-  var x_values = tools_not_hidden.map(a => a.x);
-  var y_values = tools_not_hidden.map(a => a.y);
+  let x_values = tools_not_hidden.map(a => a.x);
+  let y_values = tools_not_hidden.map(a => a.y);
 
   // get distance to lowest score corner
 
   // normalize data to 0-1 range
-  var normalized_values = normalize_data(x_values, y_values);
-  var [x_norm, y_norm] = [normalized_values[0], normalized_values[1]];
+  let normalized_values = normalize_data(x_values, y_values);
+  let [x_norm, y_norm] = [normalized_values[0], normalized_values[1]];
   
-  var max_x = Math.max.apply(null, x_values);
-  var max_y = Math.max.apply(null, y_values);
+  let max_x = Math.max.apply(null, x_values);
+  let max_y = Math.max.apply(null, y_values);
 
   // # compute the scores for each of the tool. based on their distance to the x and y axis
-  var scores = []
-  var scores_coords = {}; //this object will store the scores and the coordinates
-  for (var i = 0; i < x_norm.length; i++) {
+  let scores = []
+  let scores_coords = {}; //this object will store the scores and the coordinates
+  for (let i = 0; i < x_norm.length; i++) {
 
     if (better == "bottom-right"){
       scores.push(x_norm[i] + (1 - y_norm[i]));
@@ -511,21 +501,21 @@ function get_diagonal_quartiles(data, svg, xScale, yScale, div, width, height, r
   // sort the scores and compute quartiles
   scores.sort(function(a, b){return b-a});
 
-  var first_quartile = d3.quantile(scores, 0.25);
-  var second_quartile = d3.quantile(scores, 0.5);
-  var third_quartile = d3.quantile(scores, 0.75);
+  let first_quartile = d3.quantile(scores, 0.25);
+  let second_quartile = d3.quantile(scores, 0.5);
+  let third_quartile = d3.quantile(scores, 0.75);
 
   // compute the diagonal line coords
-  var coords = [get_diagonal_line(scores, scores_coords, first_quartile, better, max_x, max_y), 
+  let coords = [get_diagonal_line(scores, scores_coords, first_quartile, better, max_x, max_y), 
                 get_diagonal_line(scores, scores_coords, second_quartile, better, max_x, max_y), 
                 get_diagonal_line(scores, scores_coords, third_quartile, better, max_x, max_y)
               ];
   
   // append the 3 lines to the svg
-  var index = 0;
+  let index = 0;
 
   coords.forEach(line => {
-    var [x_coords, y_coords] = [line[0], line[1]];
+    let [x_coords, y_coords] = [line[0], line[1]];
     svg.append("line")
        .attr("clip-path","url(#clip)")
        .attr("x1", xScale(x_coords[0]))
@@ -550,14 +540,14 @@ function get_diagonal_quartiles(data, svg, xScale, yScale, div, width, height, r
 
 function normalize_data(x_values, y_values){
 
-  var maxX = Math.max.apply(null, x_values);
-  var maxY = Math.max.apply(null, y_values);
+  let maxX = Math.max.apply(null, x_values);
+  let maxY = Math.max.apply(null, y_values);
   
-  var x_norm = x_values.map(function(e) {  
+  let x_norm = x_values.map(function(e) {  
     return e / maxX;
   });
 
-  var y_norm = y_values.map(function(e) {  
+  let y_norm = y_values.map(function(e) {  
     return e / maxY;
   });
 
@@ -566,26 +556,28 @@ function normalize_data(x_values, y_values){
 
 function get_diagonal_line(scores, scores_coords, quartile, better, max_x, max_y){
 
-  for (var i = 0; i < scores.length; i++) {
+  let target;
+  for (let i = 0; i < scores.length; i++) {
     // # find out which are the two points that contain the percentile value
+    
     if (scores[i] <= quartile){
-
-        var target = [[scores_coords[scores[i - 1]][0], scores_coords[scores[i - 1]][1]],
+        target = [[scores_coords[scores[i - 1]][0], scores_coords[scores[i - 1]][1]],
                   [scores_coords[scores[i]][0], scores_coords[scores[i]][1]]];
         break;
     };
   };
-  // console.log(scores_coords);
   // # get the the mid point between the two, where the quartile line will pass
-  var half_point = [(target[0][0] + target[1][0]) / 2, (target[0][1] + target[1][1]) / 2];
+  let half_point = [(target[0][0] + target[1][0]) / 2, (target[0][1] + target[1][1]) / 2];
 
   // # draw the line depending on which is the optimal corner
+  let x_coords;
+  let y_coords;
   if (better == "bottom-right"){
-      var x_coords = [half_point[0] - max_x, half_point[0] + max_x];
-      var y_coords = [half_point[1] - max_y, half_point[1] + max_y];
+       x_coords = [half_point[0] - max_x, half_point[0] + max_x];
+       y_coords = [half_point[1] - max_y, half_point[1] + max_y];
   } else if (better == "top-right"){
-      var x_coords = [half_point[0] + max_x, half_point[0] - max_x];
-      var y_coords = [half_point[1] - max_y, half_point[1] + max_y];   
+       x_coords = [half_point[0] + max_x, half_point[0] - max_x];
+       y_coords = [half_point[1] - max_y, half_point[1] + max_y];   
   };
 
   return [x_coords, y_coords];
@@ -606,30 +598,12 @@ function remove_hidden_tools(data, removed_tools){
 
 };
 
-function uncheck (){
-  if (document.getElementById("id1").checked == true){
-    $( "#id1" ).prop( "checked", false );
-  }
-};
 
-var maindata;
-var better = "bottom-right";
-
-var input = $('<input onclick="createChart(maindata)" type="radio" id="id1" name="method" value="squares" checked>\
-                <label for="id1">SQUARE QUARTILES</label>\
-              <input onclick="createChart(maindata)" type="radio" id="id2" name="method" value="diagonal">\
-                &#8195;&#8195;<label for="id2">DIAGONAL QUARTILES</label>\
-              <input onclick="createChart(maindata)" type="radio" id="id3" name="method" value="none">\
-                &#8195;&#8195;<label for="id3">NO CLASSIFICATION</label><br>' );
-               
-               
-input.appendTo($("#plot"));
-$( "#plot" ).css( "border", "3px solid black" );
-
-loadurl ();
-
-
-
+export{
+  loadurl,
+  onQuartileChange
+}
+loadurl();
 
 
   
