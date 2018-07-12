@@ -54,8 +54,8 @@
    }
 
    /* check box style */
-/* 
-   [type="radio"]:checked,
+
+   /* [type="radio"]:checked,
    [type="radio"]:not(:checked) {
        position: absolute;
        left: -9999px;

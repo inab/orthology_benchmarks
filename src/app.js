@@ -2,42 +2,54 @@ import * as d3 from 'd3';
 import './app.css';
 import $ from "jquery";
 
-// ./node_modules/.bin/webpack-cli src/app.js --output=build/build.js
 
-let divid;
+// ./node_modules/.bin/webpack-cli src/app.js --output=build/build.js -d -w
+
+
 let MAIN_DATA;
+let divid;
 function loadurl(){
 
-    let x = document.getElementsByClassName("benchmarkingChart");
-    // console.log(x)
     
+    let x = document.getElementsByClassName("benchmarkingChart");
     
     let i = 0;
     let dataId;
-
-    for(const y of x){
-      // console.log(y);
+    let y;
+    for(y of x){
+      // get benchmarking event id
       dataId = y.getAttribute('data-id');
+      //set chart id
       divid = dataId+i;
-      // y.id=divid;
+      y.id=divid;
+      console.log(divid)
+;      let button1_id = divid + "::id1"
+      let button2_id = divid + "::id2"
+      let button3_id = divid + "::id3"
+      var input = $('<form><input onclick="onQuartileChange(this.id)" type="radio" id='+button1_id+' name="method" value="squares" checked>\
+                <label>SQUARE QUARTILES</label>\
+              <input onclick="onQuartileChange(this.id)" type="radio" id='+button2_id+' name="method" value="diagonal">\
+                &#8195;&#8195;<label>DIAGONAL QUARTILES</label>\
+              <input onclick="onQuartileChange(this.id)" type="radio" id='+button3_id+' name="method" value="none">\
+                &#8195;&#8195;<label>NO CLASSIFICATION</label><br></form>' );
+ 
+      input.appendTo($("#"+ divid));
+
+      let url = "https://dev-openebench.bsc.es/api/scientific/Dataset/?query=" + dataId + "&fmt=json";
+      get_data(url,divid); 
       i++;
     }
-    // let benchmarking_event = "QfO4_STD_Eukaryota";
-    // let benchmarking_event = "QfO4_STD_Fungi";
-    // let benchmarking_event = "QfO:QfO4_ECtest";
-    // let benchmarking_event = "QfO4_GOtest";
-    // let benchmarking_event = "QfO4_TreeFam-A";    
+        
     
-    let url = "https://dev-openebench.bsc.es/api/scientific/Dataset/?query=" + dataId + "&fmt=json";
-    get_data(url);    
+       
 };
 
 
 
-function get_data(url){
+function get_data(url,divid){
 
   fetchUrl(url).then(results => {
-    join_all_json(results.Dataset);
+    join_all_json(results.Dataset,divid);
   })
 
 };
@@ -55,7 +67,7 @@ async function fetchUrl(url) {
 
 }
 
-function join_all_json(array){
+function join_all_json(array,divid){
   try{
     let full_json  = [];
     for (let i = 0; i < array.length; i++) {
@@ -69,7 +81,7 @@ function join_all_json(array){
     
   
     MAIN_DATA = full_json;
-    createChart(full_json);
+    createChart(full_json,divid);
   }catch(err){
     console.log(`Invalid Url Error: ${err.stack} `);
   }
@@ -77,18 +89,22 @@ function join_all_json(array){
     
 }
 
-function onQuartileChange(){  
-  createChart(MAIN_DATA);
+function onQuartileChange(ID){  
+  
+  var chart_id = ID.split("::")[0];
+  // console.log(d3.select('#'+'svg_'+chart_id));
+  d3.select('#'+'svg_'+chart_id).remove();
+  createChart(MAIN_DATA,chart_id);
 }
 
-function compute_classification(data, svg, xScale, yScale, div, width, height, removed_tools) {
+function compute_classification(data, svg, xScale, yScale, div, width, height, removed_tools,divid) {
   let better = "bottom-right";
-  if (document.getElementById("id1").checked == true) {
-    get_square_quartiles(data, svg, xScale, yScale, div, removed_tools);
-    append_quartile_numbers_to_plot (svg, xScale, yScale, better);
+  if (document.getElementById( divid + "::id1").checked == true) {
+    get_square_quartiles(data, svg, xScale, yScale, div, removed_tools,divid);
+    append_quartile_numbers_to_plot (svg, xScale, yScale, better,divid);
   }  
-  else if (document.getElementById("id2").checked == true) {
-    get_diagonal_quartiles(data, svg, xScale, yScale, div, width, height, removed_tools, better);
+  else if (document.getElementById(divid + "::id2").checked == true) {
+    get_diagonal_quartiles(data, svg, xScale, yScale, div, width, height, removed_tools, better,divid);
   } 
   
 }
@@ -103,7 +119,7 @@ function compute_chart_height(data){
   
 };
 
-function createChart (data){
+function createChart (data,divid){
   // console.log(data)
   let margin = {top: 20, right: 40, bottom: compute_chart_height(data), left: 40},
     width = 1200 - margin.left - margin.right,
@@ -133,13 +149,14 @@ function createChart (data){
 
   // Define the div for the tooltip
   
-  let div = d3.select('#plot').append("div").attr("class", "tooltip").style("opacity", 0);
-  
+  let div = d3.select('#'+divid).append("div").attr("class", "tooltip").style("opacity", 0);
+
   // append the svg element
-  d3.select(".chartclass").remove();
+  // d3.select("svg").remove()
     // console.log(d3.select("svg").remove());
-  let svg = d3.select('#plot').append("svg")
-    .attr('class','chartclass')
+
+  let svg = d3.select('#'+divid).append("svg")
+    .attr('id','svg_'+divid)
     .attr("width", width + margin.left + margin.right)
     .attr("height", height + margin.top + margin.bottom)
     .append("g")
@@ -160,24 +177,24 @@ function createChart (data){
   let cValue_func = function(d) {
     return d.toolname;
   },
-  color_func = d3.scaleOrdinal(d3.schemePaired);
+  color_func = d3.scaleOrdinal(d3.schemeSet1.concat(d3.schemeSet3));
 
-  append_dots_errobars (svg, data, xScale, yScale, div, cValue_func, color_func);
+  append_dots_errobars (svg, data, xScale, yScale, div, cValue_func, color_func,divid);
 
-  draw_legend (data, svg, xScale, yScale, div, width, height, removed_tools, color_func, color_func.domain(), margin);
+  draw_legend (data, svg, xScale, yScale, div, width, height, removed_tools, color_func, color_func.domain(), margin,divid);
 
-  compute_classification(data, svg, xScale, yScale, div, width, height, removed_tools);
+  compute_classification(data, svg, xScale, yScale, div, width, height, removed_tools,divid);
 
 };
 
-function append_dots_errobars (svg, data, xScale, yScale, div, cValue, color){
+function append_dots_errobars (svg, data, xScale, yScale, div, cValue, color,divid){
 
   // Add Error Line
   svg.append("g").selectAll("line")
       .data(data).enter()
       .append("line")
       .attr("class", "error-line")
-      .attr("id", function (d) { return "line"+d.toolname.replace(/[\. ()/-]/g, "_");})
+      .attr("id", function (d) { return divid+"___line"+d.toolname.replace(/[\. ()/-]/g, "_");})
       .attr("x1", function(d) {
         return xScale(d.x);
       })
@@ -195,7 +212,7 @@ function append_dots_errobars (svg, data, xScale, yScale, div, cValue, color){
   svg.append("g").selectAll("line")
       .data(data).enter()
       .append("line")
-      .attr("id", function (d) { return "top"+d.toolname.replace(/[\. ()/-]/g, "_");})
+      .attr("id", function (d) { return divid+"___top"+d.toolname.replace(/[\. ()/-]/g, "_");})
       .attr("class", "error-cap")
       .attr("x1", function(d) {
         return xScale(d.x) - 4;
@@ -214,7 +231,7 @@ function append_dots_errobars (svg, data, xScale, yScale, div, cValue, color){
   svg.append("g").selectAll("line")
       .data(data).enter()
       .append("line")
-      .attr("id", function (d) { return "bottom"+d.toolname.replace(/[\. ()/-]/g, "_");})
+      .attr("id", function (d) { return divid+"___bottom"+d.toolname.replace(/[\. ()/-]/g, "_");})
       .attr("class", "error-cap")
       .attr("x1", function(d) {
         return xScale(d.x) - 4;
@@ -241,7 +258,7 @@ function append_dots_errobars (svg, data, xScale, yScale, div, cValue, color){
     .append("path");
     
   dots.attr("d", symbol.type(function(){return d3.symbolSquare}))
-      .attr("id", function (d) {  return d.toolname.replace(/[\. ()/-]/g, "_");})
+      .attr("id", function (d) {  return divid+"___"+d.toolname.replace(/[\. ()/-]/g, "_");})
       .attr("class","line")
       .attr('transform',function(d){ return "translate("+xScale(d.x)+","+yScale(d.y)+")"; })
       .attr("r", 6)
@@ -250,7 +267,7 @@ function append_dots_errobars (svg, data, xScale, yScale, div, cValue, color){
       })
       .on("mouseover", function(d) {
         // show tooltip only if the tool is visible
-        let ID = d.toolname.replace(/[\. ()/-]/g, "_");
+        let ID = divid+"___"+d.toolname.replace(/[\. ()/-]/g, "_");
         if (d3.select("#"+ID).style("opacity") == 1) {
           div.transition()		
               .duration(100)		
@@ -268,7 +285,7 @@ function append_dots_errobars (svg, data, xScale, yScale, div, cValue, color){
     
 };
 
-function draw_legend (data, svg, xScale, yScale, div, width, height, removed_tools, color, color_domain, margin) {
+function draw_legend (data, svg, xScale, yScale, div, width, height, removed_tools, color, color_domain, margin,divid) {
 
   //set number of elements per legend row
   let n = 5;
@@ -286,51 +303,54 @@ function draw_legend (data, svg, xScale, yScale, div, width, height, removed_too
         .attr("height", 18)
         .style("fill", color)
         .on('click', function(d) {
-          // remove the existing number and classification lines from plot (if any)
-          svg.selectAll("#x_quartile").remove();
-          svg.selectAll("#y_quartile").remove();
-          svg.selectAll("#diag_quartile_0").remove();
-          svg.selectAll("#diag_quartile_1").remove();
-          svg.selectAll("#diag_quartile_2").remove();
-          svg.selectAll("#num_bottom_right").remove();
-          svg.selectAll("#num_top_right").remove();
-          svg.selectAll("#num_bottom_left").remove();
-          svg.selectAll("#num_top_left").remove();
 
-          let dot = d3.select("text#" +d.replace(/[\. ()/-]/g, "_"))
-          let ID = dot._groups[0][0].id
+          let dot = d3.select("text#" +divid+"___"+d.replace(/[\. ()/-]/g, "_"));
+          let ID = dot._groups[0][0].id;
+
+          let tool_id =ID.split("___")[1];
+          // remove the existing number and classification lines from plot (if any)
+          svg.selectAll("#"+divid+"___x_quartile").remove();
+          svg.selectAll("#"+divid+"___y_quartile").remove();
+          svg.selectAll("#"+divid+"___diag_quartile_0").remove();
+          svg.selectAll("#"+divid+"___diag_quartile_1").remove();
+          svg.selectAll("#"+divid+"___diag_quartile_2").remove();
+          svg.selectAll("#"+divid+"___num_bottom_right").remove();
+          svg.selectAll("#"+divid+"___num_top_right").remove();
+          svg.selectAll("#"+divid+"___num_bottom_left").remove();
+          svg.selectAll("#"+divid+"___num_top_left").remove();
+
+          
 
           let blockopacity = d3.select("#"+ID).style("opacity");
-          let topopacity = d3.select("#top"+ID).style("opacity");
-          let bottomopacity = d3.select("#bottom"+ID).style("opacity");
-          let lineopacity =  d3.select("#line"+ID).style("opacity");
+          // let topopacity = d3.select("#top"+ID).style("opacity");
+          // let bottomopacity = d3.select("#bottom"+ID).style("opacity");
+          // let lineopacity =  d3.select("#line"+ID).style("opacity");
           
           // change the opacity to 0 or 1 depending on the current state
           if (blockopacity == 0) {
             d3.select("#"+ID).style("opacity", 1);
-            d3.select("#top"+ID).style("opacity", 1);
-            d3.select("#bottom"+ID).style("opacity", 1);
-            d3.select("#line"+ID).style("opacity", 1);
+            d3.select("#"+divid+"___top"+tool_id).style("opacity", 1);
+            d3.select("#"+divid+"___bottom"+tool_id).style("opacity", 1);
+            d3.select("#"+divid+"___line"+tool_id).style("opacity", 1);
             // recalculate the quartiles after removing the tools
-            let index = $.inArray(ID, removed_tools);
+            let index = $.inArray(tool_id, removed_tools);
             removed_tools.splice(index, 1);
-            compute_classification(data, svg, xScale, yScale, div, width, height, removed_tools);
+            compute_classification(data, svg, xScale, yScale, div, width, height, removed_tools,divid);
             //change the legend opacity to keep track of hidden tools
             d3.select(this).style("opacity", 1);
-            d3.select("text#" +d.replace(/[\. ()/-]/g, "_")).style("opacity", 1);
+            d3.select("text#" +divid+"___"+tool_id).style("opacity", 1);
 
           } else {
             d3.select("#"+ID).style("opacity", 0);
-            d3.select("#top"+ID).style("opacity", 0);
-            d3.select("#bottom"+ID).style("opacity", 0);
-            d3.select("#line"+ID).style("opacity", 0);
-            removed_tools.push(ID.replace(/_/g, "-"));
-            compute_classification(data, svg, xScale, yScale, div, width, height, removed_tools);
+            d3.select("#"+divid+"___top"+tool_id).style("opacity", 0);
+            d3.select("#"+divid+"___bottom"+tool_id).style("opacity", 0);
+            d3.select("#"+divid+"___line"+tool_id).style("opacity", 0);
+            removed_tools.push(tool_id.replace(/_/g, "-"));
+            compute_classification(data, svg, xScale, yScale, div, width, height, removed_tools,divid);
             //change the legend opacity to keep track of hidden tools
             d3.select(this).style("opacity", 0.2);
-            d3.select("text#" +d.replace(/[\. ()/-]/g, "_")).style("opacity", 0.2);
+            d3.select("text#" +divid+"___"+tool_id).style("opacity", 0.2);
           }
-            
         });
 
 
@@ -339,7 +359,7 @@ function draw_legend (data, svg, xScale, yScale, div, width, height, removed_too
   legend.append("text")
         .attr("x", width + 40)
         .attr("y", 9)
-        .attr("id", function (d) { return d.replace(/[\. ()/-]/g, "_");})
+        .attr("id", function (d) { return divid+"___"+d.replace(/[\. ()/-]/g, "_");})
         .attr("dy", ".35em")
         .style("text-anchor", "start")
         .text(function(d) {
@@ -348,7 +368,7 @@ function draw_legend (data, svg, xScale, yScale, div, width, height, removed_too
 
 };
 
-function get_square_quartiles(data, svg, xScale, yScale, div, removed_tools) {
+function get_square_quartiles(data, svg, xScale, yScale, div, removed_tools,divid) {
   
   let tools_not_hidden = remove_hidden_tools(data, removed_tools);
 
@@ -369,7 +389,7 @@ function get_square_quartiles(data, svg, xScale, yScale, div, removed_tools) {
     .attr("y1", yScale(y_axis[0]))
     .attr("x2", xScale(quantile_x))
     .attr("y2", yScale(y_axis[1]))
-    .attr("id", function (d) { return "x_quartile";})
+    .attr("id", function (d) { return divid+"___x_quartile";})
     .attr("stroke", "black")
     .style("stroke-dasharray", ("10, 5"))
     .style("opacity", 0.5)
@@ -392,7 +412,7 @@ function get_square_quartiles(data, svg, xScale, yScale, div, removed_tools) {
     .attr("y1", yScale(quantile_y))
     .attr("x2", xScale(x_axis[1]))
     .attr("y2", yScale(quantile_y))
-    .attr("id", function (d) { return "y_quartile";})
+    .attr("id", function (d) { return divid+"___y_quartile";})
     .attr("stroke", "black")
     .style("stroke-dasharray", ("10, 5"))
     .style("opacity", 0.5)
@@ -412,7 +432,7 @@ function get_square_quartiles(data, svg, xScale, yScale, div, removed_tools) {
 
 };
 
-function append_quartile_numbers_to_plot (svg, xScale, yScale, better){
+function append_quartile_numbers_to_plot (svg, xScale, yScale, better,divid){
 
   let x_axis = xScale.domain();
   let y_axis = yScale.domain();
@@ -434,7 +454,7 @@ function append_quartile_numbers_to_plot (svg, xScale, yScale, better){
 
   
   svg.append("text")
-  .attr("id", function (d) { return "num_bottom_right";})
+  .attr("id", function (d) { return divid+"___num_bottom_right";})
   .attr("x", xScale(x_axis[1]-(0.05*(x_axis[1]-x_axis[0]))))
   .attr("y", yScale(y_axis[1]-(0.95*(y_axis[1]-y_axis[0]))))
   .style("opacity", 0.2)
@@ -442,7 +462,7 @@ function append_quartile_numbers_to_plot (svg, xScale, yScale, better){
   .text(num_bottom_right);
 
   svg.append("text")
-  .attr("id", function (d) { return "num_bottom_left";})
+  .attr("id", function (d) { return divid+"___num_bottom_left";})
   .attr("x", xScale(x_axis[1]-(0.95*(x_axis[1]-x_axis[0]))))
   .attr("y", yScale(y_axis[1]-(0.95*(y_axis[1]-y_axis[0]))))
   .style("opacity", 0.2)
@@ -450,7 +470,7 @@ function append_quartile_numbers_to_plot (svg, xScale, yScale, better){
   .text(num_bottom_left);
 
   svg.append("text")
-  .attr("id", function (d) { return "num_top_right";})
+  .attr("id", function (d) { return divid+"___num_top_right";})
   .attr("x", xScale(x_axis[1]-(0.05*(x_axis[1]-x_axis[0]))))
   .attr("y", yScale(y_axis[1]-(0.05*(y_axis[1]-y_axis[0]))))
   .style("opacity", 0.2)
@@ -458,7 +478,7 @@ function append_quartile_numbers_to_plot (svg, xScale, yScale, better){
   .text(num_top_right);
 
   svg.append("text")
-  .attr("id", function (d) { return "num_top_left";})
+  .attr("id", function (d) { return divid+"___num_top_left";})
   .attr("x", xScale(x_axis[1]-(0.95*(x_axis[1]-x_axis[0]))))
   .attr("y", yScale(y_axis[1]-(0.05*(y_axis[1]-y_axis[0]))))
   .style("opacity", 0.2)
@@ -466,7 +486,7 @@ function append_quartile_numbers_to_plot (svg, xScale, yScale, better){
   .text(num_top_left);
 
 }
-function get_diagonal_quartiles(data, svg, xScale, yScale, div, width, height, removed_tools, better) {
+function get_diagonal_quartiles(data, svg, xScale, yScale, div, width, height, removed_tools, better, divid) {
 
   let tools_not_hidden = remove_hidden_tools(data, removed_tools);
 
@@ -522,7 +542,7 @@ function get_diagonal_quartiles(data, svg, xScale, yScale, div, width, height, r
        .attr("y1", yScale(y_coords[0]))
        .attr("x2", xScale(x_coords[1]))
        .attr("y2", yScale(y_coords[1]))  
-       .attr("id", function (d) { return "diag_quartile_" + index;})
+       .attr("id", function (d) { return divid+"___diag_quartile_" + index;})
        .attr("stroke", "red")
        .style("stroke-dasharray", ("10, 5"))
        .style("opacity", 0.5);
