@@ -6,10 +6,10 @@ import $ from "jquery";
 // ./node_modules/.bin/webpack-cli src/app.js --output=build/build.js -d -w
 
 
-let MAIN_DATA;
-let divid;
-function loadurl(){
+let MAIN_DATA = {};
 
+function loadurl(){
+    let divid;
     
     let x = document.getElementsByClassName("benchmarkingChart");
     
@@ -22,10 +22,10 @@ function loadurl(){
       //set chart id
       divid = dataId+i;
       y.id=divid;
-      console.log(divid)
-;      let button1_id = divid + "::id1"
-      let button2_id = divid + "::id2"
-      let button3_id = divid + "::id3"
+
+      let button1_id = divid + "::id1";
+      let button2_id = divid + "::id2";
+      let button3_id = divid + "::id3";
       var input = $('<form><input onclick="onQuartileChange(this.id)" type="radio" id='+button1_id+' name="method" value="squares" checked>\
                 <label>SQUARE QUARTILES</label>\
               <input onclick="onQuartileChange(this.id)" type="radio" id='+button2_id+' name="method" value="diagonal">\
@@ -80,7 +80,7 @@ function join_all_json(array,divid){
     }
     
   
-    MAIN_DATA = full_json;
+    MAIN_DATA[divid] = full_json;
     createChart(full_json,divid);
   }catch(err){
     console.log(`Invalid Url Error: ${err.stack} `);
@@ -94,7 +94,8 @@ function onQuartileChange(ID){
   var chart_id = ID.split("::")[0];
   // console.log(d3.select('#'+'svg_'+chart_id));
   d3.select('#'+'svg_'+chart_id).remove();
-  createChart(MAIN_DATA,chart_id);
+
+  createChart(MAIN_DATA[chart_id],chart_id);
 }
 
 function compute_classification(data, svg, xScale, yScale, div, width, height, removed_tools,divid) {
