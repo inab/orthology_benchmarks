@@ -20,12 +20,12 @@ function loadurl(){
       // get benchmarking event id
       dataId = y.getAttribute('data-id');
       //set chart id
-      divid = dataId+i;
+      divid = (dataId+i).replace(":","_");
       y.id=divid;
 
-      let button1_id = divid + "::id1";
-      let button2_id = divid + "::id2";
-      let button3_id = divid + "::id3";
+      let button1_id = divid + "__id1";
+      let button2_id = divid + "__id2";
+      let button3_id = divid + "__id3";
       var input = $('<form><input onclick="onQuartileChange(this.id)" type="radio" id='+button1_id+' name="method" value="squares" checked>\
                 <label>SQUARE QUARTILES</label>\
               <input onclick="onQuartileChange(this.id)" type="radio" id='+button2_id+' name="method" value="diagonal">\
@@ -55,8 +55,8 @@ function get_data(url,divid){
 };
 
 async function fetchUrl(url) {
-  try {
 
+  try {
     let request = await fetch(url);
     let result = await request.text();
       return JSON.parse(result);
@@ -79,7 +79,7 @@ function join_all_json(array,divid){
         full_json.push(jo);    
     }
     
-  
+
     MAIN_DATA[divid] = full_json;
     createChart(full_json,divid);
   }catch(err){
@@ -91,7 +91,7 @@ function join_all_json(array,divid){
 
 function onQuartileChange(ID){  
   
-  var chart_id = ID.split("::")[0];
+  var chart_id = ID.split("__")[0];
   // console.log(d3.select('#'+'svg_'+chart_id));
   d3.select('#'+'svg_'+chart_id).remove();
 
@@ -100,11 +100,11 @@ function onQuartileChange(ID){
 
 function compute_classification(data, svg, xScale, yScale, div, width, height, removed_tools,divid) {
   let better = "bottom-right";
-  if (document.getElementById( divid + "::id1").checked == true) {
+  if (document.getElementById( divid + "__id1").checked == true) {
     get_square_quartiles(data, svg, xScale, yScale, div, removed_tools,divid);
     append_quartile_numbers_to_plot (svg, xScale, yScale, better,divid);
   }  
-  else if (document.getElementById(divid + "::id2").checked == true) {
+  else if (document.getElementById(divid + "__id2").checked == true) {
     get_diagonal_quartiles(data, svg, xScale, yScale, div, width, height, removed_tools, better,divid);
   } 
   
@@ -149,7 +149,7 @@ function createChart (data,divid){
     });
 
   // Define the div for the tooltip
-  
+
   let div = d3.select('#'+divid).append("div").attr("class", "tooltip").style("opacity", 0);
 
   // append the svg element
@@ -624,6 +624,7 @@ export{
   loadurl,
   onQuartileChange
 }
+
 loadurl();
 
 
