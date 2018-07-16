@@ -105,3 +105,30 @@
        -webkit-transform: scale(1);
        transform: scale(1);
    } */
+
+   /* buttons style */
+
+   .selection_button {
+    background-color: #667BB7; 
+    border: none;
+    border-radius: 15px;
+    color: white;
+    padding: 8px 20px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    margin: 4px 60px;
+    font-size: 16px;
+    transition-duration: 0.1s;
+    cursor: pointer;
+    box-shadow: 0 8px #0A58A2;
+    }
+    .selection_button:hover {
+        background-color: #b3cde0;
+
+    }
+    .selection_button:active {
+        background-color:#ccccff;
+        box-shadow: 0 5px #666;
+        transform: translateY(4px);
+    }

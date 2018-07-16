@@ -23,17 +23,35 @@ function loadurl(){
       divid = (dataId+i).replace(":","_");
       y.id=divid;
 
-      let button1_id = divid + "__id1";
-      let button2_id = divid + "__id2";
-      let button3_id = divid + "__id3";
-      var input = $('<form><input onclick="onQuartileChange(this.id)" type="radio" id='+button1_id+' name="method" value="squares" checked>\
-                <label>SQUARE QUARTILES</label>\
-              <input onclick="onQuartileChange(this.id)" type="radio" id='+button2_id+' name="method" value="diagonal">\
-                &#8195;&#8195;<label>DIAGONAL QUARTILES</label>\
-              <input onclick="onQuartileChange(this.id)" type="radio" id='+button3_id+' name="method" value="none">\
-                &#8195;&#8195;<label>NO CLASSIFICATION</label><br></form>' );
- 
-      input.appendTo($("#"+ divid));
+      let button1_id = divid + "__squares";
+      let button2_id = divid + "__diagonals";
+      let button3_id = divid + "__none";
+
+      let buttons_form = d3.select('#'+divid).append("form");
+      buttons_form.append("input")
+      .attr("class", "selection_button")
+      .attr("id", button1_id)
+      .attr("type", "button")
+      .attr("value", "SQUARE QUARTILES")
+      .on('click', function(d) {
+        onQuartileChange(this.id);
+      });
+      buttons_form.append("input")
+      .attr("class", "selection_button")
+      .attr("id", button2_id)
+      .attr("type", "button")
+      .attr("value", "DIAGONAL QUARTILES")
+      .on('click', function(d) {
+        onQuartileChange(this.id);
+      });
+      buttons_form.append("input")
+      .attr("class", "selection_button")
+      .attr("id", button3_id)
+      .attr("type", "button")
+      .attr("value", "NO CLASSIFICATION")
+      .on('click', function(d) {
+        onQuartileChange(this.id);
+      });
 
       let url = "https://dev-openebench.bsc.es/api/scientific/Dataset/?query=" + dataId + "&fmt=json";
       get_data(url,divid); 
@@ -81,7 +99,8 @@ function join_all_json(array,divid){
     
 
     MAIN_DATA[divid] = full_json;
-    createChart(full_json,divid);
+    let classification_type = divid + "__none";
+    createChart(full_json,divid, classification_type);
   }catch(err){
     console.log(`Invalid Url Error: ${err.stack} `);
   }
@@ -94,17 +113,17 @@ function onQuartileChange(ID){
   var chart_id = ID.split("__")[0];
   // console.log(d3.select('#'+'svg_'+chart_id));
   d3.select('#'+'svg_'+chart_id).remove();
-
-  createChart(MAIN_DATA[chart_id],chart_id);
+  let classification_type = ID;
+  createChart(MAIN_DATA[chart_id],chart_id, classification_type);
 }
 
-function compute_classification(data, svg, xScale, yScale, div, width, height, removed_tools,divid) {
+function compute_classification(data, svg, xScale, yScale, div, width, height, removed_tools,divid, classification_type) {
   let better = "bottom-right";
-  if (document.getElementById( divid + "__id1").checked == true) {
+  if (classification_type == ( divid + "__squares")) {
     get_square_quartiles(data, svg, xScale, yScale, div, removed_tools,divid);
     append_quartile_numbers_to_plot (svg, xScale, yScale, better,divid);
   }  
-  else if (document.getElementById(divid + "__id2").checked == true) {
+  else if (classification_type == (divid + "__diagonals")) {
     get_diagonal_quartiles(data, svg, xScale, yScale, div, width, height, removed_tools, better,divid);
   } 
   
@@ -120,7 +139,7 @@ function compute_chart_height(data){
   
 };
 
-function createChart (data,divid){
+function createChart (data,divid, classification_type){
   // console.log(data)
   let margin = {top: 20, right: 40, bottom: compute_chart_height(data), left: 40},
     width = 1200 - margin.left - margin.right,
@@ -182,9 +201,9 @@ function createChart (data,divid){
 
   append_dots_errobars (svg, data, xScale, yScale, div, cValue_func, color_func,divid);
 
-  draw_legend (data, svg, xScale, yScale, div, width, height, removed_tools, color_func, color_func.domain(), margin,divid);
+  draw_legend (data, svg, xScale, yScale, div, width, height, removed_tools, color_func, color_func.domain(), margin,divid,classification_type);
 
-  compute_classification(data, svg, xScale, yScale, div, width, height, removed_tools,divid);
+  compute_classification(data, svg, xScale, yScale, div, width, height, removed_tools,divid, classification_type);
 
 };
 
@@ -286,7 +305,7 @@ function append_dots_errobars (svg, data, xScale, yScale, div, cValue, color,div
     
 };
 
-function draw_legend (data, svg, xScale, yScale, div, width, height, removed_tools, color, color_domain, margin,divid) {
+function draw_legend (data, svg, xScale, yScale, div, width, height, removed_tools, color, color_domain, margin,divid,classification_type) {
 
   //set number of elements per legend row
   let n = 5;
@@ -336,7 +355,7 @@ function draw_legend (data, svg, xScale, yScale, div, width, height, removed_too
             // recalculate the quartiles after removing the tools
             let index = $.inArray(tool_id, removed_tools);
             removed_tools.splice(index, 1);
-            compute_classification(data, svg, xScale, yScale, div, width, height, removed_tools,divid);
+            compute_classification(data, svg, xScale, yScale, div, width, height, removed_tools,divid,classification_type);
             //change the legend opacity to keep track of hidden tools
             d3.select(this).style("opacity", 1);
             d3.select("text#" +divid+"___"+tool_id).style("opacity", 1);
@@ -347,7 +366,7 @@ function draw_legend (data, svg, xScale, yScale, div, width, height, removed_too
             d3.select("#"+divid+"___bottom"+tool_id).style("opacity", 0);
             d3.select("#"+divid+"___line"+tool_id).style("opacity", 0);
             removed_tools.push(tool_id.replace(/_/g, "-"));
-            compute_classification(data, svg, xScale, yScale, div, width, height, removed_tools,divid);
+            compute_classification(data, svg, xScale, yScale, div, width, height, removed_tools,divid,classification_type);
             //change the legend opacity to keep track of hidden tools
             d3.select(this).style("opacity", 0.2);
             d3.select("text#" +divid+"___"+tool_id).style("opacity", 0.2);
