@@ -53,6 +53,9 @@ function loadurl(){
         onQuartileChange(this.id);
       });
 
+      let table = $('table[data-id="'+dataId+'"]')[0];
+      table.id = divid + "_table";
+
       let url = "https://dev-openebench.bsc.es/api/scientific/Dataset/?query=" + dataId + "&fmt=json";
       get_data(url,divid); 
       i++;
@@ -121,7 +124,7 @@ function onQuartileChange(ID){
 function compute_classification(data, svg, xScale, yScale, div, width, height, removed_tools,divid, classification_type) {
 
   // every time a new classification is compute the previous results table is deleted
-  var table = document.getElementById("myTable").innerHTML = '';
+  document.getElementById(divid + "_table").innerHTML = '';
   let better = "bottom-right";
   if (classification_type == ( divid + "__squares")) {
     get_square_quartiles(data, svg, xScale, yScale, div, removed_tools,better,divid);
@@ -455,10 +458,10 @@ function get_square_quartiles(data, svg, xScale, yScale, div, removed_tools,bett
          .duration(1500)		
          .style("opacity", 0);	
     });
-    transform_to_table(better, tools_not_hidden, quantile_x, quantile_y);
+    transform_to_table(better, tools_not_hidden, quantile_x, quantile_y, divid);
 };
 
-function transform_to_table(better, data, quantile_x, quantile_y){
+function transform_to_table(better, data, quantile_x, quantile_y, divid){
   if (better == "bottom-right"){
     data.forEach(function(element) {
         if (element['x'] >= quantile_x && element['y'] <= quantile_y){
@@ -486,10 +489,10 @@ function transform_to_table(better, data, quantile_x, quantile_y){
   };
 
   //create table dinamically
-  var table = document.getElementById("myTable");
+  var table = document.getElementById(divid + "_table");
   var row = table.insertRow(-1);
-  row.insertCell(0).innerHTML = "TOOL";
-  row.insertCell(1).innerHTML = "QUARTILE";
+  row.insertCell(0).innerHTML = "<b>TOOL</b>";
+  row.insertCell(1).innerHTML = "<b>QUARTILE</b>";
 
   data.forEach(function(element) {
     var row = table.insertRow(-1);
