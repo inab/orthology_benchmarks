@@ -99,6 +99,7 @@ function join_all_json(array,divid){
     
 
     MAIN_DATA[divid] = full_json;
+    // by default, no classification method is applied
     let classification_type = divid + "__none";
     createChart(full_json,divid, classification_type);
   }catch(err){
@@ -118,9 +119,12 @@ function onQuartileChange(ID){
 }
 
 function compute_classification(data, svg, xScale, yScale, div, width, height, removed_tools,divid, classification_type) {
+
+  // every time a new classification is compute the previous results table is deleted
+  var table = document.getElementById("myTable").innerHTML = '';
   let better = "bottom-right";
   if (classification_type == ( divid + "__squares")) {
-    get_square_quartiles(data, svg, xScale, yScale, div, removed_tools,divid);
+    get_square_quartiles(data, svg, xScale, yScale, div, removed_tools,better,divid);
     append_quartile_numbers_to_plot (svg, xScale, yScale, better,divid);
   }  
   else if (classification_type == (divid + "__diagonals")) {
@@ -388,7 +392,7 @@ function draw_legend (data, svg, xScale, yScale, div, width, height, removed_too
 
 };
 
-function get_square_quartiles(data, svg, xScale, yScale, div, removed_tools,divid) {
+function get_square_quartiles(data, svg, xScale, yScale, div, removed_tools,better, divid) {
   
   let tools_not_hidden = remove_hidden_tools(data, removed_tools);
 
@@ -449,6 +453,48 @@ function get_square_quartiles(data, svg, xScale, yScale, div, removed_tools,divi
          .duration(1500)		
          .style("opacity", 0);	
     });
+    transform_to_table(better, tools_not_hidden, quantile_x, quantile_y);
+};
+
+function transform_to_table(better, data, quantile_x, quantile_y){
+  if (better == "bottom-right"){
+    data.forEach(function(element) {
+        if (element['x'] >= quantile_x && element['y'] <= quantile_y){
+              element['sqr_quartile'] = 1;
+        }else if (element['x'] >= quantile_x && element['y'] > quantile_y){
+              element['sqr_quartile'] = 3;
+        }else if (element['x'] < quantile_x && element['y'] > quantile_y){
+              element['sqr_quartile'] = 4;
+        }else if (element['x'] < quantile_x && element['y'] <= quantile_y){
+              element['sqr_quartile'] = 2;
+        }
+    });
+  } else if (better == "top-right"){
+      data.forEach(function(element) {
+        if (element['x'] >= quantile_x && element['y'] < quantile_y){
+              element['sqr_quartile'] = 3;
+        }else if (element['x'] >= quantile_x && element['y'] >= quantile_y){
+              element['sqr_quartile'] = 1;
+        }else if (element['x'] < quantile_x && element['y'] >= quantile_y){
+              element['sqr_quartile'] = 2;
+        }else if (element['x'] < quantile_x && element['y'] < quantile_y){
+              element['sqr_quartile'] = 4;
+        }
+      });
+  };
+
+  //create table dinamically
+  var table = document.getElementById("myTable");
+  var row = table.insertRow(-1);
+  row.insertCell(0).innerHTML = "TOOL";
+  row.insertCell(1).innerHTML = "QUARTILE";
+
+  data.forEach(function(element) {
+    var row = table.insertRow(-1);
+    row.insertCell(0).innerHTML = element["toolname"];
+    row.insertCell(1).innerHTML = element["sqr_quartile"];
+  });
+  
 
 };
 
