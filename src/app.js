@@ -28,7 +28,7 @@ function loadurl(){
 
       i++;
     }
-    
+
     // append ids to chart/s and make d3 plot
     i = 0
     for(y of charts){
@@ -112,7 +112,6 @@ function join_all_json(array,divid){
         full_json.push(jo);    
     }
     
-
     MAIN_DATA[divid] = full_json;
     // by default, no classification method is applied
     let classification_type = divid + "__none";
@@ -470,50 +469,41 @@ function get_square_quartiles(data, svg, xScale, yScale, div, removed_tools,bett
          .duration(1500)		
          .style("opacity", 0);	
     });
-    transform_to_table(better, tools_not_hidden, quantile_x, quantile_y, divid);
+    transform_sqr_classif_to_table(better, tools_not_hidden, quantile_x, quantile_y, divid);
 };
 
-function transform_to_table(better, data, quantile_x, quantile_y, divid){
+function transform_sqr_classif_to_table(better, data, quantile_x, quantile_y, divid){
   if (better == "bottom-right"){
     data.forEach(function(element) {
         if (element['x'] >= quantile_x && element['y'] <= quantile_y){
-              element['sqr_quartile'] = 1;
+              element['quartile'] = 1;
         }else if (element['x'] >= quantile_x && element['y'] > quantile_y){
-              element['sqr_quartile'] = 3;
+              element['quartile'] = 3;
         }else if (element['x'] < quantile_x && element['y'] > quantile_y){
-              element['sqr_quartile'] = 4;
+              element['quartile'] = 4;
         }else if (element['x'] < quantile_x && element['y'] <= quantile_y){
-              element['sqr_quartile'] = 2;
+              element['quartile'] = 2;
         }
     });
   } else if (better == "top-right"){
       data.forEach(function(element) {
         if (element['x'] >= quantile_x && element['y'] < quantile_y){
-              element['sqr_quartile'] = 3;
+              element['quartile'] = 3;
         }else if (element['x'] >= quantile_x && element['y'] >= quantile_y){
-              element['sqr_quartile'] = 1;
+              element['quartile'] = 1;
         }else if (element['x'] < quantile_x && element['y'] >= quantile_y){
-              element['sqr_quartile'] = 2;
+              element['quartile'] = 2;
         }else if (element['x'] < quantile_x && element['y'] < quantile_y){
-              element['sqr_quartile'] = 4;
+              element['quartile'] = 4;
         }
       });
   };
 
-  //create table dinamically
-  var table = document.getElementById(divid + "_table");
-  var row = table.insertRow(-1);
-  row.insertCell(0).innerHTML = "<b>TOOL</b>";
-  row.insertCell(1).innerHTML = "<b>QUARTILE</b>";
-
-  data.forEach(function(element) {
-    var row = table.insertRow(-1);
-    row.insertCell(0).innerHTML = element["toolname"];
-    row.insertCell(1).innerHTML = element["sqr_quartile"];
-  });
-  
+  fill_in_table (divid, data);
+  set_cell_colors();
 
 };
+
 
 function append_quartile_numbers_to_plot (svg, xScale, yScale, better,divid){
 
@@ -593,10 +583,14 @@ function get_diagonal_quartiles(data, svg, xScale, yScale, div, width, height, r
     if (better == "bottom-right"){
       scores.push(x_norm[i] + (1 - y_norm[i]));
       scores_coords[x_norm[i] + (1 - y_norm[i])] =  [x_values[i], y_values[i]];
+      //append the score to the data array
+      tools_not_hidden[i]['score'] = x_norm[i] + (1 - y_norm[i]);
     } 
     else if (better == "top-right"){
       scores.push(x_norm[i] + y_norm[i]);
       scores_coords[x_norm[i] + y_norm[i]] = [x_values[i], y_values[i]];
+      //append the score to the data array
+      tools_not_hidden[i]['score'] = x_norm[i] + y_norm[i];
     };
 
   };
@@ -639,6 +633,28 @@ function get_diagonal_quartiles(data, svg, xScale, yScale, div, width, height, r
 
     index += 1;
   });
+
+  transform_diag_classif_to_table(tools_not_hidden, first_quartile, second_quartile, third_quartile, divid);
+
+};
+
+function transform_diag_classif_to_table(data, first_quartile, second_quartile, third_quartile, divid){
+
+  data.forEach(function(element) {
+
+    if (element['score'] > first_quartile){
+          element['quartile'] = 1;
+    }else if ( element['score'] > second_quartile && element['score'] <= first_quartile){
+          element['quartile'] = 2;
+    }else if ( element['score'] > third_quartile && element['score'] <= second_quartile){
+          element['quartile'] = 3;
+    }else if (element['score'] <= third_quartile){
+          element['quartile'] = 4;
+    }
+  });
+
+  fill_in_table (divid, data);
+  set_cell_colors();
 
 };
 
@@ -702,6 +718,44 @@ function remove_hidden_tools(data, removed_tools){
 
 };
 
+function fill_in_table (divid, data){
+  //create table dinamically
+  var table = document.getElementById(divid + "_table");
+  var row = table.insertRow(-1);
+  row.insertCell(0).innerHTML = "<b>TOOL</b>";
+  row.insertCell(1).innerHTML = "<b>QUARTILE</b>";
+
+  data.forEach(function(element) {
+    var row = table.insertRow(-1);
+    row.insertCell(0).innerHTML = element["toolname"];
+    row.insertCell(1).innerHTML = element["quartile"];
+  });
+
+};
+
+function set_cell_colors(){
+
+  var cell = $('td'); 
+
+  cell.each(function() { //loop through all td elements ie the cells
+
+    var cell_value = $(this).html(); //get the value
+
+    if (cell_value == 1) { //if then for if value is 1
+      $(this).css({'background' : '#238b45'});   // changes td to red.
+    } else if (cell_value == 2) {
+      $(this).css({'background' : '#74c476'}); 
+    } else if (cell_value == 3) {
+      $(this).css({'background' : '#bae4b3'}); 
+    } else if (cell_value == 4) {
+      $(this).css({'background' : '#edf8e9'}); 
+    } else {
+      $(this).css({'background' : '#ffffff'});
+    };
+
+  });
+
+};
 
 export{
   loadurl,
