@@ -11,12 +11,27 @@ let MAIN_DATA = {};
 function loadurl(){
     let divid;
     
-    let x = document.getElementsByClassName("benchmarkingChart");
-    
+    let charts = document.getElementsByClassName("benchmarkingChart");
+    let tables = document.getElementsByClassName("benchmarkingTable");
+    let table;
     let i = 0;
     let dataId;
     let y;
-    for(y of x){
+
+    //append ids to table/s 
+    for(y of tables){
+      // get benchmarking event id
+      dataId = y.getAttribute('data-id');
+
+      divid = (dataId+i).replace(":","_");
+      y.id=divid + "_table";
+
+      i++;
+    }
+    
+    // append ids to chart/s and make d3 plot
+    i = 0
+    for(y of charts){
       // get benchmarking event id
       dataId = y.getAttribute('data-id');
       //set chart id
@@ -52,9 +67,6 @@ function loadurl(){
       .on('click', function(d) {
         onQuartileChange(this.id);
       });
-
-      let table = $('table[data-id="'+dataId+'"]')[0];
-      table.id = divid + "_table";
 
       let url = "https://dev-openebench.bsc.es/api/scientific/Dataset/?query=" + dataId + "&fmt=json";
       get_data(url,divid); 
