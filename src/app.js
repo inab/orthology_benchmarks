@@ -8,27 +8,16 @@ import $ from "jquery";
 
 let MAIN_DATA = {};
 
+
 function loadurl(){
     let divid;
     
     let charts = document.getElementsByClassName("benchmarkingChart");
-    let tables = document.getElementsByClassName("benchmarkingTable");
-    let table;
+     
     let i = 0;
     let dataId;
     let y;
-
-    //append ids to table/s 
-    for(y of tables){
-      // get benchmarking event id
-      dataId = y.getAttribute('data-id');
-
-      divid = (dataId+i).replace(":","_");
-      y.id=divid + "_table";
-
-      i++;
-    }
-
+    
     // append ids to chart/s and make d3 plot
     i = 0
     for(y of charts){
@@ -38,6 +27,7 @@ function loadurl(){
       divid = (dataId+i).replace(":","_");
       y.id=divid;
 
+      // append buttons
       let button1_id = divid + "__squares";
       let button2_id = divid + "__diagonals";
       let button3_id = divid + "__none";
@@ -70,6 +60,14 @@ function loadurl(){
 
       let url = "https://dev-openebench.bsc.es/api/scientific/Dataset/?query=" + dataId + "&fmt=json";
       get_data(url,divid); 
+
+      //check the transformation to table attribute and append table to html
+      if (y.getAttribute('toTable') == "true"){
+        let table_id = divid + "_table";
+        var input = $('<br><br><table id="'+table_id+'" data-id="'+dataId+'" class="benchmarkingTable"></table>');
+        $("#" + divid).after(input);
+      };
+            
       i++;
     }
         
@@ -134,15 +132,20 @@ function onQuartileChange(ID){
 
 function compute_classification(data, svg, xScale, yScale, div, width, height, removed_tools,divid, classification_type) {
 
-  // every time a new classification is compute the previous results table is deleted
-  document.getElementById(divid + "_table").innerHTML = '';
+  let transform_to_table; //this variable is set to true if there are table elements with the corresponden divid in the html file
+  // every time a new classification is compute the previous results table is deleted (if it exists)
+  if (document.getElementById(divid + "_table") != null) {
+    document.getElementById(divid + "_table").innerHTML = '';
+    transform_to_table = true;
+  };
+
   let better = "bottom-right";
   if (classification_type == ( divid + "__squares")) {
-    get_square_quartiles(data, svg, xScale, yScale, div, removed_tools,better,divid);
+    get_square_quartiles(data, svg, xScale, yScale, div, removed_tools,better,divid, transform_to_table);
     append_quartile_numbers_to_plot (svg, xScale, yScale, better,divid);
   }  
   else if (classification_type == (divid + "__diagonals")) {
-    get_diagonal_quartiles(data, svg, xScale, yScale, div, width, height, removed_tools, better,divid);
+    get_diagonal_quartiles(data, svg, xScale, yScale, div, width, height, removed_tools, better,divid, transform_to_table);
   } 
   
 }
@@ -406,7 +409,7 @@ function draw_legend (data, svg, xScale, yScale, div, width, height, removed_too
 
 };
 
-function get_square_quartiles(data, svg, xScale, yScale, div, removed_tools,better, divid) {
+function get_square_quartiles(data, svg, xScale, yScale, div, removed_tools,better, divid, transform_to_table) {
   
   let tools_not_hidden = remove_hidden_tools(data, removed_tools);
 
@@ -469,7 +472,12 @@ function get_square_quartiles(data, svg, xScale, yScale, div, removed_tools,bett
          .duration(1500)		
          .style("opacity", 0);	
     });
-    transform_sqr_classif_to_table(better, tools_not_hidden, quantile_x, quantile_y, divid);
+
+    //the tranformation to tabular format is done only if there are any table elements in the html file
+    if (transform_to_table == true) {
+      transform_sqr_classif_to_table(better, tools_not_hidden, quantile_x, quantile_y, divid);
+    };
+    
 };
 
 function transform_sqr_classif_to_table(better, data, quantile_x, quantile_y, divid){
@@ -559,7 +567,7 @@ function append_quartile_numbers_to_plot (svg, xScale, yScale, better,divid){
   .text(num_top_left);
 
 }
-function get_diagonal_quartiles(data, svg, xScale, yScale, div, width, height, removed_tools, better, divid) {
+function get_diagonal_quartiles(data, svg, xScale, yScale, div, width, height, removed_tools, better, divid, transform_to_table) {
 
   let tools_not_hidden = remove_hidden_tools(data, removed_tools);
 
@@ -634,7 +642,10 @@ function get_diagonal_quartiles(data, svg, xScale, yScale, div, width, height, r
     index += 1;
   });
 
-  transform_diag_classif_to_table(tools_not_hidden, first_quartile, second_quartile, third_quartile, divid);
+  //the tranformation to tabular format is done only if there are any table elements in the html file
+  if (transform_to_table == true) {
+    transform_diag_classif_to_table(tools_not_hidden, first_quartile, second_quartile, third_quartile, divid);
+  };
 
 };
 
