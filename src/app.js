@@ -391,7 +391,6 @@ function show_or_hide_participant_in_plot (ID, data, svg, xScale, yScale, div, w
   svg.selectAll("#"+divid+"___num_top_right").remove();
   svg.selectAll("#"+divid+"___num_bottom_left").remove();
   svg.selectAll("#"+divid+"___num_top_left").remove();
-  svg.selectAll(".trial-line").remove();
   
 
   let blockopacity = d3.select("#"+ID).style("opacity");
@@ -714,16 +713,7 @@ function get_diagonal_line(scores, scores_coords, quartile, better, max_x, max_y
   };
   // # get the the mid point between the two, where the quartile line will pass
   let half_point = [(target[0][0] + target[1][0]) / 2, (target[0][1] + target[1][1]) / 2];
-  svg.append("line")
-  .attr("class","trial-line")
-       .attr("x1", xScale(target[0][0]))
-       .attr("y1", yScale(target[0][1]))
-       .attr("x2", xScale(target[1][0]))
-       .attr("y2", yScale(target[1][1]))  
-       .attr("stroke", "red")
-       .attr("stroke-width",3)
-       .style("stroke-dasharray", ("20, 5"))
-       .style("opacity", 0.4)
+
   // # draw the line depending on which is the optimal corner
   let x_coords;
   let y_coords;
