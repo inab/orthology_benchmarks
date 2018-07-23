@@ -28,36 +28,36 @@ function loadurl(){
       y.id=divid;
 
       // append buttons
-      let button1_id = divid + "__squares";
-      let button2_id = divid + "__diagonals";
-      let button3_id = divid + "__none";
+      let button1_id = divid + "__none";
+      let button2_id = divid + "__squares";
+      let button3_id = divid + "__diagonals";
+      
+      let select_list = d3.select('#'+divid).append("form").append("select").attr("class","classificators_list").attr("id",divid + "_dropdown_list")
+      .append("optgroup").attr("label","Select a classification method:");
 
-      let buttons_form = d3.select('#'+divid).append("form");
-      buttons_form.append("input")
-      .attr("class", "selection_button")
+      select_list.append("option")
+      .attr("class", "selection_option")
       .attr("id", button1_id)
-      .attr("type", "button")
-      .attr("value", "SQUARE QUARTILES")
+      .attr("selected","disabled")
+      .text("NO CLASSIFICATION")
       .on('click', function(d) {
         onQuartileChange(this.id);
       });
-      buttons_form.append("input")
-      .attr("class", "selection_button")
+      select_list.append("option")
+      .attr("class", "selection_option")
       .attr("id", button2_id)
-      .attr("type", "button")
-      .attr("value", "DIAGONAL QUARTILES")
+      .text("SQUARE QUARTILES")
       .on('click', function(d) {
         onQuartileChange(this.id);
       });
-      buttons_form.append("input")
-      .attr("class", "selection_button")
+      select_list.append("option")
+      .attr("class", "selection_option")
       .attr("id", button3_id)
-      .attr("type", "button")
-      .attr("value", "NO CLASSIFICATION")
+      .text("DIAGONAL QUARTILES")
       .on('click', function(d) {
         onQuartileChange(this.id);
       });
-
+      
       let url = "https://dev-openebench.bsc.es/api/scientific/Dataset/?query=" + dataId + "&fmt=json";
       get_data(url,divid); 
 
@@ -111,8 +111,10 @@ function join_all_json(array,divid){
     }
 
     MAIN_DATA[divid] = full_json;
-    // by default, no classification method is applied
-    let classification_type = divid + "__none";
+    // by default, no classification method is applied. it is the first item in the selection list
+    var e = document.getElementById(divid + "_dropdown_list");
+    let classification_type = e.options[e.selectedIndex].id;
+
     createChart(full_json,divid, classification_type);
   }catch(err){
     console.log(`Invalid Url Error: ${err.stack} `);

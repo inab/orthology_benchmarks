@@ -56,32 +56,37 @@
 
    /* buttons style */
 
-   .selection_button {
+   /* .selection_option {
     background-color: #667BB7; 
     border: none;
     border-radius: 15px;
     color: white;
-    padding: 8px 20px;
     text-align: center;
     text-decoration: none;
     display: inline-block;
-    margin: 4px 60px;
-    font-size: 16px;
+    margin: 4px 10px;
+    font-size: 26px;
     transition-duration: 0.1s;
     cursor: pointer;
     box-shadow: 0 8px #0A58A2;
-    }
-    .selection_button:hover {
+    
+    } */
+    
+    .classificators_list{
+        background-color: #0A58A2; 
+        border-radius: 8px;
+        color: #fff;
+        font-size: 20px;
+        padding-left: 55px;
+        padding-right: 55px;
+        text-align: center;
+    
+        }
+    
+    .classificators_list:hover {
         background-color: #b3cde0;
-
+    
     }
-    .selection_button:active {
-        background-color:#ccccff;
-        box-shadow: 0 5px #666;
-        transform: translateY(4px);
-    }
-
-
 
     .benchmarkingTable, td {
         border: 2px solid black;
@@ -94,12 +99,13 @@
         border-collapse: collapse; 
         background-color: #f0f0f0;
         border: 5px solid black; 
-        float: right;}
+        float: right;
+    }
 
-    .benchmarkingChart {
+    .benchmarkingChart[toTable=true] {
         float: left;
       
-      }
+    }
 
       /* .benchmarkingSVG {
           padding-top: 20px;
