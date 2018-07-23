@@ -65,7 +65,7 @@ function loadurl(){
       if (y.getAttribute('toTable') == "true"){
         let table_id = divid + "_table";
         var input = $('<br><br><table id="'+table_id+'" data-id="'+dataId+'" class="benchmarkingTable"></table>');
-        $("#" + divid).after(input);
+        $("#" + divid).append(input);
       };
             
       i++;
@@ -109,7 +109,7 @@ function join_all_json(array,divid){
         jo['e'] = array[i].metrics[2].result.value;
         full_json.push(jo);    
     }
-    
+
     MAIN_DATA[divid] = full_json;
     // by default, no classification method is applied
     let classification_type = divid + "__none";
@@ -153,9 +153,9 @@ function compute_classification(data, svg, xScale, yScale, div, width, height, r
 function compute_chart_height(data){
 
   if (data.length%5 == 0){
-    return (40 + (20 * (Math.trunc(data.length/5))));
+    return (60 + (20 * (Math.trunc(data.length/5))));
   } else if (data.lenght%5 != 0) {
-    return (40 + (20 * (Math.trunc(data.length/5)+1)));
+    return (60 + (20 * (Math.trunc(data.length/5)+1)));
   } 
   
 };
@@ -197,6 +197,7 @@ function createChart (data,divid, classification_type){
     // console.log(d3.select("svg").remove());
 
   let svg = d3.select('#'+divid).append("svg")
+    .attr("class", "benchmarkingSVG")
     .attr('id','svg_'+divid)
     .attr("width", width + margin.left + margin.right)
     .attr("height", height + margin.top + margin.bottom)
@@ -348,53 +349,21 @@ function draw_legend (data, svg, xScale, yScale, div, width, height, removed_too
           let dot = d3.select("text#" +divid+"___"+d.replace(/[\. ()/-]/g, "_"));
           let ID = dot._groups[0][0].id;
 
-          let tool_id =ID.split("___")[1];
-          // remove the existing number and classification lines from plot (if any)
-          svg.selectAll("#"+divid+"___x_quartile").remove();
-          svg.selectAll("#"+divid+"___y_quartile").remove();
-          svg.selectAll("#"+divid+"___diag_quartile_0").remove();
-          svg.selectAll("#"+divid+"___diag_quartile_1").remove();
-          svg.selectAll("#"+divid+"___diag_quartile_2").remove();
-          svg.selectAll("#"+divid+"___num_bottom_right").remove();
-          svg.selectAll("#"+divid+"___num_top_right").remove();
-          svg.selectAll("#"+divid+"___num_bottom_left").remove();
-          svg.selectAll("#"+divid+"___num_top_left").remove();
+          if(data.length-removed_tools.length-1 >= 4){
 
-          
+            let legend_rect = this;
+            show_or_hide_participant_in_plot (ID, data, svg, xScale, yScale, div, width, height, removed_tools,divid,classification_type, legend_rect);
 
-          let blockopacity = d3.select("#"+ID).style("opacity");
-          // let topopacity = d3.select("#top"+ID).style("opacity");
-          // let bottomopacity = d3.select("#bottom"+ID).style("opacity");
-          // let lineopacity =  d3.select("#line"+ID).style("opacity");
-          
-          // change the opacity to 0 or 1 depending on the current state
-          if (blockopacity == 0) {
-            d3.select("#"+ID).style("opacity", 1);
-            d3.select("#"+divid+"___top"+tool_id).style("opacity", 1);
-            d3.select("#"+divid+"___bottom"+tool_id).style("opacity", 1);
-            d3.select("#"+divid+"___line"+tool_id).style("opacity", 1);
-            // recalculate the quartiles after removing the tools
-            let index = $.inArray(tool_id, removed_tools);
-            removed_tools.splice(index, 1);
-            compute_classification(data, svg, xScale, yScale, div, width, height, removed_tools,divid,classification_type);
-            //change the legend opacity to keep track of hidden tools
-            d3.select(this).style("opacity", 1);
-            d3.select("text#" +divid+"___"+tool_id).style("opacity", 1);
+          } else if (data.length-removed_tools.length-1 < 4 && (d3.select("#"+ID).style("opacity")) == 0){
+
+            let legend_rect = this;
+            show_or_hide_participant_in_plot (ID, data, svg, xScale, yScale, div, width, height, removed_tools,divid,classification_type, legend_rect);
 
           } else {
-            d3.select("#"+ID).style("opacity", 0);
-            d3.select("#"+divid+"___top"+tool_id).style("opacity", 0);
-            d3.select("#"+divid+"___bottom"+tool_id).style("opacity", 0);
-            d3.select("#"+divid+"___line"+tool_id).style("opacity", 0);
-            removed_tools.push(tool_id.replace(/_/g, "-"));
-            compute_classification(data, svg, xScale, yScale, div, width, height, removed_tools,divid,classification_type);
-            //change the legend opacity to keep track of hidden tools
-            d3.select(this).style("opacity", 0.2);
-            d3.select("text#" +divid+"___"+tool_id).style("opacity", 0.2);
-          }
+            alert("AT LEAST 4 PARTICIPANTS ARE REQUIRED FOR THE BENCHMARK!!");
+          };
+
         });
-
-
 
   // draw legend text
   legend.append("text")
@@ -406,6 +375,52 @@ function draw_legend (data, svg, xScale, yScale, div, width, height, removed_too
         .text(function(d) {
           return d;
         });
+
+};
+
+function show_or_hide_participant_in_plot (ID, data, svg, xScale, yScale, div, width, height, removed_tools,divid,classification_type, legend_rect){
+
+   let tool_id =ID.split("___")[1];
+  // remove the existing number and classification lines from plot (if any)
+  svg.selectAll("#"+divid+"___x_quartile").remove();
+  svg.selectAll("#"+divid+"___y_quartile").remove();
+  svg.selectAll("#"+divid+"___diag_quartile_0").remove();
+  svg.selectAll("#"+divid+"___diag_quartile_1").remove();
+  svg.selectAll("#"+divid+"___diag_quartile_2").remove();
+  svg.selectAll("#"+divid+"___num_bottom_right").remove();
+  svg.selectAll("#"+divid+"___num_top_right").remove();
+  svg.selectAll("#"+divid+"___num_bottom_left").remove();
+  svg.selectAll("#"+divid+"___num_top_left").remove();
+  svg.selectAll(".trial-line").remove();
+  
+
+  let blockopacity = d3.select("#"+ID).style("opacity");
+  
+  // change the opacity to 0 or 1 depending on the current state
+  if (blockopacity == 0) {
+    d3.select("#"+ID).style("opacity", 1);
+    d3.select("#"+divid+"___top"+tool_id).style("opacity", 1);
+    d3.select("#"+divid+"___bottom"+tool_id).style("opacity", 1);
+    d3.select("#"+divid+"___line"+tool_id).style("opacity", 1);
+    // recalculate the quartiles after removing the tools
+    let index = $.inArray(tool_id.replace(/_/g, "-"), removed_tools);
+    removed_tools.splice(index, 1);
+    compute_classification(data, svg, xScale, yScale, div, width, height, removed_tools,divid,classification_type);
+    //change the legend opacity to keep track of hidden tools
+    d3.select(legend_rect).style("opacity", 1);
+    d3.select("text#" +divid+"___"+tool_id).style("opacity", 1);
+
+  } else {
+    d3.select("#"+ID).style("opacity", 0);
+    d3.select("#"+divid+"___top"+tool_id).style("opacity", 0);
+    d3.select("#"+divid+"___bottom"+tool_id).style("opacity", 0);
+    d3.select("#"+divid+"___line"+tool_id).style("opacity", 0);
+    removed_tools.push(tool_id.replace(/_/g, "-"));
+    compute_classification(data, svg, xScale, yScale, div, width, height, removed_tools,divid,classification_type);
+    //change the legend opacity to keep track of hidden tools
+    d3.select(legend_rect).style("opacity", 0.2);
+    d3.select("text#" +divid+"___"+tool_id).style("opacity", 0.2);
+  }
 
 };
 
@@ -611,9 +626,9 @@ function get_diagonal_quartiles(data, svg, xScale, yScale, div, width, height, r
   let third_quartile = d3.quantile(scores, 0.75);
 
   // compute the diagonal line coords
-  let coords = [get_diagonal_line(scores, scores_coords, first_quartile, better, max_x, max_y), 
-                get_diagonal_line(scores, scores_coords, second_quartile, better, max_x, max_y), 
-                get_diagonal_line(scores, scores_coords, third_quartile, better, max_x, max_y)
+  let coords = [get_diagonal_line(scores, scores_coords, first_quartile, better, max_x, max_y,svg, xScale, yScale), 
+                get_diagonal_line(scores, scores_coords, second_quartile, better, max_x, max_y,svg, xScale, yScale), 
+                get_diagonal_line(scores, scores_coords, third_quartile, better, max_x, max_y,svg, xScale, yScale)
               ];
   
   // append the 3 lines to the svg
@@ -685,7 +700,7 @@ function normalize_data(x_values, y_values){
   return [x_norm, y_norm];
 };
 
-function get_diagonal_line(scores, scores_coords, quartile, better, max_x, max_y){
+function get_diagonal_line(scores, scores_coords, quartile, better, max_x, max_y,svg, xScale, yScale){
 
   let target;
   for (let i = 0; i < scores.length; i++) {
@@ -699,7 +714,16 @@ function get_diagonal_line(scores, scores_coords, quartile, better, max_x, max_y
   };
   // # get the the mid point between the two, where the quartile line will pass
   let half_point = [(target[0][0] + target[1][0]) / 2, (target[0][1] + target[1][1]) / 2];
-
+  svg.append("line")
+  .attr("class","trial-line")
+       .attr("x1", xScale(target[0][0]))
+       .attr("y1", yScale(target[0][1]))
+       .attr("x2", xScale(target[1][0]))
+       .attr("y2", yScale(target[1][1]))  
+       .attr("stroke", "red")
+       .attr("stroke-width",3)
+       .style("stroke-dasharray", ("20, 5"))
+       .style("opacity", 0.4)
   // # draw the line depending on which is the optimal corner
   let x_coords;
   let y_coords;

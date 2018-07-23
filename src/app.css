@@ -81,10 +81,26 @@
         transform: translateY(4px);
     }
 
-    table, td {
+
+
+    .benchmarkingTable, td {
         border: 2px solid black;
         border-collapse: collapse;
         text-align: center;
     }
 
-    table {width: 300px; border-collapse: collapse; background-color: #f0f0f0;border: 5px solid black;}
+    .benchmarkingTable {
+        width: 300px; 
+        border-collapse: collapse; 
+        background-color: #f0f0f0;
+        border: 5px solid black; 
+        float: right;}
+
+    .benchmarkingChart {
+        float: left;
+      
+      }
+
+      /* .benchmarkingSVG {
+          padding-top: 20px;
+      } */
