@@ -32,13 +32,23 @@ function loadurl(){
       let button2_id = divid + "__squares";
       let button3_id = divid + "__diagonals";
       
-      let select_list = d3.select('#'+divid).append("form").append("select").attr("class","classificators_list").attr("id",divid + "_dropdown_list")
-      .append("optgroup").attr("label","Select a classification method:");
+      // append selection list tooltip container
+      d3.select('#'+divid).append("div")
+        .attr("id", "tooltip_container")
+
+      let select_list = d3.select('#'+divid).append("form").append("select")
+      .attr("class","classificators_list")
+      .attr("id",divid + "_dropdown_list")
+      .append("optgroup")
+      .attr("label","Select a classification method:");
 
       select_list.append("option")
       .attr("class", "selection_option")
       .attr("id", button1_id)
+      .attr("title", "Show only raw data")
       .attr("selected","disabled")
+      .attr("data-toggle", "list_tooltip")
+      .attr("data-container", "#tooltip_container") 
       .text("NO CLASSIFICATION")
       .on('click', function(d) {
         onQuartileChange(this.id);
@@ -46,6 +56,9 @@ function loadurl(){
       select_list.append("option")
       .attr("class", "selection_option")
       .attr("id", button2_id)
+      .attr("title", "Apply square quartiles classification method (based on the 0.5 quartile of the X and Y metrics)")
+      .attr("data-toggle", "list_tooltip")
+      .attr("data-container", "#tooltip_container") 
       .text("SQUARE QUARTILES")
       .on('click', function(d) {
         onQuartileChange(this.id);
@@ -53,13 +66,18 @@ function loadurl(){
       select_list.append("option")
       .attr("class", "selection_option")
       .attr("id", button3_id)
+      .attr("title", "Apply diagonal quartiles classifcation method (based on the assignment of a score to each participant proceeding from its distance to the 'optimal performance' corner)")
+      .attr("data-toggle", "list_tooltip")
+      .attr("data-container", "#tooltip_container") 
       .text("DIAGONAL QUARTILES")
       .on('click', function(d) {
         onQuartileChange(this.id);
       });
-      
+     
       let url = "https://dev-openebench.bsc.es/api/scientific/Dataset/?query=" + dataId + "&fmt=json";
       get_data(url,divid); 
+
+      // $('[data-toggle="list_tooltip"]').tooltip();
 
       //check the transformation to table attribute and append table to html
       if (y.getAttribute('toTable') == "true"){
@@ -96,7 +114,7 @@ async function fetchUrl(url) {
       console.log(`Invalid Url Error: ${err.stack} `);
     }
 
-}
+};
 
 function join_all_json(array,divid){
   try{
@@ -121,7 +139,7 @@ function join_all_json(array,divid){
   }
 
     
-}
+};
 
 function onQuartileChange(ID){  
   
@@ -130,7 +148,7 @@ function onQuartileChange(ID){
   d3.select('#'+'svg_'+chart_id).remove();
   let classification_type = ID;
   createChart(MAIN_DATA[chart_id],chart_id, classification_type);
-}
+};
 
 function compute_classification(data, svg, xScale, yScale, div, width, height, removed_tools,divid, classification_type) {
 
@@ -150,7 +168,7 @@ function compute_classification(data, svg, xScale, yScale, div, width, height, r
     get_diagonal_quartiles(data, svg, xScale, yScale, div, width, height, removed_tools, better,divid, transform_to_table);
   } 
   
-}
+};
 
 function compute_chart_height(data){
 
@@ -362,7 +380,20 @@ function draw_legend (data, svg, xScale, yScale, div, width, height, removed_too
             show_or_hide_participant_in_plot (ID, data, svg, xScale, yScale, div, width, height, removed_tools,divid,classification_type, legend_rect);
 
           } else {
-            alert("AT LEAST 4 PARTICIPANTS ARE REQUIRED FOR THE BENCHMARK!!");
+            
+            $('.removal_alert').remove();
+            var alert_msg = $('<div class="removal_alert">\
+                                <span class="closebtn" onclick="(this.parentNode.remove());">&times;</span>\
+                                At least four participants are required for the benchmark!!\
+                              </div>');
+            $("#" + divid).append(alert_msg);
+
+            setTimeout(function(){
+              if ($('.removal_alert').length > 0) {
+                $('.removal_alert').remove();
+              }
+            }, 5000)
+
           };
 
         });
@@ -792,5 +823,4 @@ export{
 loadurl();
 
 
-  
- 
+
