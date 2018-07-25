@@ -28,12 +28,12 @@
       content: " ";
       position: absolute;
       top: 50%;
-      right: 100%; /* To the left of the tooltip */
+      right: 100%;
       margin-top: -10px;
       border-width: 10px;
       border-style: solid;
       border-color: transparent transparent transparent transparent;
-      /* border-color: transparent rgb(0, 0, 0) transparent transparent; */
+      
   }
   
    .plot-bg {
@@ -53,24 +53,6 @@
        shape-rendering: crispEdges;
    }
 
-
-   /* buttons style */
-
-   /* .selection_option {
-    background-color: #667BB7; 
-    border: none;
-    border-radius: 15px;
-    color: white;
-    text-align: center;
-    text-decoration: none;
-    display: inline-block;
-    margin: 4px 10px;
-    font-size: 26px;
-    transition-duration: 0.1s;
-    cursor: pointer;
-    box-shadow: 0 8px #0A58A2;
-    
-    } */
     
     .classificators_list{
         background-color: #0A58A2; 
@@ -88,7 +70,7 @@
     
     }
 
-    .benchmarkingTable, td {
+    .benchmarkingTable td {
         border: 2px solid black;
         border-collapse: collapse;
         text-align: center;
@@ -107,9 +89,6 @@
       
     }
 
-      /* .benchmarkingSVG {
-          padding-top: 20px;
-      } */
 
       .axis--x {
           font-size: 12px;
