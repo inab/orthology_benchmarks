@@ -210,7 +210,7 @@ function createChart (data,divid, classification_type){
 
   // Define the div for the tooltip
 
-  let div = d3.select('#'+divid).append("div").attr("class", "tooltip").style("opacity", 0);
+  let div = d3.select('#'+divid).append("div").attr("class", "benchmark_tooltip").style("opacity", 0);
 
   // append the svg element
   // d3.select("svg").remove()
@@ -317,7 +317,8 @@ function append_dots_errobars (svg, data, xScale, yScale, div, cValue, color,div
   let dots =svg.selectAll(".dots")
     .data(data)
     .enter()
-    .append("path");
+    .append("path")
+    .attr("class", "benchmark_path");
     
   dots.attr("d", symbol.type(function(){return d3.symbolSquare}))
       .attr("id", function (d) {  return divid+"___"+d.toolname.replace(/[\. ()/-]/g, "_");})
