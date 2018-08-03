@@ -8,7 +8,6 @@
   .error-cap {
     stroke:black;
     stroke-width: 1px;
-    stroke-type: solid;
   }
   
     div.benchmark_tooltip {
@@ -37,7 +36,8 @@
   }
   
    .plot-bg {
-     fill:white;
+     fill:#F8F8F8;
+     stroke: black;
    }
       
    .axis path,
@@ -47,6 +47,11 @@
        stroke-width: 1;
        shape-rendering: crispEdges;
    }
+
+   .bench_grid {
+    stroke-opacity: 0.1;
+    stroke-dasharray: 7,5;
+  }
 
     
     .classificators_list{

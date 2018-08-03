@@ -173,9 +173,9 @@ function compute_classification(data, svg, xScale, yScale, div, width, height, r
 function compute_chart_height(data){
 
   if (data.length%5 == 0){
-    return (60 + (20 * (Math.trunc(data.length/5))));
+    return (40 + (20 * (Math.trunc(data.length/5))));
   } else if (data.lenght%5 != 0) {
-    return (60 + (20 * (Math.trunc(data.length/5)+1)));
+    return (40 + (20 * (Math.trunc(data.length/5)+1)));
   } 
   
 };
@@ -232,7 +232,28 @@ function createChart (data,divid, classification_type){
     .call(xAxis);
 
   svg.append("g").attr("class", "axis axis--y").call(yAxis);
+  
+  // add X and Y Gridlines
+  var gridlines_x = d3.axisBottom()
+                    .ticks(12)
+                    .tickFormat("")
+                    .tickSize(height)
+                    .scale(xScale);
 
+  var gridlines_y = d3.axisLeft()
+                    .ticks(12 * height / width)
+                    .tickFormat("")
+                    .tickSize(-width)
+                    .scale(yScale);
+
+  svg.append("g")
+     .attr("class", "bench_grid")
+     .call(gridlines_x);
+  
+     svg.append("g")
+     .attr("class", "bench_grid")
+     .call(gridlines_y);
+         
   let removed_tools = []; // this array stores the tools when the user clicks on them
 
    // setup fill color
@@ -585,33 +606,37 @@ function append_quartile_numbers_to_plot (svg, xScale, yScale, better,divid){
   svg.append("text")
   .attr("id", function (d) { return divid+"___num_bottom_right";})
   .attr("x", xScale(x_axis[1]-(0.05*(x_axis[1]-x_axis[0]))))
-  .attr("y", yScale(y_axis[1]-(0.95*(y_axis[1]-y_axis[0]))))
-  .style("opacity", 0.2)
+  .attr("y", yScale(y_axis[1]-(0.97*(y_axis[1]-y_axis[0]))))
+  .style("opacity", 0.4)
   .style("font-size", "40px")
+  .style("fill", "#0A58A2")
   .text(num_bottom_right);
 
   svg.append("text")
   .attr("id", function (d) { return divid+"___num_bottom_left";})
   .attr("x", xScale(x_axis[1]-(0.95*(x_axis[1]-x_axis[0]))))
-  .attr("y", yScale(y_axis[1]-(0.95*(y_axis[1]-y_axis[0]))))
-  .style("opacity", 0.2)
+  .attr("y", yScale(y_axis[1]-(0.97*(y_axis[1]-y_axis[0]))))
+  .style("opacity", 0.4)
   .style("font-size", "40px")
+  .style("fill", "#0A58A2")
   .text(num_bottom_left);
 
   svg.append("text")
   .attr("id", function (d) { return divid+"___num_top_right";})
   .attr("x", xScale(x_axis[1]-(0.05*(x_axis[1]-x_axis[0]))))
-  .attr("y", yScale(y_axis[1]-(0.05*(y_axis[1]-y_axis[0]))))
-  .style("opacity", 0.2)
+  .attr("y", yScale(y_axis[1]-(0.1*(y_axis[1]-y_axis[0]))))
+  .style("opacity", 0.4)
   .style("font-size", "40px")
+  .style("fill", "#0A58A2")
   .text(num_top_right);
 
   svg.append("text")
   .attr("id", function (d) { return divid+"___num_top_left";})
   .attr("x", xScale(x_axis[1]-(0.95*(x_axis[1]-x_axis[0]))))
-  .attr("y", yScale(y_axis[1]-(0.05*(y_axis[1]-y_axis[0]))))
-  .style("opacity", 0.2)
+  .attr("y", yScale(y_axis[1]-(0.1*(y_axis[1]-y_axis[0]))))
+  .style("opacity", 0.4)
   .style("font-size", "40px")
+  .style("fill", "#0A58A2")
   .text(num_top_left);
 
 }
