@@ -84,6 +84,15 @@
         float: right;
     }
 
+    @media only screen and (max-width: 1400px) {
+
+        .benchmarkingChart{
+            /* float: left; */
+            width: 90vw;
+        }
+    }   
+
+
     /* .benchmarkingChart{
 
         -webkit-transform:scale(0.5);

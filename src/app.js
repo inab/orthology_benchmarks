@@ -1,6 +1,7 @@
 import * as d3 from 'd3';
 import './app.css';
 import $ from "jquery";
+import * as pf from 'pareto-frontier';
 
 
 // ./node_modules/.bin/webpack-cli src/app.js --output=build/build.js -d -w
@@ -159,14 +160,18 @@ function compute_classification(data, svg, xScale, yScale, div, width, height, r
     transform_to_table = true;
   };
 
-  let better = "bottom-right";
+  let better = "top-right";
   if (classification_type == ( divid + "__squares")) {
+    draw_pareto(data, svg, xScale, yScale, div, width, height, removed_tools,divid, better);
     get_square_quartiles(data, svg, xScale, yScale, div, removed_tools,better,divid, transform_to_table);
     append_quartile_numbers_to_plot (svg, xScale, yScale, better,divid);
   }  
   else if (classification_type == (divid + "__diagonals")) {
+    draw_pareto(data, svg, xScale, yScale, div, width, height, removed_tools,divid, better);
     get_diagonal_quartiles(data, svg, xScale, yScale, div, width, height, removed_tools, better,divid, transform_to_table);
-  } 
+  } else {
+    draw_pareto(data, svg, xScale, yScale, div, width, height, removed_tools,divid, better);
+  }
   
 };
 
@@ -266,7 +271,7 @@ function createChart (data,divid, classification_type){
 
   draw_legend (data, svg, xScale, yScale, div, width, height, removed_tools, color_func, color_func.domain(), margin,divid,classification_type);
 
-  compute_classification(data, svg, xScale, yScale, div, width, height, removed_tools,divid, classification_type);
+    compute_classification(data, svg, xScale, yScale, div, width, height, removed_tools,divid, classification_type);
 
 };
 
@@ -433,6 +438,50 @@ function draw_legend (data, svg, xScale, yScale, div, width, height, removed_too
 
 };
 
+function draw_pareto(data, svg, xScale, yScale, div, width, height, removed_tools,divid, better){
+
+  const points = [];
+
+  let tools_not_hidden = remove_hidden_tools(data, removed_tools);
+
+  tools_not_hidden.forEach(function(element) {
+    points.push([element['x'], element['y']])
+  });
+
+  let pf_coords;
+  let x_axis = xScale.domain();
+  let y_axis = yScale.domain();
+
+  if (better == "bottom-right"){
+    pf_coords = pf.getParetoFrontier(points, { optimize: 'bottomRight'});
+    // append edges to pareto frontier
+    pf_coords.unshift ([pf_coords[0][0], y_axis[1]]);
+    pf_coords.push([x_axis[0], pf_coords[pf_coords.length -1 ][1]]);
+  } else if (better == "top-right"){
+    pf_coords = pf.getParetoFrontier(points, { optimize: 'topRight'});
+    // append edges to pareto frontier
+    pf_coords.unshift ([pf_coords[0][0], y_axis[0]]);
+    pf_coords.push([x_axis[0], pf_coords[pf_coords.length -1 ][1]]);
+
+  }
+  
+  for (var i = 0; i < (pf_coords.length-1); i++) {
+    svg.append("line")
+       .attr("clip-path","url(#clip)")
+       .attr("x1", xScale(pf_coords[i][0]))
+       .attr("y1", yScale(pf_coords[i][1]))
+       .attr("x2", xScale(pf_coords[i+1][0]))
+       .attr("y2", yScale(pf_coords[i+1][1]))  
+       .attr("id", function (d) { return divid+"___pareto";})
+       .attr("stroke", "grey")
+       .attr("stroke-width",3)
+       .style("stroke-dasharray", ("20, 5"))
+       .style("opacity", 0.4)
+  };
+
+
+}
+
 function show_or_hide_participant_in_plot (ID, data, svg, xScale, yScale, div, width, height, removed_tools,divid,classification_type, legend_rect){
 
    let tool_id =ID.split("___")[1];
@@ -446,7 +495,7 @@ function show_or_hide_participant_in_plot (ID, data, svg, xScale, yScale, div, w
   svg.selectAll("#"+divid+"___num_top_right").remove();
   svg.selectAll("#"+divid+"___num_bottom_left").remove();
   svg.selectAll("#"+divid+"___num_top_left").remove();
-  
+  svg.selectAll("#"+divid+"___pareto" ).remove();
 
   let blockopacity = d3.select("#"+ID).style("opacity");
   
@@ -705,6 +754,14 @@ function get_diagonal_quartiles(data, svg, xScale, yScale, div, width, height, r
        .attr("stroke-width",3)
        .style("stroke-dasharray", ("20, 5"))
        .style("opacity", 0.4)
+
+    // svg.append("text")
+    // .attr("x", xScale(0.56))
+    // .attr("y", yScale(0.86))
+    // .style("opacity", 0.4)
+    // .style("font-size", "40px")
+    // .style("fill", "#0A58A2")
+    // .text("num");
 
     svg.append("clipPath")
        .attr("id", "clip")
