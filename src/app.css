@@ -77,34 +77,20 @@
     }
 
     .benchmarkingTable {
-        width: 300px; 
+        width: 17vw; 
         border-collapse: collapse; 
         background-color: #f0f0f0;
         border: 5px solid black; 
         float: right;
     }
 
-    @media only screen and (max-width: 1400px) {
+    .benchmarkingChart{
+        width: 90vw;
+    }
 
-        .benchmarkingChart{
-            /* float: left; */
-            width: 90vw;
-        }
-    }   
-
-
-    /* .benchmarkingChart{
-
-        -webkit-transform:scale(0.5);
-        -moz-transform:scale(0.5);
-        -ms-transform:scale(0.5);
-        transform:scale(0.5,  1);
-        position: fixed;
-        left: 0px;
-        right: 0px;
-        top: 0px;
-        bottom: 0px;
-    } */
+    .benchmarkingSVG{
+        width: 68vw;
+    }
       .axis--x {
           font-size: 12px;
       }

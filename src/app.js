@@ -85,6 +85,13 @@ function loadurl(){
         let table_id = divid + "_table";
         var input = $('<br><br><table id="'+table_id+'" data-id="'+dataId+'" class="benchmarkingTable"></table>');
         $("#" + divid).append(input);
+        // if ($(window).width() > 1400){
+        //   var input = $('<br><br><table id="'+table_id+'" data-id="'+dataId+'" style= "float:right" class="benchmarkingTable"></table>');
+        //   $("#" + divid).append(input);
+        // } else {
+        //   var input = $('<br><br><table id="'+table_id+'" data-id="'+dataId+'" style= "float:left" class="benchmarkingTable"></table>');
+        //   $("#" + divid).after(input);
+        // }
       };
             
       i++;
@@ -188,9 +195,8 @@ function compute_chart_height(data){
 function createChart (data,divid, classification_type){
   // console.log(data)
   let margin = {top: 20, right: 40, bottom: compute_chart_height(data), left: 40},
-    width = 1200 - margin.left - margin.right,
-    height = 500 - margin.top - margin.bottom;
-
+    width = Math.round($(window).width()* 0.6818) - margin.left - margin.right,
+    height = Math.round($(window).height()* 0.5787037) - margin.top - margin.bottom;
 
   let xScale = d3.scaleLinear()
     .range([0, width])
@@ -220,9 +226,10 @@ function createChart (data,divid, classification_type){
   // append the svg element
   // d3.select("svg").remove()
     // console.log(d3.select("svg").remove());
-
   let svg = d3.select('#'+divid).append("svg")
     .attr("class", "benchmarkingSVG")
+    .attr("viewBox", "0 0 " + (width + margin.left + margin.right) + " " + (height + margin.top + margin.bottom))
+    .attr("preserveAspectRatio", "xMinYMin meet")
     .attr('id','svg_'+divid)
     .attr("width", width + margin.left + margin.right)
     .attr("height", height + margin.top + margin.bottom)
@@ -383,13 +390,13 @@ function draw_legend (data, svg, xScale, yScale, div, width, height, removed_too
     .data(color_domain)
     .enter().append("g")
     .attr("class", "legend")
-    .attr("transform", function(d, i) { return "translate(" + (-width+i%n*200) + "," + (height + 40 + Math.floor(i/n) * 20) + ")"; });
+    .attr("transform", function(d, i) { return "translate(" + (-width+i%n*(Math.round($(window).width()* 0.113636))) + "," + (height + (Math.round($(window).height()* 0.0462962)) + Math.floor(i/n) * (Math.round($(window).height()* 0.0231481))) + ")"; });
   
   // draw legend colored rectangles
   legend.append("rect")
-        .attr("x", width + 18)
-        .attr("width", 18)
-        .attr("height", 18)
+        .attr("x", width + Math.round($(window).width()* 0.010227))
+        .attr("width", Math.round($(window).width()* 0.010227))
+        .attr("height", Math.round($(window).height()* 0.020833))
         .style("fill", color)
         .on('click', function(d) {
 
@@ -427,11 +434,12 @@ function draw_legend (data, svg, xScale, yScale, div, width, height, removed_too
 
   // draw legend text
   legend.append("text")
-        .attr("x", width + 40)
-        .attr("y", 9)
+        .attr("x", width + Math.round($(window).width()* 0.022727))
+        .attr("y", Math.round($(window).height()* 0.01041))
         .attr("id", function (d) { return divid+"___"+d.replace(/[\. ()/-]/g, "_");})
         .attr("dy", ".35em")
         .style("text-anchor", "start")
+        .style("font-size", "1vw")
         .text(function(d) {
           return d;
         });
