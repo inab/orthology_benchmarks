@@ -37,45 +37,41 @@ function loadurl(){
       d3.select('#'+divid).append("div")
         .attr("id", "tooltip_container")
 
-      let select_list = d3.select('#'+divid).append("form").append("select")
-      .attr("class","classificators_list")
-      .attr("id",divid + "_dropdown_list")
-      .append("optgroup")
-      .attr("label","Select a classification method:");
-
-      select_list.append("option")
-      .attr("class", "selection_option")
-      .attr("id", button1_id)
-      .attr("title", "Show only raw data")
-      .attr("selected","disabled")
-      .attr("data-toggle", "list_tooltip")
-      .attr("data-container", "#tooltip_container") 
-      .text("NO CLASSIFICATION")
-      .on('click', function(d) {
-        onQuartileChange(this.id);
-      });
-      select_list.append("option")
-      .attr("class", "selection_option")
-      .attr("id", button2_id)
-      .attr("title", "Apply square quartiles classification method (based on the 0.5 quartile of the X and Y metrics)")
-      .attr("data-toggle", "list_tooltip")
-      .attr("data-container", "#tooltip_container") 
-      .text("SQUARE QUARTILES")
-      .on('click', function(d) {
-        onQuartileChange(this.id);
-      });
-      select_list.append("option")
-      .attr("class", "selection_option")
-      .attr("id", button3_id)
-      .attr("title", "Apply diagonal quartiles classifcation method (based on the assignment of a score to each participant proceeding from its distance to the 'optimal performance' corner)")
-      .attr("data-toggle", "list_tooltip")
-      .attr("data-container", "#tooltip_container") 
-      .text("DIAGONAL QUARTILES")
-      .on('click', function(d) {
-        onQuartileChange(this.id);
-      });
+        let select_list = d3.select('#'+divid).append("form").append("select")
+        .attr("class","classificators_list")
+        .attr("id",divid + "_dropdown_list")
+        .on('change', function(d) {
+          onQuartileChange(this.options[this.selectedIndex].id);
+        })
+        .append("optgroup")
+        .attr("label","Select a classification method:");
+  
+        select_list.append("option")
+        .attr("class", "selection_option")
+        .attr("id", button1_id)
+        .attr("title", "Show only raw data")
+        .attr("selected","disabled")
+        .attr("data-toggle", "list_tooltip")
+        .attr("data-container", "#tooltip_container") 
+        .text("NO CLASSIFICATION")
+        
+        select_list.append("option")
+        .attr("class", "selection_option")
+        .attr("id", button2_id)
+        .attr("title", "Apply square quartiles classification method (based on the 0.5 quartile of the X and Y metrics)")
+        .attr("data-toggle", "list_tooltip")
+        .attr("data-container", "#tooltip_container") 
+        .text("SQUARE QUARTILES")
+  
+        select_list.append("option")
+        .attr("class", "selection_option")
+        .attr("id", button3_id)
+        .attr("title", "Apply diagonal quartiles classifcation method (based on the assignment of a score to each participant proceeding from its distance to the 'optimal performance' corner)")
+        .attr("data-toggle", "list_tooltip")
+        .attr("data-container", "#tooltip_container") 
+        .text("DIAGONAL QUARTILES")
      
-      let url = "https://dev-openebench.bsc.es/api/scientific/Dataset/?query=" + dataId + "&fmt=json";
+      let url = "https://openebench.bsc.es/api/scientific/Dataset/?query=" + dataId + "&fmt=json";
       get_data(url,divid); 
 
       // $('[data-toggle="list_tooltip"]').tooltip();
@@ -135,7 +131,7 @@ function join_all_json(array,divid){
         jo['e'] = array[i].metrics[2].result.value;
         full_json.push(jo);    
     }
-
+    console.log(full_json);
     MAIN_DATA[divid] = full_json;
     // by default, no classification method is applied. it is the first item in the selection list
     var e = document.getElementById(divid + "_dropdown_list");
