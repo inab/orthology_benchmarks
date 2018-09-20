@@ -32,6 +32,7 @@ function loadurl(){
       let button1_id = divid + "__none";
       let button2_id = divid + "__squares";
       let button3_id = divid + "__diagonals";
+      let button4_id = divid + "__clusters";
       
       // append selection list tooltip container
       d3.select('#'+divid).append("div")
@@ -70,6 +71,14 @@ function loadurl(){
         .attr("data-toggle", "list_tooltip")
         .attr("data-container", "#tooltip_container") 
         .text("DIAGONAL QUARTILES")
+
+        select_list.append("option")
+        .attr("class", "selection_option")
+        .attr("id", button4_id)
+        .attr("title", "Apply diagonal quartiles classifcation method (based on the assignment of a score to each participant proceeding from its distance to the 'optimal performance' corner)")
+        .attr("data-toggle", "list_tooltip")
+        .attr("data-container", "#tooltip_container") 
+        .text("CLUSTERING")
      
       let url = "https://openebench.bsc.es/api/scientific/Dataset/?query=" + dataId + "&fmt=json";
       get_data(url,divid); 
@@ -131,7 +140,6 @@ function join_all_json(array,divid){
         jo['e'] = array[i].metrics[2].result.value;
         full_json.push(jo);    
     }
-    console.log(full_json);
     MAIN_DATA[divid] = full_json;
     // by default, no classification method is applied. it is the first item in the selection list
     var e = document.getElementById(divid + "_dropdown_list");
@@ -172,6 +180,10 @@ function compute_classification(data, svg, xScale, yScale, div, width, height, r
   else if (classification_type == (divid + "__diagonals")) {
     draw_pareto(data, svg, xScale, yScale, div, width, height, removed_tools,divid, better);
     get_diagonal_quartiles(data, svg, xScale, yScale, div, width, height, removed_tools, better,divid, transform_to_table);
+  } 
+  else if (classification_type == (divid + "__clusters")) {
+    draw_pareto(data, svg, xScale, yScale, div, width, height, removed_tools,divid, better);
+    get_clusters(data, svg, xScale, yScale, div, width, height, removed_tools, better,divid, transform_to_table);
   } else {
     draw_pareto(data, svg, xScale, yScale, div, width, height, removed_tools,divid, better);
   }
@@ -181,9 +193,9 @@ function compute_classification(data, svg, xScale, yScale, div, width, height, r
 function compute_chart_height(data){
 
   if (data.length%5 == 0){
-    return (40 + (20 * (Math.trunc(data.length/5))));
+    return (80 + (20 * (Math.trunc(data.length/5))));
   } else if (data.lenght%5 != 0) {
-    return (40 + (20 * (Math.trunc(data.length/5)+1)));
+    return (80 + (20 * (Math.trunc(data.length/5)+1)));
   } 
   
 };
@@ -234,12 +246,22 @@ function createChart (data,divid, classification_type){
     
   svg.append("g").append("rect").attr("width", width).attr("height", height).attr("class", "plot-bg");
 
-  // Add Axis labels
+  // Add Axis numbers
   svg.append("g").attr("class", "axis axis--x")
     .attr("transform", "translate(" + 0 + "," + height + ")")
     .call(xAxis);
 
   svg.append("g").attr("class", "axis axis--y").call(yAxis);
+
+  // add axis labels
+  svg.append("text")             
+  .attr("transform",
+        "translate(" + (width/2) + " ," + 
+                       (height + margin.top + (Math.round($(window).height()* 0.0347))) + ")")
+  .style("text-anchor", "middle")
+  .style("font-weight", "bold")
+  .style("font-size", "1vw")
+  .text("Date");
   
   // add X and Y Gridlines
   var gridlines_x = d3.axisBottom()
@@ -276,7 +298,7 @@ function createChart (data,divid, classification_type){
 
     compute_classification(data, svg, xScale, yScale, div, width, height, removed_tools,divid, classification_type);
 
-};
+  };
 
 function append_dots_errobars (svg, data, xScale, yScale, div, cValue, color,divid){
 
@@ -374,6 +396,34 @@ function append_dots_errobars (svg, data, xScale, yScale, div, cValue, color,div
           .duration(1500)		
           .style("opacity", 0);	
       });
+  
+    // append optimization arrow
+    
+    svg.append("svg:defs").append("svg:marker")
+    .attr("id", "opt_triangle")
+    .attr("refX", 6)
+    .attr("refY", 6)
+    .attr("markerWidth", 30)
+    .attr("markerHeight", 30)
+    .attr("markerUnits","userSpaceOnUse")
+    .attr("orient", "auto")
+    .append("path")
+    .attr("d", "M 0 0 12 6 0 12 3 6")
+    .style("fill", "black")
+    .style("opacity", 0.7);
+
+    let x_axis = xScale.domain();
+  let y_axis = yScale.domain();
+  
+    var line = svg.append("line")
+    .attr("x1",xScale(x_axis[1]-(0.05*(x_axis[1]-x_axis[0]))))  
+    .attr("y1",yScale(y_axis[1]-(0.1*(y_axis[1]-y_axis[0]))))  
+    .attr("x2",xScale(x_axis[1]-(0.009*(x_axis[1]-x_axis[0]))))  
+    .attr("y2",yScale(y_axis[1]-(0.03*(y_axis[1]-y_axis[0]))))  
+    .attr("stroke","black")  
+    .attr("stroke-width",2)  
+    .attr("marker-end","url(#opt_triangle)")
+    .style("opacity", 0.4);  
     
 };
 
@@ -386,7 +436,7 @@ function draw_legend (data, svg, xScale, yScale, div, width, height, removed_too
     .data(color_domain)
     .enter().append("g")
     .attr("class", "legend")
-    .attr("transform", function(d, i) { return "translate(" + (-width+i%n*(Math.round($(window).width()* 0.113636))) + "," + (height + (Math.round($(window).height()* 0.0462962)) + Math.floor(i/n) * (Math.round($(window).height()* 0.0231481))) + ")"; });
+    .attr("transform", function(d, i) { return "translate(" + (-width+i%n*(Math.round($(window).width()* 0.113636))) + "," + (height + (Math.round($(window).height()* 0.0862962)) + Math.floor(i/n) * (Math.round($(window).height()* 0.0231481))) + ")"; });
   
   // draw legend colored rectangles
   legend.append("rect")
@@ -500,6 +550,8 @@ function show_or_hide_participant_in_plot (ID, data, svg, xScale, yScale, div, w
   svg.selectAll("#"+divid+"___num_bottom_left").remove();
   svg.selectAll("#"+divid+"___num_top_left").remove();
   svg.selectAll("#"+divid+"___pareto" ).remove();
+  svg.selectAll("."+divid+"___cluster_num").remove();
+  svg.selectAll("."+divid+"___clust_lines").remove();
 
   let blockopacity = d3.select("#"+ID).style("opacity");
   
@@ -661,16 +713,16 @@ function append_quartile_numbers_to_plot (svg, xScale, yScale, better,divid){
   .attr("x", xScale(x_axis[1]-(0.05*(x_axis[1]-x_axis[0]))))
   .attr("y", yScale(y_axis[1]-(0.97*(y_axis[1]-y_axis[0]))))
   .style("opacity", 0.4)
-  .style("font-size", "40px")
+  .style("font-size", "2vw")
   .style("fill", "#0A58A2")
   .text(num_bottom_right);
 
   svg.append("text")
   .attr("id", function (d) { return divid+"___num_bottom_left";})
-  .attr("x", xScale(x_axis[1]-(0.95*(x_axis[1]-x_axis[0]))))
+  .attr("x", xScale(x_axis[1]-(0.98*(x_axis[1]-x_axis[0]))))
   .attr("y", yScale(y_axis[1]-(0.97*(y_axis[1]-y_axis[0]))))
   .style("opacity", 0.4)
-  .style("font-size", "40px")
+  .style("font-size", "2vw")
   .style("fill", "#0A58A2")
   .text(num_bottom_left);
 
@@ -679,16 +731,16 @@ function append_quartile_numbers_to_plot (svg, xScale, yScale, better,divid){
   .attr("x", xScale(x_axis[1]-(0.05*(x_axis[1]-x_axis[0]))))
   .attr("y", yScale(y_axis[1]-(0.1*(y_axis[1]-y_axis[0]))))
   .style("opacity", 0.4)
-  .style("font-size", "40px")
+  .style("font-size", "2vw")
   .style("fill", "#0A58A2")
   .text(num_top_right);
 
   svg.append("text")
   .attr("id", function (d) { return divid+"___num_top_left";})
-  .attr("x", xScale(x_axis[1]-(0.95*(x_axis[1]-x_axis[0]))))
+  .attr("x", xScale(x_axis[1]-(0.98*(x_axis[1]-x_axis[0]))))
   .attr("y", yScale(y_axis[1]-(0.1*(y_axis[1]-y_axis[0]))))
   .style("opacity", 0.4)
-  .style("font-size", "40px")
+  .style("font-size", "2vw")
   .style("fill", "#0A58A2")
   .text(num_top_left);
 
@@ -901,6 +953,101 @@ function set_cell_colors(){
   });
 
 };
+
+function get_clusters(data, svg, xScale, yScale, div, width, height, removed_tools, better,divid, transform_to_table) {
+
+  let tools_not_hidden = remove_hidden_tools(data, removed_tools);
+
+  let x_values = tools_not_hidden.map(a => a.x);
+  let y_values = tools_not_hidden.map(a => a.y);
+
+  let coordinates = [];
+
+  for (let i = 0; i < x_values.length; i++) {
+    coordinates.push([x_values[i], y_values[i]]);
+  };
+  
+  var clusterMaker = require('clusters');
+
+  //number of clusters
+  clusterMaker.k(4);
+
+  //number of iterations (higher number gives more time to converge)
+  clusterMaker.iterations(500);
+
+  //data from which to identify clusters
+  clusterMaker.data(coordinates);
+
+  let results = clusterMaker.clusters();
+
+  // normalize data to 0-1 range
+  let centroids_x = []
+  let centroids_y = []
+  results.forEach(function(element) {
+      centroids_x.push(element.centroid[0])
+      centroids_y.push(element.centroid[1])
+  });
+  let [x_norm, y_norm] = normalize_data(centroids_x, centroids_y)
+
+  // get distance from centroids to better corner
+
+  let scores = [];
+  if (better == "top-right") {
+
+    for (let i = 0; i < x_norm.length; i++) {
+      let distance = x_norm[i] + y_norm[i];
+      scores.push(distance);
+      results[i]['score'] = distance;
+    };
+
+  } else if (better == "bottom-right"){
+    
+    for (let i = 0; i < x_norm.length; i++) {
+      let distance = x_norm[i] + (1 - y_norm[i]);
+      scores.push(distance);
+      results[i]['score'] = distance;
+    };
+  };
+
+  let sorted_results = sortByKey(results, "score");
+
+  let cluster_no = 1;
+  sorted_results.forEach(function(element) {
+    element['cluster'] = cluster_no;
+    svg.append("text")
+      .attr("class", function (d) { return divid+"___cluster_num";})
+      .attr("x", xScale(element.centroid[0]))
+      .attr("y", yScale(element.centroid[1]))
+      .style("opacity", 0.9)
+      .style("font-size", "2vw")
+      .style("fill", "#0A58A2")
+      .text(cluster_no);
+    let participants = element['points'];
+    participants.forEach(function(coords) {
+      svg.append("line")
+       .attr("x1", xScale(element.centroid[0]))
+       .attr("y1", yScale(element.centroid[1]))
+       .attr("x2", xScale(coords[0]))
+       .attr("y2", yScale(coords[1]))  
+       .attr("class", function (d) { return divid+"___clust_lines";})
+       .attr("stroke", "#0A58A2")
+       .attr("stroke-width",2)
+       .style("stroke-dasharray", ("20, 5"))
+       .style("opacity", 0.4)
+    });
+
+    cluster_no++;
+  });
+    
+};
+
+
+function sortByKey(array, key) {
+  return array.sort(function(a, b) {
+      var x = a[key]; var y = b[key];
+      return ((x < y) ? -1 : ((x > y) ? 1 : 0)) * -1;
+  });
+}
 
 export{
   loadurl,
