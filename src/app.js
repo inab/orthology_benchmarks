@@ -2,6 +2,8 @@ import * as d3 from 'd3';
 import './app.css';
 import $ from "jquery";
 import * as pf from 'pareto-frontier';
+import *  as clusterMaker from 'clusters';
+import * as d3Polygon from "d3-polygon";
 
 
 // ./node_modules/.bin/webpack-cli src/app.js --output=build/build.js -d -w
@@ -78,7 +80,7 @@ function loadurl(){
         .attr("title", "Apply diagonal quartiles classifcation method (based on the assignment of a score to each participant proceeding from its distance to the 'optimal performance' corner)")
         .attr("data-toggle", "list_tooltip")
         .attr("data-container", "#tooltip_container") 
-        .text("CLUSTERING")
+        .text("K-MEANS CLUSTERING")
      
       let url = "https://openebench.bsc.es/api/scientific/Dataset/?query=" + dataId + "&fmt=json";
       get_data(url,divid); 
@@ -193,16 +195,16 @@ function compute_classification(data, svg, xScale, yScale, div, width, height, r
 function compute_chart_height(data){
 
   if (data.length%5 == 0){
-    return (80 + (20 * (Math.trunc(data.length/5))));
+    return (90 + (20 * (Math.trunc(data.length/5))));
   } else if (data.lenght%5 != 0) {
-    return (80 + (20 * (Math.trunc(data.length/5)+1)));
+    return (90 + (20 * (Math.trunc(data.length/5)+1)));
   } 
   
 };
 
 function createChart (data,divid, classification_type){
   // console.log(data)
-  let margin = {top: 20, right: 40, bottom: compute_chart_height(data), left: 40},
+  let margin = {top: 20, right: 40, bottom: compute_chart_height(data), left: 60},
     width = Math.round($(window).width()* 0.6818) - margin.left - margin.right,
     height = Math.round($(window).height()* 0.5787037) - margin.top - margin.bottom;
 
@@ -260,9 +262,19 @@ function createChart (data,divid, classification_type){
                        (height + margin.top + (Math.round($(window).height()* 0.0347))) + ")")
   .style("text-anchor", "middle")
   .style("font-weight", "bold")
-  .style("font-size", "1vw")
-  .text("Date");
+  .style("font-size", ".75vw")
+  .text("label 1");
   
+  svg.append("text")
+      .attr("transform", "rotate(-90)")
+      .attr("y", 0 - margin.left)
+      .attr("x",0 - (height / 2))
+      .attr("dy", "1em")
+      .style("text-anchor", "middle")
+      .style("font-weight", "bold")
+      .style("font-size", ".75vw")
+      .text("label 2"); 
+
   // add X and Y Gridlines
   var gridlines_x = d3.axisBottom()
                     .ticks(12)
@@ -552,6 +564,7 @@ function show_or_hide_participant_in_plot (ID, data, svg, xScale, yScale, div, w
   svg.selectAll("#"+divid+"___pareto" ).remove();
   svg.selectAll("."+divid+"___cluster_num").remove();
   svg.selectAll("."+divid+"___clust_lines").remove();
+  svg.selectAll("."+divid+"___clust_polygons").remove();
 
   let blockopacity = d3.select("#"+ID).style("opacity");
   
@@ -957,7 +970,6 @@ function set_cell_colors(){
 function get_clusters(data, svg, xScale, yScale, div, width, height, removed_tools, better,divid, transform_to_table) {
 
   let tools_not_hidden = remove_hidden_tools(data, removed_tools);
-
   let x_values = tools_not_hidden.map(a => a.x);
   let y_values = tools_not_hidden.map(a => a.y);
 
@@ -967,8 +979,6 @@ function get_clusters(data, svg, xScale, yScale, div, width, height, removed_too
     coordinates.push([x_values[i], y_values[i]]);
   };
   
-  var clusterMaker = require('clusters');
-
   //number of clusters
   clusterMaker.k(4);
 
@@ -1011,8 +1021,26 @@ function get_clusters(data, svg, xScale, yScale, div, width, height, removed_too
 
   let sorted_results = sortByKey(results, "score");
 
+  sorted_results = print_clusters(svg, divid, xScale, yScale, sorted_results);
+    
+  //the tranformation to tabular format is done only if there are any table elements in the html file
+  if (transform_to_table == true) {
+    transform_clust_classif_to_table(tools_not_hidden, sorted_results, divid);
+  };
+
+};
+
+
+function print_clusters(svg, divid, xScale, yScale, sorted_results){
+
   let cluster_no = 1;
+
+  var arrayOfPolygons =  [];
+
   sorted_results.forEach(function(element) {
+
+    var poly = [];
+
     element['cluster'] = cluster_no;
     svg.append("text")
       .attr("class", function (d) { return divid+"___cluster_num";})
@@ -1024,6 +1052,8 @@ function get_clusters(data, svg, xScale, yScale, div, width, height, removed_too
       .text(cluster_no);
     let participants = element['points'];
     participants.forEach(function(coords) {
+
+      poly.push([coords[0], coords[1]])
       svg.append("line")
        .attr("x1", xScale(element.centroid[0]))
        .attr("y1", yScale(element.centroid[1]))
@@ -1036,9 +1066,51 @@ function get_clusters(data, svg, xScale, yScale, div, width, height, removed_too
        .style("opacity", 0.4)
     });
 
+    var hull = d3Polygon.polygonHull(poly);
+
+    arrayOfPolygons.push({"points": hull});
+
     cluster_no++;
   });
+
+  svg.selectAll("polygon")
+  .data(arrayOfPolygons)
+  .enter().append("polygon")
+  .attr("points",function(d) { 
+    if (d.points != null){
+      return d.points.map(function(d) { 
+        return [xScale(d[0]),yScale(d[1])].join(",");
+      }).join(" ");
+    };
+  })
+  .attr("class", function (d) { return divid+"___clust_polygons";})
+  .attr("fill", "#0A58A2")
+  .style("opacity", 0.1);
+
     
+
+  return (sorted_results);
+};
+
+
+function transform_clust_classif_to_table(data, results, divid){
+
+  data.forEach(function(element) {
+
+    let coords = [element.x, element.y];
+
+    results.forEach(function(result) {
+      
+      if (isArrayInArray(result.points, coords) == true){
+        element['quartile'] = result.cluster;
+      };
+
+    });
+  });
+
+  fill_in_table (divid, data);
+  set_cell_colors();
+
 };
 
 
@@ -1047,7 +1119,16 @@ function sortByKey(array, key) {
       var x = a[key]; var y = b[key];
       return ((x < y) ? -1 : ((x > y) ? 1 : 0)) * -1;
   });
-}
+};
+
+function isArrayInArray(arr, item){
+  var item_as_string = JSON.stringify(item);
+
+  var contains = arr.some(function(ele){
+    return JSON.stringify(ele) === item_as_string;
+  });
+  return contains;
+};
 
 export{
   loadurl,
