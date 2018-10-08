@@ -82,8 +82,12 @@ function loadurl(){
         .attr("data-container", "#tooltip_container") 
         .text("K-MEANS CLUSTERING")
      
-      let url = "https://openebench.bsc.es/api/scientific/Dataset/?query=" + dataId + "&fmt=json";
-      get_data(url,divid); 
+
+      var metric_x = y.getAttribute('metric_x');
+      var metric_y = y.getAttribute('metric_y');
+      let url1 = "https://dev-openebench.bsc.es/api/scientific/Dataset/?query="+ dataId + "+" + metric_x + "+assessment&fmt=json";
+      let url2 = "https://dev-openebench.bsc.es/api/scientific/Dataset/?query="+ dataId + "+" + metric_y + "+assessment&fmt=json";
+      get_data(url1, url2, divid); 
 
       // $('[data-toggle="list_tooltip"]').tooltip();
 
@@ -110,20 +114,22 @@ function loadurl(){
 
 
 
-function get_data(url,divid){
+function get_data(url1, url2 ,divid){
 
-  fetchUrl(url).then(results => {
-    join_all_json(results.Dataset,divid);
+  fetchUrl(url1, url2).then(results => {
+    join_all_json(results[0].Dataset, results[1].Dataset ,divid);
   })
 
 };
 
-async function fetchUrl(url) {
+async function fetchUrl(url1, url2) {
 
   try {
-    let request = await fetch(url);
-    let result = await request.text();
-      return JSON.parse(result);
+    let request1 = await fetch(url1);
+    let result1 = await request1.text();
+    let request2 = await fetch(url2);
+    let result2 = await request2.text();
+      return [JSON.parse(result1), JSON.parse(result2)];
     }
     catch (err) {
       console.log(`Invalid Url Error: ${err.stack} `);
@@ -131,15 +137,17 @@ async function fetchUrl(url) {
 
 };
 
-function join_all_json(array,divid){
+function join_all_json(array1, array2, divid){
   try{
     let full_json  = [];
-    for (let i = 0; i < array.length; i++) {
+
+    for (let i = 0; i < array1.length; i++) {
         let jo = {};
-        jo['toolname'] = array[i].name.split('.')[0];
-        jo['x'] = array[i].metrics[0].result.value;
-        jo['y'] = array[i].metrics[1].result.value;
-        jo['e'] = array[i].metrics[2].result.value;
+
+        jo['toolname'] = array1[i].depends_on.tool_id.split(':')[1];
+        jo['x'] = parseFloat(decodeBase64(array1[i].datalink.uri.split(',')[1]));
+        jo['y'] = parseFloat(decodeBase64(array2[i].datalink.uri.split(',')[1]));
+        jo['e'] = 0;
         full_json.push(jo);    
     }
     MAIN_DATA[divid] = full_json;
@@ -153,6 +161,17 @@ function join_all_json(array,divid){
   }
 
     
+};
+
+function decodeBase64(s) {
+    var e={},i,b=0,c,x,l=0,a,r='',w=String.fromCharCode,L=s.length;
+    var A="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    for(i=0;i<64;i++){e[A.charAt(i)]=i;}
+    for(x=0;x<L;x++){
+        c=e[s.charAt(x)];b=(b<<6)+c;l+=6;
+        while(l>=8){((a=(b>>>(l-=8))&0xff)||(x<(L-2)))&&(r+=w(a));}
+    }
+    return r;
 };
 
 function onQuartileChange(ID){  
@@ -263,7 +282,7 @@ function createChart (data,divid, classification_type){
   .style("text-anchor", "middle")
   .style("font-weight", "bold")
   .style("font-size", ".75vw")
-  .text("label 1");
+  .text(document.getElementById(divid).getAttribute('metric_x'));
   
   svg.append("text")
       .attr("transform", "rotate(-90)")
@@ -273,7 +292,7 @@ function createChart (data,divid, classification_type){
       .style("text-anchor", "middle")
       .style("font-weight", "bold")
       .style("font-size", ".75vw")
-      .text("label 2"); 
+      .text(document.getElementById(divid).getAttribute('metric_y')); 
 
   // add X and Y Gridlines
   var gridlines_x = d3.axisBottom()
@@ -562,6 +581,7 @@ function show_or_hide_participant_in_plot (ID, data, svg, xScale, yScale, div, w
   svg.selectAll("#"+divid+"___num_bottom_left").remove();
   svg.selectAll("#"+divid+"___num_top_left").remove();
   svg.selectAll("#"+divid+"___pareto" ).remove();
+  svg.selectAll("."+divid+"___diag_num").remove();
   svg.selectAll("."+divid+"___cluster_num").remove();
   svg.selectAll("."+divid+"___clust_lines").remove();
   svg.selectAll("."+divid+"___clust_polygons").remove();
@@ -824,14 +844,6 @@ function get_diagonal_quartiles(data, svg, xScale, yScale, div, width, height, r
        .style("stroke-dasharray", ("20, 5"))
        .style("opacity", 0.4)
 
-    // svg.append("text")
-    // .attr("x", xScale(0.56))
-    // .attr("y", yScale(0.86))
-    // .style("opacity", 0.4)
-    // .style("font-size", "40px")
-    // .style("fill", "#0A58A2")
-    // .text("num");
-
     svg.append("clipPath")
        .attr("id", "clip")
        .append("rect")
@@ -843,30 +855,59 @@ function get_diagonal_quartiles(data, svg, xScale, yScale, div, width, height, r
 
   //the tranformation to tabular format is done only if there are any table elements in the html file
   if (transform_to_table == true) {
-    transform_diag_classif_to_table(tools_not_hidden, first_quartile, second_quartile, third_quartile, divid);
+    transform_diag_classif_to_table(tools_not_hidden, first_quartile, second_quartile, third_quartile, divid,svg, xScale, yScale);
   };
 
 };
 
-function transform_diag_classif_to_table(data, first_quartile, second_quartile, third_quartile, divid){
+function transform_diag_classif_to_table(data, first_quartile, second_quartile, third_quartile, divid,svg, xScale, yScale){
 
+  let poly = [[],[],[],[]]
   data.forEach(function(element) {
 
     if (element['score'] > first_quartile){
           element['quartile'] = 1;
+          poly[0].push([element['x'], element['y']]);
     }else if ( element['score'] > second_quartile && element['score'] <= first_quartile){
           element['quartile'] = 2;
+          poly[1].push([element['x'], element['y']]);
     }else if ( element['score'] > third_quartile && element['score'] <= second_quartile){
           element['quartile'] = 3;
+          poly[2].push([element['x'], element['y']]);
     }else if (element['score'] <= third_quartile){
           element['quartile'] = 4;
+          poly[3].push([element['x'], element['y']]);
     }
   });
+  let i = 1;
+  poly.forEach(function(group) {
 
-  fill_in_table (divid, data);
-  set_cell_colors();
+    var center = getCentroid(group);
+
+    svg.append("text")
+        .attr("class", function (d) { return divid+"___diag_num";})
+        .attr("x", xScale(center[0]))
+        .attr("y", yScale(center[1]))
+        .style("opacity", 0.9)
+        .style("font-size", "2vw")
+        .style("fill", "#0A58A2")
+        .text(i);
+    i++;
+
+  });
+
+    fill_in_table (divid, data);
+    set_cell_colors();
 
 };
+
+function getCentroid(coord) 
+{
+	var center = coord.reduce(function (x,y) {
+		return [x[0] + y[0]/coord.length, x[1] + y[1]/coord.length] 
+	}, [0,0])
+	return center;
+}
 
 function normalize_data(x_values, y_values){
 
