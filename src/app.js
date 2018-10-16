@@ -193,6 +193,9 @@ function compute_classification(data, svg, xScale, yScale, div, width, height, r
   };
 
   let better = "top-right";
+  // append optimization arrow
+  add_arrow(divid, svg, xScale, yScale, better);
+
   if (classification_type == ( divid + "__squares")) {
     draw_pareto(data, svg, xScale, yScale, div, width, height, removed_tools,divid, better);
     get_square_quartiles(data, svg, xScale, yScale, div, removed_tools,better,divid, transform_to_table);
@@ -210,6 +213,67 @@ function compute_classification(data, svg, xScale, yScale, div, width, height, r
   }
   
 };
+
+
+function add_arrow(divid, svg, xScale, yScale, better){
+
+  // append optimization arrow
+  
+  svg.append("svg:defs").append("svg:marker")
+  .attr("id", "opt_triangle")
+  .attr("class", function (d) { return divid+"___better_annotation";})
+  .attr("refX", 6)
+  .attr("refY", 6)
+  .attr("markerWidth", 30)
+  .attr("markerHeight", 30)
+  .attr("markerUnits","userSpaceOnUse")
+  .attr("orient", "auto")
+  .append("path")
+  .attr("d", "M 0 0 12 6 0 12 3 6")
+  .style("fill", "black")
+  .style("opacity", 0.7);
+
+  let x_axis = xScale.domain();
+  let y_axis = yScale.domain();
+
+  // set coordinates depending on optimization
+  let x1, y1, x2, y2, top;
+  if (better == "bottom-right"){
+    x1 = (x_axis[1]-(0.05*(x_axis[1]-x_axis[0])))
+    y1 = (y_axis[1]-(0.9*(y_axis[1]-y_axis[0])))
+    x2 = (x_axis[1]-(0.009*(x_axis[1]-x_axis[0]))) 
+    y2 = (y_axis[1]-(0.97*(y_axis[1]-y_axis[0]))) 
+    top = 0
+ } 
+ else if (better == "top-right"){
+    x1 = (x_axis[1]-(0.05*(x_axis[1]-x_axis[0])))
+    y1 = (y_axis[1]-(0.1*(y_axis[1]-y_axis[0])))
+    x2 = (x_axis[1]-(0.009*(x_axis[1]-x_axis[0]))) 
+    y2 = (y_axis[1]-(0.03*(y_axis[1]-y_axis[0]))) 
+    top = 1
+ };
+
+  var line = svg.append("line")
+  .attr("class", function (d) { return divid+"___better_annotation";})
+  .attr("x1",xScale(x1))
+  .attr("y1",yScale(y1))
+  .attr("x2",xScale(x2)) 
+  .attr("y2",yScale(y2))
+  .attr("stroke","black")  
+  .attr("stroke-width",2)  
+  .attr("marker-end","url(#opt_triangle)")
+  .style("opacity", 0.4);  
+
+  svg.append("text")
+  .attr("class", function (d) { return divid+"___better_annotation";})
+  .attr("x", xScale(x_axis[1]))
+  .attr("y", yScale(y_axis[top]))
+  .style("opacity", 0.4)
+  .style("font-size", ".7vw")
+  .text("better");
+
+};
+
 
 function compute_chart_height(data){
 
@@ -427,34 +491,7 @@ function append_dots_errobars (svg, data, xScale, yScale, div, cValue, color,div
           .duration(1500)		
           .style("opacity", 0);	
       });
-  
-    // append optimization arrow
     
-    svg.append("svg:defs").append("svg:marker")
-    .attr("id", "opt_triangle")
-    .attr("refX", 6)
-    .attr("refY", 6)
-    .attr("markerWidth", 30)
-    .attr("markerHeight", 30)
-    .attr("markerUnits","userSpaceOnUse")
-    .attr("orient", "auto")
-    .append("path")
-    .attr("d", "M 0 0 12 6 0 12 3 6")
-    .style("fill", "black")
-    .style("opacity", 0.7);
-
-    let x_axis = xScale.domain();
-  let y_axis = yScale.domain();
-  
-    var line = svg.append("line")
-    .attr("x1",xScale(x_axis[1]-(0.05*(x_axis[1]-x_axis[0]))))  
-    .attr("y1",yScale(y_axis[1]-(0.1*(y_axis[1]-y_axis[0]))))  
-    .attr("x2",xScale(x_axis[1]-(0.009*(x_axis[1]-x_axis[0]))))  
-    .attr("y2",yScale(y_axis[1]-(0.03*(y_axis[1]-y_axis[0]))))  
-    .attr("stroke","black")  
-    .attr("stroke-width",2)  
-    .attr("marker-end","url(#opt_triangle)")
-    .style("opacity", 0.4);  
     
 };
 
@@ -585,6 +622,7 @@ function show_or_hide_participant_in_plot (ID, data, svg, xScale, yScale, div, w
   svg.selectAll("."+divid+"___cluster_num").remove();
   svg.selectAll("."+divid+"___clust_lines").remove();
   svg.selectAll("."+divid+"___clust_polygons").remove();
+  svg.selectAll("."+divid+"___better_annotation").remove();
 
   let blockopacity = d3.select("#"+ID).style("opacity");
   
