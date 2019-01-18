@@ -27,6 +27,8 @@ function loadurl(){
     for(y of charts){
       // get benchmarking event id
       dataId = y.getAttribute('data-id');
+      var metric_x = y.getAttribute('metric_x');
+      var metric_y = y.getAttribute('metric_y');
       //set chart id
       divid = (dataId+i).replace(":","_");
       y.id=divid;
@@ -45,7 +47,7 @@ function loadurl(){
         .attr("class","classificators_list")
         .attr("id",divid + "_dropdown_list")
         .on('change', function(d) {
-          onQuartileChange(this.options[this.selectedIndex].id);
+          onQuartileChange(this.options[this.selectedIndex].id, metric_x, metric_y);
         })
         .append("optgroup")
         .attr("label","Select a classification method:");
@@ -84,11 +86,9 @@ function loadurl(){
         .text("K-MEANS CLUSTERING")
      
 
-      var metric_x = y.getAttribute('metric_x');
-      var metric_y = y.getAttribute('metric_y');
       let url1 = "https://dev-openebench.bsc.es/api/scientific/Dataset/?query="+ dataId + "+" + metric_x + "+assessment&fmt=json";
       let url2 = "https://dev-openebench.bsc.es/api/scientific/Dataset/?query="+ dataId + "+" + metric_y + "+assessment&fmt=json";
-      get_data(url1, url2, divid); 
+      get_data(url1, url2, divid, metric_x, metric_y); 
 
       // $('[data-toggle="list_tooltip"]').tooltip();
 
@@ -115,7 +115,7 @@ function loadurl(){
 
 
 
-function get_data(url1, url2 ,divid){
+function get_data(url1, url2 ,divid, metric_x, metric_y){
 
   fetchUrl(url1, url2).then(results => {
 
@@ -133,7 +133,7 @@ function get_data(url1, url2 ,divid){
 
   } else {
 
-    join_all_json(results[0].Dataset, results[1].Dataset ,divid);
+    join_all_json(results[0].Dataset, results[1].Dataset ,divid, metric_x, metric_y);
   };
 
   })
@@ -155,7 +155,7 @@ async function fetchUrl(url1, url2) {
 
 };
 
-function join_all_json(array1, array2, divid){
+function join_all_json(array1, array2, divid, metric_x, metric_y){
   try{
     let full_json  = [];
 
@@ -173,7 +173,7 @@ function join_all_json(array1, array2, divid){
     var e = document.getElementById(divid + "_dropdown_list");
     let classification_type = e.options[e.selectedIndex].id;
 
-    createChart(full_json,divid, classification_type);
+    createChart(full_json,divid, classification_type, metric_x, metric_y);
   }catch(err){
     console.log(`Invalid Url Error: ${err.stack} `);
   }
@@ -182,13 +182,13 @@ function join_all_json(array1, array2, divid){
 };
 
 
-function onQuartileChange(ID){  
+function onQuartileChange(ID, metric_x, metric_y){  
   
   var chart_id = ID.split("__")[0];
   // console.log(d3.select('#'+'svg_'+chart_id));
   d3.select('#'+'svg_'+chart_id).remove();
   let classification_type = ID;
-  createChart(MAIN_DATA[chart_id],chart_id, classification_type);
+  createChart(MAIN_DATA[chart_id],chart_id, classification_type, metric_x, metric_y);
 };
 
 function compute_classification(data, svg, xScale, yScale, div, width, height, removed_tools,divid, classification_type, legend_color_palette) {
@@ -293,7 +293,7 @@ function compute_chart_height(data){
   
 };
 
-function createChart (data,divid, classification_type){
+function createChart (data,divid, classification_type, metric_x, metric_y){
   // console.log(data)
   let margin = {top: 20, right: 40, bottom: compute_chart_height(data), left: 60},
     width = Math.round($(window).width()* 0.6818) - margin.left - margin.right,
@@ -336,7 +336,7 @@ function createChart (data,divid, classification_type){
     .attr("height", height + margin.top + margin.bottom)
     .append("g")
     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-    
+  
   svg.append("g").append("rect").attr("width", width).attr("height", height).attr("class", "plot-bg");
 
   // Add Axis numbers
@@ -402,7 +402,7 @@ function createChart (data,divid, classification_type){
     });
 
 
-  append_dots_errobars (svg, data, xScale, yScale, div, cValue_func, color_func,divid);
+  append_dots_errobars (svg, data, xScale, yScale, div, cValue_func, color_func,divid, metric_x, metric_y);
 
   draw_legend (data, svg, xScale, yScale, div, width, height, removed_tools, color_func, color_func.domain(), margin,divid,classification_type, legend_color_palette);
 
@@ -410,7 +410,7 @@ function createChart (data,divid, classification_type){
 
   };
 
-function append_dots_errobars (svg, data, xScale, yScale, div, cValue, color,divid){
+function append_dots_errobars (svg, data, xScale, yScale, div, cValue, color,divid, metric_x, metric_y){
 
   // Add Error Line
   svg.append("g").selectAll("line")
@@ -496,7 +496,7 @@ function append_dots_errobars (svg, data, xScale, yScale, div, cValue, color,div
           div.transition()		
               .duration(100)		
               .style("opacity", .9);		
-          div.html(d.toolname + "<br/>"  + formatComma(d.x) + "<br/>"  + formatDecimal(d.y))	
+          div.html(d.toolname + "<br/>"  + metric_x + ": " + formatComma(d.x) + "<br/>"  + metric_y + ": " + formatDecimal(d.y))	
               .style("left", (d3.event.pageX) + "px")		
               .style("top", (d3.event.pageY) + "px");
         }
@@ -526,9 +526,11 @@ function draw_legend (data, svg, xScale, yScale, div, width, height, removed_too
         .attr("x", width + Math.round($(window).width()* 0.010227))
         .attr("width", Math.round($(window).width()* 0.010227))
         .attr("height", Math.round($(window).height()* 0.020833))
+        .attr("id", function (d) { return divid+"___leg_rect"+d.replace(/[\. ()/-]/g, "_");})
+        .attr("class", "benchmark_legend_rect")
         .style("fill", color)
         .on('click', function(d) {
-
+          
           let dot = d3.select("text#" +divid+"___"+d.replace(/[\. ()/-]/g, "_"));
           let ID = dot._groups[0][0].id;
 
@@ -559,6 +561,35 @@ function draw_legend (data, svg, xScale, yScale, div, width, height, removed_too
 
           };
 
+        })
+        .on("mouseover", function (d) {
+
+          let dot = d3.select("text#" +divid+"___"+d.replace(/[\. ()/-]/g, "_"));
+          let ID = dot._groups[0][0].id;
+          let tool_id =ID.split("___")[1];
+
+          if (d3.select("#"+ID).style("opacity") == 0){
+            d3.select(this).style("opacity", 1);
+            d3.select("text#" +divid+"___"+tool_id).style("opacity", 1);
+          } else {
+            d3.select(this).style("opacity", 0.2);
+            d3.select("text#" +divid+"___"+tool_id).style("opacity", 0.2);
+          };
+          
+        }) 
+        .on("mouseout", function (d) {
+
+          let dot = d3.select("text#" +divid+"___"+d.replace(/[\. ()/-]/g, "_"));
+          let ID = dot._groups[0][0].id;
+          let tool_id =ID.split("___")[1];
+
+          if (d3.select("#"+ID).style("opacity") == 0){
+            d3.select(this).style("opacity", 0.2);
+            d3.select("text#" +divid+"___"+tool_id).style("opacity", 0.2);
+          } else {
+            d3.select(this).style("opacity", 1);
+            d3.select("text#" +divid+"___"+tool_id).style("opacity", 1);
+          };
         });
 
   // draw legend text
@@ -1033,6 +1064,28 @@ function fill_in_table (divid, data){
     var row = table.insertRow(-1);
     row.insertCell(0).innerHTML = element["toolname"];
     row.insertCell(1).innerHTML = element["quartile"];
+    // add id
+    var my_cell = row.cells[0];
+    my_cell.id = divid+"___cell"+element["toolname"].replace(/[\. ()/-]/g, "_");
+
+    my_cell.addEventListener('click', function (d) {
+
+      let ID = this.id;
+      // trigger a click event on the legend rectangle (hide participant)
+      let legend_rect = (divid+"___leg_rect"+ ID.split("___cell")[1]);
+      document.getElementById(legend_rect).dispatchEvent(new Event('click'));
+    });
+
+    my_cell.addEventListener('mouseover', function (d) {
+      $(this).css('opacity', 0.2);
+      $(row.cells[1]).css('opacity', 0.2);
+    });
+
+    my_cell.addEventListener('mouseout', function (d) {
+      $(this).css('opacity', 1);
+      $(row.cells[1]).css('opacity', 1);
+    });
+
   });
 
 };
@@ -1056,7 +1109,7 @@ function set_cell_colors(legend_color_palette){
     } else if (cell_value == 4) {
       $(this).css({'background' : '#edf8e9'}); 
     } else if ($.inArray(cell_value, tools) > -1) {
-      $(this).css({'background' : 'linear-gradient(to left, white 95%, ' + legend_color_palette[cell_value] + ' 5%)'});
+      $(this).css({'background' : 'linear-gradient(to left, white 92%, ' + legend_color_palette[cell_value] + ' 8%)'});
     }else {
       $(this).css({'background' : '#FFFFFF'});
     };
