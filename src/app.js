@@ -80,14 +80,14 @@ function loadurl(){
         select_list.append("option")
         .attr("class", "selection_option")
         .attr("id", button4_id)
-        .attr("title", "Apply diagonal quartiles classifcation method (based on the assignment of a score to each participant proceeding from its distance to the 'optimal performance' corner)")
+        .attr("title", "Apply K-Means clustering method (group the participants using the K-means clustering algorithm and sort the clusters according to the performance)")
         .attr("data-toggle", "list_tooltip")
         .attr("data-container", "#tooltip_container") 
         .text("K-MEANS CLUSTERING")
      
 
-      let url1 = "https://dev-openebench.bsc.es/api/scientific/Dataset/?query="+ dataId + "+" + metric_x + "+assessment&fmt=json";
-      let url2 = "https://dev-openebench.bsc.es/api/scientific/Dataset/?query="+ dataId + "+" + metric_y + "+assessment&fmt=json";
+      let url1 = "https://openebench.bsc.es/api/scientific/Dataset/?query="+ dataId + "+" + metric_x + "+assessment&fmt=json";
+      let url2 = "https://openebench.bsc.es/api/scientific/Dataset/?query="+ dataId + "+" + metric_y + "+assessment&fmt=json";
       get_data(url1, url2, divid, metric_x, metric_y); 
 
       // $('[data-toggle="list_tooltip"]').tooltip();
@@ -365,6 +365,29 @@ function createChart (data,divid, classification_type, metric_x, metric_y){
       .style("font-weight", "bold")
       .style("font-size", ".75vw")
       .text(document.getElementById(divid).getAttribute('metric_y')); 
+  
+  // add pareto legend
+
+  svg.append("line")
+  .attr("x1", 0)
+  .attr("y1", height + margin.top + (Math.round($(window).height()* 0.0347)) )
+  .attr("x2", Math.round($(window).width()* 0.02083))
+  .attr("y2", height + margin.top + (Math.round($(window).height()* 0.0347)) )
+
+  .attr("stroke", "grey")
+  .attr("stroke-width",2)
+  .style("stroke-dasharray", ("15, 5"))
+  .style("opacity", 0.7)  
+  
+  svg.append("text")             
+  .attr("transform",
+        "translate(" + (Math.round($(window).width()* 0.05208)) + " ," + 
+                       (height + margin.top + (Math.round($(window).height()* 0.0347)) + 5) + ")")
+  .style("text-anchor", "middle")
+  // .style("font-weight", "bold")
+  .style("font-size", ".75vw")
+  .text("Pareto frontier");
+
 
   // add X and Y Gridlines
   var gridlines_x = d3.axisBottom()
@@ -496,7 +519,7 @@ function append_dots_errobars (svg, data, xScale, yScale, div, cValue, color,div
           div.transition()		
               .duration(100)		
               .style("opacity", .9);		
-          div.html(d.toolname + "<br/>"  + metric_x + ": " + formatComma(d.x) + "<br/>"  + metric_y + ": " + formatDecimal(d.y))	
+          div.html("<b>" + d.toolname + "</b><br/>"  + metric_x + ": " + formatComma(d.x) + "<br/>"  + metric_y + ": " + formatDecimal(d.y))	
               .style("left", (d3.event.pageX) + "px")		
               .style("top", (d3.event.pageY) + "px");
         }
@@ -642,7 +665,7 @@ function draw_pareto(data, svg, xScale, yScale, div, width, height, removed_tool
        .attr("y2", yScale(pf_coords[i+1][1]))  
        .attr("id", function (d) { return divid+"___pareto";})
        .attr("stroke", "grey")
-       .attr("stroke-width",3)
+       .attr("stroke-width",2)
        .style("stroke-dasharray", ("20, 5"))
        .style("opacity", 0.4)
   };
@@ -701,7 +724,7 @@ function show_or_hide_participant_in_plot (ID, data, svg, xScale, yScale, div, w
 };
 
 function get_square_quartiles(data, svg, xScale, yScale, div, removed_tools,better, divid, transform_to_table, legend_color_palette) {
-  
+
   let tools_not_hidden = remove_hidden_tools(data, removed_tools);
 
   // compute the quartiles over the new seet of data
@@ -723,7 +746,7 @@ function get_square_quartiles(data, svg, xScale, yScale, div, removed_tools,bett
     .attr("y2", yScale(y_axis[1]))
     .attr("id", function (d) { return divid+"___x_quartile";})
     .attr("stroke", "#0A58A2")
-    .attr("stroke-width",3)
+    .attr("stroke-width",2)
     .style("stroke-dasharray", ("20, 5"))
     .style("opacity", 0.4)
     .on("mouseover", function(d) {	
@@ -747,7 +770,7 @@ function get_square_quartiles(data, svg, xScale, yScale, div, removed_tools,bett
     .attr("y2", yScale(quantile_y))
     .attr("id", function (d) { return divid+"___y_quartile";})
     .attr("stroke", "#0A58A2")
-    .attr("stroke-width",3)
+    .attr("stroke-width",2)
     .style("stroke-dasharray", ("20, 5"))
     .style("opacity", 0.4)
     .on("mouseover", function(d) {	
@@ -766,12 +789,12 @@ function get_square_quartiles(data, svg, xScale, yScale, div, removed_tools,bett
 
     //the tranformation to tabular format is done only if there are any table elements in the html file
     if (transform_to_table == true) {
-      transform_sqr_classif_to_table(better, tools_not_hidden, quantile_x, quantile_y, divid, legend_color_palette);
+      transform_sqr_classif_to_table(better, tools_not_hidden, quantile_x, quantile_y, divid, legend_color_palette, data, removed_tools);
     };
     
 };
 
-function transform_sqr_classif_to_table(better, data, quantile_x, quantile_y, divid, legend_color_palette){
+function transform_sqr_classif_to_table(better, data, quantile_x, quantile_y, divid, legend_color_palette, all_participants, removed_tools){
   if (better == "bottom-right"){
     data.forEach(function(element) {
         if (element['x'] >= quantile_x && element['y'] <= quantile_y){
@@ -798,8 +821,8 @@ function transform_sqr_classif_to_table(better, data, quantile_x, quantile_y, di
       });
   };
 
-  fill_in_table (divid, data);
-  set_cell_colors(legend_color_palette);
+  fill_in_table (divid, data, all_participants, removed_tools);
+  set_cell_colors(divid, legend_color_palette, removed_tools);
 
 };
 
@@ -924,7 +947,7 @@ function get_diagonal_quartiles(data, svg, xScale, yScale, div, width, height, r
        .attr("y2", yScale(y_coords[1]))  
        .attr("id", function (d) { return divid+"___diag_quartile_" + index;})
        .attr("stroke", "#0A58A2")
-       .attr("stroke-width",3)
+       .attr("stroke-width",2)
        .style("stroke-dasharray", ("20, 5"))
        .style("opacity", 0.4)
 
@@ -939,12 +962,12 @@ function get_diagonal_quartiles(data, svg, xScale, yScale, div, width, height, r
 
   //the tranformation to tabular format is done only if there are any table elements in the html file
   if (transform_to_table == true) {
-    transform_diag_classif_to_table(tools_not_hidden, first_quartile, second_quartile, third_quartile, divid,svg, xScale, yScale, legend_color_palette);
+    transform_diag_classif_to_table(tools_not_hidden, first_quartile, second_quartile, third_quartile, divid,svg, xScale, yScale, legend_color_palette, data, removed_tools);
   };
 
 };
 
-function transform_diag_classif_to_table(data, first_quartile, second_quartile, third_quartile, divid,svg, xScale, yScale, legend_color_palette){
+function transform_diag_classif_to_table(data, first_quartile, second_quartile, third_quartile, divid,svg, xScale, yScale, legend_color_palette, all_participants, removed_tools){
 
   let poly = [[],[],[],[]]
   data.forEach(function(element) {
@@ -972,7 +995,7 @@ function transform_diag_classif_to_table(data, first_quartile, second_quartile, 
         .attr("class", function (d) { return divid+"___diag_num";})
         .attr("x", xScale(center[0]))
         .attr("y", yScale(center[1]))
-        .style("opacity", 0.9)
+        .style("opacity", 0.4)
         .style("font-size", "2vw")
         .style("fill", "#0A58A2")
         .text(i);
@@ -980,8 +1003,8 @@ function transform_diag_classif_to_table(data, first_quartile, second_quartile, 
 
   });
 
-    fill_in_table (divid, data);
-    set_cell_colors(legend_color_palette);
+  fill_in_table (divid, data, all_participants, removed_tools);
+  set_cell_colors(divid, legend_color_palette, removed_tools);
 
 };
 
@@ -1028,11 +1051,11 @@ function get_diagonal_line(scores, scores_coords, quartile, better, max_x, max_y
   let x_coords;
   let y_coords;
   if (better == "bottom-right"){
-       x_coords = [half_point[0] - max_x, half_point[0] + max_x];
-       y_coords = [half_point[1] - max_y, half_point[1] + max_y];
+       x_coords = [half_point[0] - 2*max_x, half_point[0] + 2*max_x];
+       y_coords = [half_point[1] - 2*max_y, half_point[1] + 2*max_y];
   } else if (better == "top-right"){
-       x_coords = [half_point[0] + max_x, half_point[0] - max_x];
-       y_coords = [half_point[1] - max_y, half_point[1] + max_y];   
+       x_coords = [half_point[0] + 2*max_x, half_point[0] - 2*max_x];
+       y_coords = [half_point[1] - 2*max_y, half_point[1] + 2*max_y];   
   };
 
   return [x_coords, y_coords];
@@ -1053,20 +1076,30 @@ function remove_hidden_tools(data, removed_tools){
 
 };
 
-function fill_in_table (divid, data){
+function fill_in_table (divid, data, all_participants, removed_tools){
+
   //create table dinamically
   var table = document.getElementById(divid + "_table");
   var row = table.insertRow(-1);
   row.insertCell(0).innerHTML = "<b>TOOL</b>";
   row.insertCell(1).innerHTML = "<b>QUARTILE</b>";
 
-  data.forEach(function(element) {
+  all_participants.forEach(function(element) {
     var row = table.insertRow(-1);
-    row.insertCell(0).innerHTML = element["toolname"];
-    row.insertCell(1).innerHTML = element["quartile"];
+    row.insertCell(0).innerHTML = element.toolname;
+    //if the participant is not hidden the 2nd column is filled with the corresponding quartile
+    // if not it is filled with --
+    if ($.inArray(element.toolname, removed_tools) == -1) {
+      // var quartile;
+      let obj = data.find(o => o.toolname === element.toolname);
+      row.insertCell(1).innerHTML = obj.quartile;
+    } else {
+      row.insertCell(1).innerHTML = "--";
+    }
+    
     // add id
     var my_cell = row.cells[0];
-    my_cell.id = divid+"___cell"+element["toolname"].replace(/[\. ()/-]/g, "_");
+    my_cell.id = divid+"___cell"+element.toolname.replace(/[\. ()/-]/g, "_");
 
     my_cell.addEventListener('click', function (d) {
 
@@ -1077,29 +1110,50 @@ function fill_in_table (divid, data){
     });
 
     my_cell.addEventListener('mouseover', function (d) {
-      $(this).css('opacity', 0.2);
-      $(row.cells[1]).css('opacity', 0.2);
+
+      let ID = this.id;
+      d3.select(this).style("cursor", "pointer");
+      let legend_rect = (divid+"___leg_rect"+ ID.split("___cell")[1]);
+
+      if (d3.select(this).style("opacity") == 1 || d3.select(this).style("opacity") == 0.5){
+        $(this).css('opacity', 0.7);
+        $(this).closest("tr").css('opacity', 0.7);
+      } else {
+        $(this).css('opacity', 1);
+        $(this).closest("tr").css('opacity', 1);
+      };
+
     });
 
     my_cell.addEventListener('mouseout', function (d) {
-      $(this).css('opacity', 1);
-      $(row.cells[1]).css('opacity', 1);
+      
+      let ID = this.id;
+      d3.select(this).style("cursor", "default");
+      let legend_rect = (divid+"___leg_rect"+ ID.split("___cell")[1]);
+
+      if (d3.select("#" + legend_rect).style("opacity") == 0.2 || d3.select("#" + legend_rect).style("opacity") == 0.5){
+        $(this).css('opacity', 0.5);
+        $(this).closest("tr").css('opacity', 0.5);
+      } else {
+        $(this).css('opacity', 1);
+        $(this).closest("tr").css('opacity', 1);
+      };
+
     });
 
   });
 
 };
 
-function set_cell_colors(legend_color_palette){
+function set_cell_colors(divid, legend_color_palette, removed_tools){
 
   var tools = Object.keys(legend_color_palette);
 
-  var cell = $('.benchmarkingTable td'); 
+  var cell = $("#" + divid + "_table td"); 
 
   cell.each(function() { //loop through all td elements ie the cells
 
     var cell_value = $(this).html(); //get the value
-
     if (cell_value == 1) { //if then for if value is 1
       $(this).css({'background' : '#238b45'});   // changes td to red.
     } else if (cell_value == 2) {
@@ -1108,11 +1162,18 @@ function set_cell_colors(legend_color_palette){
       $(this).css({'background' : '#bae4b3'}); 
     } else if (cell_value == 4) {
       $(this).css({'background' : '#edf8e9'}); 
-    } else if ($.inArray(cell_value, tools) > -1) {
+    } else if (cell_value == "--") {
+      $(this).css({'background' : '#f0f0f5'}); 
+    } else if ($.inArray(cell_value, tools) > -1 && $.inArray(cell_value, removed_tools) == -1) {
       $(this).css({'background' : 'linear-gradient(to left, white 92%, ' + legend_color_palette[cell_value] + ' 8%)'});
-    }else {
+    } else if ($.inArray(cell_value, removed_tools) > -1) {
+      $(this).css({ 'background' : 'linear-gradient(to left, white 92%, ' + legend_color_palette[cell_value] + ' 8%)', 'opacity': 0.5});
+      $(this).closest("tr").css('opacity', 0.5);
+    } else {
       $(this).css({'background' : '#FFFFFF'});
     };
+
+    // lighten(' + legend_color_palette[cell_value] + ', 50%)
 
   });
 
@@ -1176,7 +1237,7 @@ function get_clusters(data, svg, xScale, yScale, div, width, height, removed_too
     
   //the tranformation to tabular format is done only if there are any table elements in the html file
   if (transform_to_table == true) {
-    transform_clust_classif_to_table(tools_not_hidden, sorted_results, divid, legend_color_palette);
+    transform_clust_classif_to_table(tools_not_hidden, sorted_results, divid, legend_color_palette, data, removed_tools);
   };
 
 };
@@ -1244,7 +1305,7 @@ function print_clusters(svg, divid, xScale, yScale, sorted_results){
 };
 
 
-function transform_clust_classif_to_table(data, results, divid, legend_color_palette){
+function transform_clust_classif_to_table(data, results, divid, legend_color_palette, all_participants, removed_tools){
 
   data.forEach(function(element) {
 
@@ -1259,8 +1320,8 @@ function transform_clust_classif_to_table(data, results, divid, legend_color_pal
     });
   });
 
-  fill_in_table (divid, data);
-  set_cell_colors(legend_color_palette);
+  fill_in_table (divid, data, all_participants, removed_tools);
+  set_cell_colors(divid, legend_color_palette, removed_tools);
 
 };
 

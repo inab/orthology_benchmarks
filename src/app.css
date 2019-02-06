@@ -75,6 +75,7 @@
         border: 2px solid black;
         border-collapse: collapse;
         text-align: center;
+        font-size: .85vw;
     }
 
     .benchmarkingTable {
@@ -83,6 +84,10 @@
         background-color: #f0f0f0;
         border: 5px solid black; 
         float: right;
+    }
+
+    .benchmark_legend_rect {
+        cursor: pointer;
     }
 
     .benchmarkingChart{
