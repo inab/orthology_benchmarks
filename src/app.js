@@ -5,6 +5,7 @@ import * as pf from 'pareto-frontier';
 import *  as clusterMaker from 'clusters';
 import * as d3Polygon from "d3-polygon";
 import { Base64 } from 'js-base64';
+import { createApolloFetch } from 'apollo-fetch';
 
 
 // ./node_modules/.bin/webpack-cli src/app.js --output=build/build.js -d -w
@@ -14,6 +15,16 @@ let MAIN_DATA = {};
 
 
 function loadurl(){
+
+    // define base url - production or development
+    let mode = "dev"
+    let base_url;
+    if (mode == "production"){
+	    base_url = "https://openebench.bsc.es/"
+    } else  {
+      base_url = "https://dev-openebench.bsc.es/"
+    }
+
     let divid;
     
     let charts = document.getElementsByClassName("benchmarkingChart");
@@ -86,9 +97,22 @@ function loadurl(){
         .text("K-MEANS CLUSTERING")
      
 
-      let url1 = "https://openebench.bsc.es/api/scientific/Dataset/?query="+ dataId + "+" + metric_x + "+assessment&fmt=json";
-      let url2 = "https://openebench.bsc.es/api/scientific/Dataset/?query="+ dataId + "+" + metric_y + "+assessment&fmt=json";
-      get_data(url1, url2, divid, metric_x, metric_y); 
+      let url = base_url + "sciapi/graphql";
+      
+      let json_query = `query getDatasets($challenge_id: String!){
+                          getDatasets(datasetFilters:{challenge_id: $challenge_id, type:"assessment"}) {
+                              _id
+                              datalink{
+                                  uri
+                              }
+                              depends_on{
+                                  tool_id
+                                  metrics_id
+                              }
+                          }
+                        }`
+
+      get_data(url, json_query, dataId, divid, metric_x, metric_y); 
 
       // $('[data-toggle="list_tooltip"]').tooltip();
 
@@ -115,39 +139,38 @@ function loadurl(){
 
 
 
-function get_data(url1, url2 ,divid, metric_x, metric_y){
-
-  fetchUrl(url1, url2).then(results => {
-
-    
-    if (results[0].Dataset == undefined || results[1].Dataset == undefined){
-
-      document.getElementById(divid + "_dropdown_list").remove();
-
-      var para = document.createElement("td");
-      para.id = "no_benchmark_data"
-      var err_txt = document.createTextNode("No data available for the selected benchmark");
-      para.appendChild(err_txt);
-      var element = document.getElementById(divid);
-      element.appendChild(para);
-
-  } else {
-
-    join_all_json(results[0].Dataset, results[1].Dataset ,divid, metric_x, metric_y);
-  };
-
-  })
-
-};
-
-async function fetchUrl(url1, url2) {
+function get_data(url, json_query ,dataId, divid, metric_x, metric_y){
 
   try {
-    let request1 = await fetch(url1);
-    let result1 = await request1.text();
-    let request2 = await fetch(url2);
-    let result2 = await request2.text();
-      return [JSON.parse(result1), JSON.parse(result2)];
+
+      const fetch = createApolloFetch({
+        uri: url,
+      });
+
+      let vars = { challenge_id: dataId };
+
+      fetch({
+        query: json_query,
+        variables: vars,
+      }).then(res => {
+          let result = res.data.getDatasets;
+          if (result.length == 0){
+
+            document.getElementById(divid + "_dropdown_list").remove();
+      
+            var para = document.createElement("td");
+            para.id = "no_benchmark_data"
+            var err_txt = document.createTextNode("No data available for the selected benchmark");
+            para.appendChild(err_txt);
+            var element = document.getElementById(divid);
+            element.appendChild(para);
+      
+        } else {
+      
+          join_all_json(result, divid, metric_x, metric_y);
+        };
+      });
+
     }
     catch (err) {
       console.log(`Invalid Url Error: ${err.stack} `);
@@ -155,26 +178,49 @@ async function fetchUrl(url1, url2) {
 
 };
 
-function join_all_json(array1, array2, divid, metric_x, metric_y){
-  try{
-    let full_json  = [];
 
-    for (let i = 0; i < array1.length; i++) {
-        let jo = {};
-        
-        jo['toolname'] = array1[i].depends_on.tool_id.split(':')[1];
-        jo['x'] = parseFloat(Base64.decode(array1[i].datalink.uri.split(',')[1]));
-        jo['y'] = parseFloat(Base64.decode(array2[i].datalink.uri.split(',')[1]));
-        jo['e'] = 0;
-        full_json.push(jo);    
-    }
+
+function join_all_json(result, divid, metric_x, metric_y){
+  try{
+
+    let tools_object  = {};
+
+    result.forEach( function(dataset) {
+      
+      // get tool which this dataset belongs to
+      let tool_name = dataset.depends_on.tool_id;
+      // tool_name = tool_names[tool_id]
+      if (!(tool_name in tools_object))
+          tools_object[tool_name] = new Array(2);
+      // get value of the two metrics
+      let metric = parseFloat(Base64.decode(dataset.datalink.uri[1]));
+      if (dataset.depends_on.metrics_id == metric_x) {
+          tools_object[tool_name][0] = metric;
+      } else if (dataset.depends_on.metrics_id == metric_y) {
+          tools_object[tool_name][1] = metric;
+      }
+    });
+
+    // transform the object to an array, which is usable by the D3 chart
+    let full_json = [];
+    Object.keys(tools_object).forEach(tool_name => {
+
+      let jo = {};
+      jo['toolname'] = tool_name;
+      jo['x'] = tools_object[tool_name][0];
+      jo['y'] = tools_object[tool_name][1];
+      jo['e'] = 0;
+      full_json.push(jo); 
+
+    });
+
     MAIN_DATA[divid] = full_json;
     // by default, no classification method is applied. it is the first item in the selection list
     var e = document.getElementById(divid + "_dropdown_list");
     let classification_type = e.options[e.selectedIndex].id;
 
     createChart(full_json,divid, classification_type, metric_x, metric_y);
-  }catch(err){
+  } catch(err){
     console.log(`Invalid Url Error: ${err.stack} `);
   }
 
