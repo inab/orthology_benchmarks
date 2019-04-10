@@ -1393,7 +1393,7 @@ export{
   onQuartileChange
 }
 
-loadurl();
+// loadurl();
 
 
 
