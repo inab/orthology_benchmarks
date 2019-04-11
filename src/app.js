@@ -102,6 +102,7 @@ function loadurl(){
       let json_query = `query getDatasets($challenge_id: String!){
                           getDatasets(datasetFilters:{challenge_id: $challenge_id, type:"assessment"}) {
                               _id
+                              community_id
                               datalink{
                                   uri
                               }
@@ -175,7 +176,7 @@ function get_data(url, json_query ,dataId, divid, metric_x, metric_y){
                             name
                         }
                     }`,
-            variables: {community_id: "OEBC" + dataId.substring(4,7)},
+            variables: {community_id: result[0].community_id},
           });
 
           fetchData().then(response => { 
