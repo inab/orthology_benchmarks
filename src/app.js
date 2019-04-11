@@ -166,8 +166,33 @@ function get_data(url, json_query ,dataId, divid, metric_x, metric_y){
             element.appendChild(para);
       
         } else {
-      
-          join_all_json(result, divid, metric_x, metric_y);
+          
+          // get the names of the tools that are present in the community
+          const fetchData = () => fetch({
+            query: `query getTools($community_id: String!){
+                        getTools(toolFilters:{community_id: $community_id}) {
+                            _id
+                            name
+                        }
+                    }`,
+            variables: {community_id: "OEBC" + dataId.substring(4,7)},
+          });
+
+          fetchData().then(response => { 
+            
+            let tool_list = response.data.getTools;
+            
+            // iterate over the list of tools to generate a dictionary
+            let tool_names = {};
+            tool_list.forEach( function(tool) {
+                tool_names[tool._id] = tool.name
+            
+            });
+
+            join_all_json(result, tool_names, divid, metric_x, metric_y);
+
+          } );
+          
         };
       });
 
@@ -180,7 +205,7 @@ function get_data(url, json_query ,dataId, divid, metric_x, metric_y){
 
 
 
-function join_all_json(result, divid, metric_x, metric_y){
+function join_all_json(result, tool_names, divid, metric_x, metric_y){
   try{
 
     let tools_object  = {};
@@ -188,8 +213,8 @@ function join_all_json(result, divid, metric_x, metric_y){
     result.forEach( function(dataset) {
       
       // get tool which this dataset belongs to
-      let tool_name = dataset.depends_on.tool_id;
-      // tool_name = tool_names[tool_id]
+      let tool_name = tool_names[dataset.depends_on.tool_id];
+
       if (!(tool_name in tools_object))
           tools_object[tool_name] = new Array(2);
       // get value of the two metrics
