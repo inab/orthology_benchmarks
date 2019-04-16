@@ -12,6 +12,7 @@ import { createApolloFetch } from 'apollo-fetch';
 
 
 let MAIN_DATA = {};
+let MAIN_METRICS = {};
 
 
 function loadurl(){
@@ -175,6 +176,10 @@ function get_data(url, json_query ,dataId, divid, metric_x, metric_y){
                             _id
                             name
                         }
+                        getMetrics (metricsFilters:{community_id: $community_id}) {
+                          _id
+                          title
+                        }
                     }`,
             variables: {community_id: result[0].community_id},
           });
@@ -182,6 +187,7 @@ function get_data(url, json_query ,dataId, divid, metric_x, metric_y){
           fetchData().then(response => { 
             
             let tool_list = response.data.getTools;
+            let metrics_list = response.data.getMetrics;
             
             // iterate over the list of tools to generate a dictionary
             let tool_names = {};
@@ -190,7 +196,13 @@ function get_data(url, json_query ,dataId, divid, metric_x, metric_y){
             
             });
 
-            join_all_json(result, tool_names, divid, metric_x, metric_y);
+            // iterate over the list of metrics to generate a dictionary
+            let metrics_names = {};
+            metrics_list.forEach( function(element) {
+              metrics_names[element._id] = element.title
+            });
+
+            join_all_json(result, tool_names, divid, metric_x, metric_y,metrics_names);
 
           } );
           
@@ -206,7 +218,7 @@ function get_data(url, json_query ,dataId, divid, metric_x, metric_y){
 
 
 
-function join_all_json(result, tool_names, divid, metric_x, metric_y){
+function join_all_json(result, tool_names, divid, metric_x, metric_y,metrics_names){
   try{
 
     let tools_object  = {};
@@ -241,11 +253,12 @@ function join_all_json(result, tool_names, divid, metric_x, metric_y){
     });
 
     MAIN_DATA[divid] = full_json;
+    MAIN_METRICS[divid] = metrics_names;
     // by default, no classification method is applied. it is the first item in the selection list
     var e = document.getElementById(divid + "_dropdown_list");
     let classification_type = e.options[e.selectedIndex].id;
 
-    createChart(full_json,divid, classification_type, metric_x, metric_y);
+    createChart(full_json,divid, classification_type, metric_x, metric_y,metrics_names);
   } catch(err){
     console.log(`Invalid Url Error: ${err.stack} `);
   }
@@ -260,7 +273,9 @@ function onQuartileChange(ID, metric_x, metric_y){
   // console.log(d3.select('#'+'svg_'+chart_id));
   d3.select('#'+'svg_'+chart_id).remove();
   let classification_type = ID;
-  createChart(MAIN_DATA[chart_id],chart_id, classification_type, metric_x, metric_y);
+
+  createChart(MAIN_DATA[chart_id],chart_id, classification_type, metric_x, metric_y, MAIN_METRICS[chart_id]);
+  
 };
 
 function compute_classification(data, svg, xScale, yScale, div, width, height, removed_tools,divid, classification_type, legend_color_palette) {
@@ -365,7 +380,7 @@ function compute_chart_height(data){
   
 };
 
-function createChart (data,divid, classification_type, metric_x, metric_y){
+function createChart (data,divid, classification_type, metric_x, metric_y, metrics_names){
   // console.log(data)
   let margin = {top: 20, right: 40, bottom: compute_chart_height(data), left: 60},
     width = Math.round($(window).width()* 0.6818) - margin.left - margin.right,
@@ -426,7 +441,7 @@ function createChart (data,divid, classification_type, metric_x, metric_y){
   .style("text-anchor", "middle")
   .style("font-weight", "bold")
   .style("font-size", ".75vw")
-  .text(document.getElementById(divid).getAttribute('metric_x'));
+  .text(metrics_names[metric_x]);
   
   svg.append("text")
       .attr("transform", "rotate(-90)")
@@ -436,7 +451,7 @@ function createChart (data,divid, classification_type, metric_x, metric_y){
       .style("text-anchor", "middle")
       .style("font-weight", "bold")
       .style("font-size", ".75vw")
-      .text(document.getElementById(divid).getAttribute('metric_y')); 
+      .text(metrics_names[metric_y] ); 
   
   // add pareto legend
 
