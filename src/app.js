@@ -231,7 +231,7 @@ function join_all_json(result, tool_names, divid, metric_x, metric_y,metrics_nam
       if (!(tool_name in tools_object))
           tools_object[tool_name] = new Array(2);
       // get value of the two metrics
-      let metric = parseFloat(Base64.decode(dataset.datalink.uri[1]));
+      let metric = parseFloat(Base64.decode(dataset.datalink.uri.split(",")[1]));
       if (dataset.depends_on.metrics_id == metric_x) {
           tools_object[tool_name][0] = metric;
       } else if (dataset.depends_on.metrics_id == metric_y) {
