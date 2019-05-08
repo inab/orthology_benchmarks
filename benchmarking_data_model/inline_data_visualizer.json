@@ -59,12 +59,12 @@
                     "metric_x": {
                         "title": "value of the metric represented in the X axis",
                         "minLength": 1,
-                        "type": "string"
+                        "type": "number"
                     },
                     "metric_y": {
                         "title": "value of the metric represented in the Y axis",
                         "minLength": 1,
-                        "type": "string"
+                        "type": "number"
                     }
                 },
                 "additionalProperties": false,
