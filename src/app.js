@@ -59,6 +59,9 @@ function loadurl(){
         .attr("class","classificators_list")
         .attr("id",divid + "_dropdown_list")
         .on('change', function(d) {
+          let active_chart = document.getElementById(this.options[this.selectedIndex].id.split("__")[0])
+          let metric_x = active_chart.getAttribute('metric_x');
+          let metric_y = active_chart.getAttribute('metric_y');
           onQuartileChange(this.options[this.selectedIndex].id, metric_x, metric_y);
         })
         .append("optgroup")
@@ -176,7 +179,7 @@ function get_data(url, json_query ,dataId, divid, metric_x, metric_y){
                             _id
                             name
                         }
-                        getMetrics (metricsFilters:{community_id: $community_id}) {
+                        getMetrics {
                           _id
                           title
                         }
@@ -442,7 +445,7 @@ function createChart (data,divid, classification_type, metric_x, metric_y, metri
   .style("font-weight", "bold")
   .style("font-size", ".75vw")
   .text(metrics_names[metric_x]);
-  
+
   svg.append("text")
       .attr("transform", "rotate(-90)")
       .attr("y", 0 - margin.left)
@@ -512,7 +515,7 @@ function createChart (data,divid, classification_type, metric_x, metric_y, metri
     });
 
 
-  append_dots_errobars (svg, data, xScale, yScale, div, cValue_func, color_func,divid, metric_x, metric_y);
+  append_dots_errobars (svg, data, xScale, yScale, div, cValue_func, color_func,divid, metric_x, metric_y, metrics_names);
 
   draw_legend (data, svg, xScale, yScale, div, width, height, removed_tools, color_func, color_func.domain(), margin,divid,classification_type, legend_color_palette);
 
@@ -520,7 +523,7 @@ function createChart (data,divid, classification_type, metric_x, metric_y, metri
 
   };
 
-function append_dots_errobars (svg, data, xScale, yScale, div, cValue, color,divid, metric_x, metric_y){
+function append_dots_errobars (svg, data, xScale, yScale, div, cValue, color,divid, metric_x, metric_y, metrics_names){
 
   // Add Error Line
   svg.append("g").selectAll("line")
@@ -606,7 +609,7 @@ function append_dots_errobars (svg, data, xScale, yScale, div, cValue, color,div
           div.transition()		
               .duration(100)		
               .style("opacity", .9);		
-          div.html("<b>" + d.toolname + "</b><br/>"  + metric_x + ": " + formatComma(d.x) + "<br/>"  + metric_y + ": " + formatDecimal(d.y))	
+          div.html("<b>" + d.toolname + "</b><br/>"  + metrics_names[metric_x] + ": " + formatComma(d.x) + "<br/>"  + metrics_names[metric_y] + ": " + formatDecimal(d.y))	
               .style("left", (d3.event.pageX) + "px")		
               .style("top", (d3.event.pageY) + "px");
         }
