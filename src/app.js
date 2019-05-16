@@ -4,7 +4,6 @@ import $ from "jquery";
 import * as pf from 'pareto-frontier';
 import *  as clusterMaker from 'clusters';
 import * as d3Polygon from "d3-polygon";
-import { Base64 } from 'js-base64';
 import { createApolloFetch } from 'apollo-fetch';
 
 
@@ -106,9 +105,9 @@ function loadurl(){
       let json_query = `query getDatasets($challenge_id: String!){
                           getDatasets(datasetFilters:{challenge_id: $challenge_id, type:"assessment"}) {
                               _id
-                              community_id
+                              community_ids
                               datalink{
-                                  uri
+                                  inline_data
                               }
                               depends_on{
                                   tool_id
@@ -165,13 +164,13 @@ function get_data(url, json_query ,dataId, divid, metric_x, metric_y){
       
             var para = document.createElement("td");
             para.id = "no_benchmark_data"
-            var err_txt = document.createTextNode("No data available for the selected benchmark");
+            var err_txt = document.createTextNode("No data available for the selected challenge: " + dataId);
             para.appendChild(err_txt);
             var element = document.getElementById(divid);
             element.appendChild(para);
       
         } else {
-          
+
           // get the names of the tools that are present in the community
           const fetchData = () => fetch({
             query: `query getTools($community_id: String!){
@@ -184,7 +183,7 @@ function get_data(url, json_query ,dataId, divid, metric_x, metric_y){
                           title
                         }
                     }`,
-            variables: {community_id: result[0].community_id},
+            variables: {community_id: result[0].community_ids[0]},
           });
 
           fetchData().then(response => { 
@@ -234,7 +233,7 @@ function join_all_json(result, tool_names, divid, metric_x, metric_y,metrics_nam
       if (!(tool_name in tools_object))
           tools_object[tool_name] = new Array(2);
       // get value of the two metrics
-      let metric = parseFloat(Base64.decode(dataset.datalink.uri.split(",")[1]));
+      let metric = dataset.datalink.inline_data.value;
       if (dataset.depends_on.metrics_id == metric_x) {
           tools_object[tool_name][0] = metric;
       } else if (dataset.depends_on.metrics_id == metric_y) {
