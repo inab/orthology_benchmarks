@@ -203,7 +203,6 @@ function get_data(url, json_query ,dataId, divid, metric_x, metric_y){
             metrics_list.forEach( function(element) {
               metrics_names[element._id] = element.title
             });
-
             join_all_json(result, tool_names, divid, metric_x, metric_y,metrics_names);
 
           } );
@@ -231,9 +230,10 @@ function join_all_json(result, tool_names, divid, metric_x, metric_y,metrics_nam
       let tool_name = tool_names[dataset.depends_on.tool_id];
 
       if (!(tool_name in tools_object))
-          tools_object[tool_name] = new Array(2);
+          tools_object[tool_name] = new Array(3);
+          tools_object[tool_name][2] = dataset.depends_on.tool_id;
       // get value of the two metrics
-      let metric = dataset.datalink.inline_data.value;
+      let metric = parseFloat( dataset.datalink.inline_data.value);
       if (dataset.depends_on.metrics_id == metric_x) {
           tools_object[tool_name][0] = metric;
       } else if (dataset.depends_on.metrics_id == metric_y) {
@@ -246,6 +246,7 @@ function join_all_json(result, tool_names, divid, metric_x, metric_y,metrics_nam
     Object.keys(tools_object).forEach(tool_name => {
 
       let jo = {};
+      jo["_ID"] = tools_object[tool_name][2];
       jo['toolname'] = tool_name;
       jo['x'] = tools_object[tool_name][0];
       jo['y'] = tools_object[tool_name][1];
@@ -505,7 +506,7 @@ function createChart (data,divid, classification_type, metric_x, metric_y, metri
   let cValue_func = function(d) {
     return d.toolname;
   },
-  color_func = d3.scaleOrdinal(d3.schemeSet1.concat(d3.schemeSet3));
+  color_func = d3.scaleOrdinal(d3.schemeSet1.concat(d3.schemeSet3).concat(d3.schemeSet2));
 
     // get object with tools and colors:
     var legend_color_palette = {};
@@ -672,7 +673,7 @@ function draw_legend (data, svg, xScale, yScale, div, width, height, removed_too
             }, 5000)
 
           };
-
+          
         })
         .on("mouseover", function (d) {
 
@@ -711,7 +712,7 @@ function draw_legend (data, svg, xScale, yScale, div, width, height, removed_too
         .attr("id", function (d) { return divid+"___"+d.replace(/[\. ()/-]/g, "_");})
         .attr("dy", ".35em")
         .style("text-anchor", "start")
-        .style("font-size", "1vw")
+        .style("font-size", ".7vw")
         .text(function(d) {
           return d;
         });
@@ -1436,7 +1437,7 @@ export{
   onQuartileChange
 }
 
-// loadurl();
+loadurl();
 
 
 
