@@ -231,13 +231,18 @@ function join_all_json(result, tool_names, divid, metric_x, metric_y,metrics_nam
 
       if (!(tool_name in tools_object))
           tools_object[tool_name] = new Array(3);
-          tools_object[tool_name][2] = dataset.depends_on.tool_id;
+
       // get value of the two metrics
       let metric = parseFloat( dataset.datalink.inline_data.value);
       if (dataset.depends_on.metrics_id == metric_x) {
           tools_object[tool_name][0] = metric;
       } else if (dataset.depends_on.metrics_id == metric_y) {
           tools_object[tool_name][1] = metric;
+          if (typeof dataset.datalink.inline_data.error !== 'undefined') {
+            tools_object[tool_name][2] = parseFloat(dataset.datalink.inline_data.error);
+          } else {
+            tools_object[tool_name][2] = 0;
+          };
       }
     });
 
@@ -246,11 +251,10 @@ function join_all_json(result, tool_names, divid, metric_x, metric_y,metrics_nam
     Object.keys(tools_object).forEach(tool_name => {
 
       let jo = {};
-      jo["_ID"] = tools_object[tool_name][2];
       jo['toolname'] = tool_name;
       jo['x'] = tools_object[tool_name][0];
       jo['y'] = tools_object[tool_name][1];
-      jo['e'] = 0;
+      jo['e'] = tools_object[tool_name][2];
       full_json.push(jo); 
 
     });
@@ -1436,7 +1440,7 @@ export{
   onQuartileChange
 }
 
-// loadurl();
+loadurl();
 
 
 
