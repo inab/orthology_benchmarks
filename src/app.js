@@ -673,7 +673,6 @@ function draw_legend (data, svg, xScale, yScale, div, width, height, removed_too
             }, 5000)
 
           };
-          
         })
         .on("mouseover", function (d) {
 
@@ -1156,7 +1155,7 @@ function remove_hidden_tools(data, removed_tools){
   // create a new array where the tools that have not been hidden will be stored
   let tools_not_hidden = [];
   data.forEach(element => {
-    let index = $.inArray(element.toolname, removed_tools);
+    let index = $.inArray(element.toolname.replace(/[\. ()/_]/g, "-"), removed_tools);
     if (index == -1){
       tools_not_hidden.push(element);
     }
@@ -1179,9 +1178,9 @@ function fill_in_table (divid, data, all_participants, removed_tools){
     row.insertCell(0).innerHTML = element.toolname;
     //if the participant is not hidden the 2nd column is filled with the corresponding quartile
     // if not it is filled with --
-    if ($.inArray(element.toolname, removed_tools) == -1) {
+    if ($.inArray(element.toolname.replace(/[\. ()/_]/g, "-"), removed_tools) == -1) {
       // var quartile;
-      let obj = data.find(o => o.toolname === element.toolname);
+      let obj = data.find(o => o.toolname.replace(/[\. ()/_]/g, "-") === element.toolname.replace(/[\. ()/_]/g, "-"));
       row.insertCell(1).innerHTML = obj.quartile;
     } else {
       row.insertCell(1).innerHTML = "--";
@@ -1254,9 +1253,9 @@ function set_cell_colors(divid, legend_color_palette, removed_tools){
       $(this).css({'background' : '#edf8e9'}); 
     } else if (cell_value == "--") {
       $(this).css({'background' : '#f0f0f5'}); 
-    } else if ($.inArray(cell_value, tools) > -1 && $.inArray(cell_value, removed_tools) == -1) {
+    } else if ($.inArray(cell_value, tools) > -1 && $.inArray(cell_value.replace(/[\. ()/_]/g, "-"), removed_tools) == -1) {
       $(this).css({'background' : 'linear-gradient(to left, white 92%, ' + legend_color_palette[cell_value] + ' 8%)'});
-    } else if ($.inArray(cell_value, removed_tools) > -1) {
+    } else if ($.inArray(cell_value.replace(/[\. ()/_]/g, "-"), removed_tools) > -1) {
       $(this).css({ 'background' : 'linear-gradient(to left, white 92%, ' + legend_color_palette[cell_value] + ' 8%)', 'opacity': 0.5});
       $(this).closest("tr").css('opacity', 0.5);
     } else {
@@ -1437,7 +1436,7 @@ export{
   onQuartileChange
 }
 
-loadurl();
+// loadurl();
 
 
 
