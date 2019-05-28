@@ -1,0 +1,79 @@
+{
+	"id": "https://github.com/inab/OpenEBench_scientific_visualizer/json-schemas",
+	"$schema": "http://json-schema.org/draft-07/schema#",
+	"title": "Inline data schema for Aggregation dataset",
+	"type": "object",
+	"properties": {
+        "visualization": {
+            "title": "The information required to visualize this dataset",
+			"type": "object",
+			"properties": {
+                "type":  {
+                    "title": "The type of visualization used for this dataset",
+                    "type": "string",
+                    "enum": [ "2D-plot", "bar-plot", "ROC-curve", "correlation-plot"]
+                },
+                "x-axis": {
+                    "title": "The id of the metrics represented in the X axis of the 2D plot",
+                    "minLength": 1,
+                    "type": "string",
+                    "foreign_keys": [
+						{
+							"schema_id": "Metrics",
+							"members": [ "." ]
+						}
+                    ]
+                },
+                "y-axis": {
+                    "title": "The id of the metrics represented in the Y axis of the 2D plot",
+                    "minLength": 1,
+                    "type": "string",
+                    "foreign_keys": [
+						{
+							"schema_id": "Metrics",
+							"members": [ "." ]
+						}
+                    ]
+                }
+            },
+            "additionalProperties": true,
+            "required": [ "type" ]
+        },
+        "challenge_participants": {
+            "type": "array",
+            "minLength": 1,
+            "items": {
+                "type": "object",
+                "properties": {
+                    "tool_id": {
+                        "title": "id of the tool which corresponds to this metrics",
+                        "minLength": 1,
+                        "type": "string",
+                        "foreign_keys": [
+                            {
+                                "schema_id": "Tool",
+                                "members": [ "." ]
+                            }
+                        ]
+                    },
+                    "metric_x": {
+                        "title": "value of the metric represented in the X axis",
+                        "minLength": 1,
+                        "type": "number"
+                    },
+                    "metric_y": {
+                        "title": "value of the metric represented in the Y axis",
+                        "minLength": 1,
+                        "type": "number"
+                    }
+                },
+                "additionalProperties": false,
+                "required": [ "tool_id", "metric_x", "metric_y" ]
+
+            }
+        }
+    },  
+	"additionalProperties": false,
+	"required": ["visualization", "challenge_participants"],
+	"dependencies": {}
+}
