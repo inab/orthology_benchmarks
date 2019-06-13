@@ -12,19 +12,12 @@ import { createApolloFetch } from 'apollo-fetch';
 
 let MAIN_DATA = {};
 let MAIN_METRICS = {};
+let better = {};
 
 
 function loadurl(){
 
-    // define base url - production or development
-    let mode = "dev"
-    let base_url;
-    if (mode == "production"){
-	    base_url = "https://openebench.bsc.es/"
-    } else  {
-      base_url = "https://dev-openebench.bsc.es/"
-    }
-
+    
     let divid;
     
     let charts = document.getElementsByClassName("benchmarkingChart");
@@ -36,6 +29,12 @@ function loadurl(){
     // append ids to chart/s and make d3 plot
     i = 0
     for(y of charts){
+
+      // define base url - production or development
+      //check for mode by default it is production if no param is given
+      var mode = $(y).data("mode") ? "dev-openebench" : "openebench"
+      let base_url = "https://" + mode + ".bsc.es/";
+
       // get benchmarking event id
       dataId = y.getAttribute('data-id');
       var metric_x = y.getAttribute('metric_x');
@@ -61,7 +60,7 @@ function loadurl(){
           let active_chart = document.getElementById(this.options[this.selectedIndex].id.split("__")[0])
           let metric_x = active_chart.getAttribute('metric_x');
           let metric_y = active_chart.getAttribute('metric_y');
-          onQuartileChange(this.options[this.selectedIndex].id, metric_x, metric_y);
+          onQuartileChange(this.options[this.selectedIndex].id, metric_x, metric_y, better);
         })
         .append("optgroup")
         .attr("label","Select a classification method:");
@@ -181,6 +180,7 @@ function get_data(url, json_query ,dataId, divid, metric_x, metric_y){
                         getMetrics {
                           _id
                           title
+                          representation_hints
                         }
                     }`,
             variables: {community_id: result[0].community_ids[0]},
@@ -190,7 +190,6 @@ function get_data(url, json_query ,dataId, divid, metric_x, metric_y){
             
             let tool_list = response.data.getTools;
             let metrics_list = response.data.getMetrics;
-            
             // iterate over the list of tools to generate a dictionary
             let tool_names = {};
             tool_list.forEach( function(tool) {
@@ -200,10 +199,23 @@ function get_data(url, json_query ,dataId, divid, metric_x, metric_y){
 
             // iterate over the list of metrics to generate a dictionary
             let metrics_names = {};
+            let metrics_representation = {};
             metrics_list.forEach( function(element) {
               metrics_names[element._id] = element.title
+              if (element.representation_hints.optimization != null) {
+                metrics_representation[element._id] = element.representation_hints.optimization;
+              } else {
+                metrics_representation[element._id] = null;
+              };
+              
             });
-            join_all_json(result, tool_names, divid, metric_x, metric_y,metrics_names);
+            // get optimization point
+            if ( metrics_representation[metric_x] == "minimize" || metrics_representation[metric_y] == "minimize") {
+              better[divid] = "bottom-right";
+            } else {
+              better[divid] = "top-right";
+            };
+            join_all_json(result, tool_names, divid, metric_x, metric_y,metrics_names, better);
 
           } );
           
@@ -219,7 +231,7 @@ function get_data(url, json_query ,dataId, divid, metric_x, metric_y){
 
 
 
-function join_all_json(result, tool_names, divid, metric_x, metric_y,metrics_names){
+function join_all_json(result, tool_names, divid, metric_x, metric_y,metrics_names, better){
   try{
 
     let tools_object  = {};
@@ -265,7 +277,7 @@ function join_all_json(result, tool_names, divid, metric_x, metric_y,metrics_nam
     var e = document.getElementById(divid + "_dropdown_list");
     let classification_type = e.options[e.selectedIndex].id;
 
-    createChart(full_json,divid, classification_type, metric_x, metric_y,metrics_names);
+    createChart(full_json,divid, classification_type, metric_x, metric_y,metrics_names, better);
   } catch(err){
     console.log(`Invalid Url Error: ${err.stack} `);
   }
@@ -274,18 +286,18 @@ function join_all_json(result, tool_names, divid, metric_x, metric_y,metrics_nam
 };
 
 
-function onQuartileChange(ID, metric_x, metric_y){  
+function onQuartileChange(ID, metric_x, metric_y, better){  
   
   var chart_id = ID.split("__")[0];
   // console.log(d3.select('#'+'svg_'+chart_id));
   d3.select('#'+'svg_'+chart_id).remove();
   let classification_type = ID;
 
-  createChart(MAIN_DATA[chart_id],chart_id, classification_type, metric_x, metric_y, MAIN_METRICS[chart_id]);
+  createChart(MAIN_DATA[chart_id],chart_id, classification_type, metric_x, metric_y, MAIN_METRICS[chart_id], better);
   
 };
 
-function compute_classification(data, svg, xScale, yScale, div, width, height, removed_tools,divid, classification_type, legend_color_palette) {
+function compute_classification(data, svg, xScale, yScale, div, width, height, removed_tools,divid, classification_type, legend_color_palette, better) {
 
   let transform_to_table; //this variable is set to true if there are table elements with the corresponden divid in the html file
   // every time a new classification is compute the previous results table is deleted (if it exists)
@@ -294,7 +306,6 @@ function compute_classification(data, svg, xScale, yScale, div, width, height, r
     transform_to_table = true;
   };
 
-  let better = "top-right";
   // append optimization arrow
   add_arrow(divid, svg, xScale, yScale, better);
 
@@ -387,7 +398,7 @@ function compute_chart_height(data){
   
 };
 
-function createChart (data,divid, classification_type, metric_x, metric_y, metrics_names){
+function createChart (data,divid, classification_type, metric_x, metric_y, metrics_names, better){
   // console.log(data)
   let margin = {top: 20, right: 40, bottom: compute_chart_height(data), left: 60},
     width = Math.round($(window).width()* 0.6818) - margin.left - margin.right,
@@ -523,7 +534,7 @@ function createChart (data,divid, classification_type, metric_x, metric_y, metri
 
   draw_legend (data, svg, xScale, yScale, div, width, height, removed_tools, color_func, color_func.domain(), margin,divid,classification_type, legend_color_palette);
 
-    compute_classification(data, svg, xScale, yScale, div, width, height, removed_tools,divid, classification_type, legend_color_palette);
+  compute_classification(data, svg, xScale, yScale, div, width, height, removed_tools,divid, classification_type, legend_color_palette, better[divid]);
 
   };
 
@@ -797,7 +808,7 @@ function show_or_hide_participant_in_plot (ID, data, svg, xScale, yScale, div, w
     // recalculate the quartiles after removing the tools
     let index = $.inArray(tool_id.replace(/_/g, "-"), removed_tools);
     removed_tools.splice(index, 1);
-    compute_classification(data, svg, xScale, yScale, div, width, height, removed_tools,divid,classification_type, legend_color_palette);
+    compute_classification(data, svg, xScale, yScale, div, width, height, removed_tools,divid,classification_type, legend_color_palette, better[divid]);
     //change the legend opacity to keep track of hidden tools
     d3.select(legend_rect).style("opacity", 1);
     d3.select("text#" +divid+"___"+tool_id).style("opacity", 1);
@@ -808,7 +819,7 @@ function show_or_hide_participant_in_plot (ID, data, svg, xScale, yScale, div, w
     d3.select("#"+divid+"___bottom"+tool_id).style("opacity", 0);
     d3.select("#"+divid+"___line"+tool_id).style("opacity", 0);
     removed_tools.push(tool_id.replace(/_/g, "-"));
-    compute_classification(data, svg, xScale, yScale, div, width, height, removed_tools,divid,classification_type, legend_color_palette);
+    compute_classification(data, svg, xScale, yScale, div, width, height, removed_tools,divid,classification_type, legend_color_palette, better[divid]);
     //change the legend opacity to keep track of hidden tools
     d3.select(legend_rect).style("opacity", 0.2);
     d3.select("text#" +divid+"___"+tool_id).style("opacity", 0.2);
@@ -1440,7 +1451,7 @@ export{
   onQuartileChange
 }
 
-// loadurl();
+loadurl();
 
 
 
