@@ -1,0 +1,128 @@
+{
+	"id": "https://github.com/inab/OpenEBench_scientific_visualizer/json-schemas",
+	"$schema": "http://json-schema.org/draft-07/schema#",
+	"title": "Inline data schema for Aggregation dataset",
+	"type": "object",
+	"properties": {
+        "_id": {
+			"title": "The unique id of the dataset, can be set by the benchmarking community or returned by OEB API",
+            "type": "string"
+        },
+        "challenge_ids": {
+			"title": "The challenge(s) where this dataset was generated or used",
+			"type": "array",
+			"minItems": 1,
+			"items": {
+				"type": "string",
+				"foreign_keys": [
+					{
+						"schema_id": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Challenge",
+						"members": [ "." ]
+					}
+				],
+				"minLength": 1
+			}
+        },
+        "type": {
+			"title": "Type of dataset. Aggregation datasets are combinations of other aggregations or assessments.",
+			"type": "string",
+			"mingLength": 1,
+			"enum": [  "aggregation" ]
+		},
+        "datalink": {
+			"title": "The data itself, either linked or embedded",
+            "type": "object",
+            "additionalProperties": true,
+            "properties": {
+                "inline_data": {
+                    "title": "Inline data in JSON format",
+                    "type": "object",
+                    "minProperties": 1,
+                    "additionalProperties": true,
+                    "properties": {
+                        "visualization": {
+                            "title": "The information required to visualize this dataset",
+                            "type": "object",
+                            "properties": {
+                                "type":  {
+                                    "title": "The type of visualization used for this dataset",
+                                    "type": "string",
+                                    "enum": [ "2D-plot", "bar-plot", "ROC-curve", "correlation-plot"]
+                                },
+                                "x-axis": {
+                                    "title": "The id of the metrics represented in the X axis of the 2D plot",
+                                    "minLength": 1,
+                                    "type": "string",
+                                    "foreign_keys": [
+                                        {
+                                            "schema_id": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Metrics",
+                                            "members": [ "." ]
+                                        }
+                                    ]
+                                },
+                                "y-axis": {
+                                    "title": "The id of the metrics represented in the Y axis of the 2D plot",
+                                    "minLength": 1,
+                                    "type": "string",
+                                    "foreign_keys": [
+                                        {
+                                            "schema_id": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Metrics",
+                                            "members": [ "." ]
+                                        }
+                                    ]
+                                }
+                            },
+                            "additionalProperties": true,
+                            "required": [ "type" ]
+                        },
+                        "challenge_participants": {
+                            "type": "array",
+                            "minLength": 1,
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "participant_id": {
+                                        "title": "id of the tool which corresponds to this metrics",
+                                        "minLength": 1,
+                                        "type": "string",
+                                        "foreign_keys": [
+                                            {
+                                                "schema_id": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Tool",
+                                                "members": [ "." ]
+                                            }
+                                        ]
+                                    },
+                                    "metric_x": {
+                                        "title": "value of the metric represented in the X axis",
+                                        "minLength": 1,
+                                        "type": "number"
+                                    },
+                                    "metric_y": {
+                                        "title": "value of the metric represented in the Y axis",
+                                        "minLength": 1,
+                                        "type": "number"
+                                    },
+                                    "stderr_x": {
+                                        "title": "the standard error/deviation for the metric represented in X axis (can be 0)",
+                                        "minLength": 1,
+                                        "type": "number"
+                                    },
+                                    "stderr_y": {
+                                        "title": "the standard error/deviation for the metric represented in Y axis(can be 0)",
+                                        "minLength": 1,
+                                        "type": "number"
+                                    }
+                                },
+                                "additionalProperties": false,
+                                "required": [ "participant_id", "metric_x", "metric_y" ]
+
+                            }
+                        }
+                    },
+                "required": ["visualization", "challenge_participants"],
+                "dependencies": {}
+                }
+            }
+        }
+    }
+}
