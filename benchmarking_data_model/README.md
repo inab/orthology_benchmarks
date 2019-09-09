@@ -1,2 +1,2 @@
 # DataSet - inline_data JSON schema
-This folder contains complementary schemas for the [benchmarking data model](https://github.com/inab/benchmarking-data-model) in order to validate the datasets used in the scientific 2D visualizer.
+This folder contains complementary schemas for the [benchmarking data model](https://github.com/inab/benchmarking-data-model). Any dataset that needs to be visualized using the scientific 2D visualizer should follow this minimal aggregation dataset schema.
