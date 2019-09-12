@@ -1,4 +1,3 @@
-import * as d3 from 'd3';
 import { onQuartileChange } from "./app"
 import { better } from "./app"
 

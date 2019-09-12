@@ -1,5 +1,3 @@
-import * as d3 from 'd3';
-import $ from "jquery";
 import { append_dots_errobars } from './chart_coordinates'
 import { draw_legend } from "./legend";;
 import { compute_classification } from "./classification";

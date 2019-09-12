@@ -1,5 +1,3 @@
-import $ from "jquery";
-import * as d3 from 'd3';
 
 export function fill_in_table (divid, data, all_participants, removed_tools){
 

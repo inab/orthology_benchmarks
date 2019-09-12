@@ -1,4 +1,3 @@
-import * as d3 from 'd3';
 
 export function append_dots_errobars (svg, data, xScale, yScale, div, cValue, color,divid, metric_x, metric_y, metrics_names){
 

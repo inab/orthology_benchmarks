@@ -1,4 +1,3 @@
-import * as d3 from 'd3';
 import { remove_hidden_tools} from "./remove_tools";
 import { fill_in_table, set_cell_colors } from "./table"
 

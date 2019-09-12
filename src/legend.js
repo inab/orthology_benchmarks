@@ -1,5 +1,3 @@
-import * as d3 from 'd3';
-import $ from "jquery";
 import { compute_classification } from "./classification";
 import { better } from "./app"
 
