@@ -12,7 +12,7 @@ let MAIN_METRICS = {};
 let better = {};
 
 
-function loadurl(){
+function load_scatter_visualization(){
 
     
     let divid;
@@ -240,12 +240,12 @@ function onQuartileChange(ID, metric_x, metric_y, better){
 
 
 export{
-  loadurl,
+  load_scatter_visualization,
   onQuartileChange,
   better
 }
 
-loadurl();
+load_scatter_visualization();
 
 
 
