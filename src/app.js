@@ -137,7 +137,7 @@ function get_data(url, json_query ,dataId, divid, metric_x, metric_y){
             let metrics_representation = {};
             metrics_list.forEach( function(element) {
               metrics_names[element._id] = element.title
-              if (element.representation_hints.optimization != null) {
+              if (element.representation_hints !== null) {
                 metrics_representation[element._id] = element.representation_hints.optimization;
               } else {
                 metrics_representation[element._id] = null;
