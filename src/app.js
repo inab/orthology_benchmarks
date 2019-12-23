@@ -1,5 +1,4 @@
 import './app.css';
-import $ from "jquery";
 import { createApolloFetch } from 'apollo-fetch';
 import { append_classifiers_list } from "./selection_list";
 import { createChart } from "./scatter_plot"
@@ -17,7 +16,7 @@ function load_scatter_visualization(){
     
     let divid;
     
-    let charts = document.getElementsByClassName("benchmarkingChart");
+    let charts = document.getElementsByClassName("benchmarkingChart_scatter");
      
     let i = 0;
     let dataId;
@@ -64,7 +63,7 @@ function load_scatter_visualization(){
       //check the transformation to table attribute and append table to html
       if (y.getAttribute('toTable') == "true"){
         let table_id = divid + "_table";
-        var input = $('<br><br><table id="'+table_id+'" data-id="'+dataId+'" class="benchmarkingTable"></table>');
+        var input = $('<br><br><table id="'+table_id+'" data-id="'+dataId+'" class="benchmarkingTable_scatter"></table>');
         $("#" + divid).append(input);
       };
             

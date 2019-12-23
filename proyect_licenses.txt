@@ -17,7 +17,7 @@
 "@webassemblyjs/wasm-parser@1.5.13","MIT","https://github.com/xtuc/webassemblyjs"
 "@webassemblyjs/wast-parser@1.5.13","MIT","https://github.com/xtuc/webassemblyjs"
 "@webassemblyjs/wast-printer@1.5.13","MIT","https://github.com/xtuc/webassemblyjs"
-"BenchmarkingCharts@0.0.1","ISC",""
+"benchmarkingChart_scatter@0.0.1","ISC",""
 "acorn-dynamic-import@3.0.0","MIT","https://github.com/kesne/acorn-dynamic-import"
 "acorn@5.7.1","MIT","https://github.com/acornjs/acorn"
 "ajv-keywords@3.2.0","MIT","https://github.com/epoberezkin/ajv-keywords"
