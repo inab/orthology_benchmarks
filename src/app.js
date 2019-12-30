@@ -201,8 +201,16 @@ function join_all_json(result, tool_names, divid, metric_x, metric_y,metrics_nam
     let full_json = [];
     Object.keys(tools_object).forEach(tool_name => {
 
+      //if participant name is too long, slice it
+      var short_name;
+      if (tool_name.length > 22){
+        short_name = tool_name.substring(0,22);
+      } else {
+        short_name = tool_name
+      }
+
       let jo = {};
-      jo['toolname'] = tool_name;
+      jo['toolname'] = short_name;
       jo['x'] = tools_object[tool_name][0];
       jo['y'] = tools_object[tool_name][1];
       jo['e_y'] = tools_object[tool_name][2];

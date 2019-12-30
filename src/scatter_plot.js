@@ -9,15 +9,25 @@ export function createChart (data,divid, classification_type, metric_x, metric_y
     width = Math.round($(window).width()* 0.6818) - margin.left - margin.right,
     height = Math.round($(window).height()* 0.5787037) - margin.top - margin.bottom;
 
+  let min_x = d3.min(data, function(d) { return d.x; });
+  let max_x = d3.max(data, function(d) { return d.x; });
+
+  //the x axis domain is calculated based in the difference between the max and min, and the average stderr (BETA)
+  var proportion = get_avg_stderr(data, "x")/(max_x-min_x);
+
   let xScale = d3.scaleLinear()
     .range([0, width])
-    .domain([d3.min(data, function(d) { return d.x; }), d3.max(data, function(d) { return d.x; })]).nice();
+    .domain([min_x - proportion*(max_x-min_x), max_x + proportion*(max_x-min_x)]).nice();
 
   let min_y = d3.min(data, function(d) { return d.y; });
   let max_y = d3.max(data, function(d) { return d.y; });
+
+  //the y axis domain is calculated based in the difference between the max and min, and the average stderr (BETA)
+  proportion = get_avg_stderr(data, "y")/(max_y-min_y);
+
   let yScale = d3.scaleLinear()
     .range([height, 0])
-    .domain([min_y - 0.3*(max_y-min_y), max_y + 0.3*(max_y-min_y)]).nice();
+    .domain([min_y - proportion*(max_y-min_y), max_y + proportion*(max_y-min_y)]).nice();
 
   let xAxis = d3.axisBottom(xScale).ticks(12),
       yAxis = d3.axisLeft(yScale).ticks(12 * height / width);
@@ -152,3 +162,19 @@ export function createChart (data,divid, classification_type, metric_x, metric_y
     } 
     
   };
+
+  function get_avg_stderr(data, axis){
+
+    var sum = 0;
+
+    data.forEach(function(element) {
+      if (axis == "y"){
+        sum = sum + element.e_y;
+      } else if (axis == "x"){
+        sum = sum + element.e_x;
+      }
+    });
+  
+    return sum/data.length
+  
+  }
