@@ -37,6 +37,18 @@ Compile with webpack and visualize sample results in your localhost :
 ```
 ./node_modules/.bin/webpack-cli src/app.js --output=build/build.js -d -w
 ```
+Add JS cdn for D3 and jquery and the build file which you can download from build/build.js and tag it into your html. You can then call the `load_scatter_visualization()` function.  
+
+The HTML file should look like [this](./index.html)
+
+### Attributes that can be set on the _<div\>_ tag
+
+-   data-id : the official OEB id of the challege yo want to visualize
+-   metric_x / metric_y: the official OEB ids of the metrics to be visualized in the chart
+-   toTable: should be set to true/false depending whether you want to view the classification table in the right or not
+-   class: should always be *'benchmarkingChart_scatter'*
+
+
 ## Live Demo
 See a demo of how this visualizer works [here](https://inab.github.io/OpenEBench_scientific_visualizer/)
 
