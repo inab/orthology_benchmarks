@@ -71,14 +71,14 @@
     
     }
 
-    .benchmarkingTable td {
+    .benchmarkingTable_scatter td {
         border: 2px solid black;
         border-collapse: collapse;
         text-align: center;
         font-size: .7vw;
     }
 
-    .benchmarkingTable {
+    .benchmarkingTable_scatter {
         width: 17vw; 
         border-collapse: collapse; 
         background-color: #f0f0f0;
@@ -90,7 +90,7 @@
         cursor: pointer;
     }
 
-    .benchmarkingChart{
+    .benchmarkingChart_scatter{
         width: 90vw;
     }
 
