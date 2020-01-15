@@ -33,8 +33,7 @@ function load_scatter_visualization(){
 
       // get benchmarking event id
       dataId = y.getAttribute('data-id');
-      var metric_x = y.getAttribute('metric_x');
-      var metric_y = y.getAttribute('metric_y');
+
       //set chart id
       divid = (dataId+i).replace(":","_");
       y.id=divid;
@@ -44,20 +43,16 @@ function load_scatter_visualization(){
       let url = base_url + "sciapi/graphql";
       
       let json_query = `query getDatasets($challenge_id: String!){
-                          getDatasets(datasetFilters:{challenge_id: $challenge_id, type:"assessment"}) {
+                          getDatasets(datasetFilters:{challenge_id: $challenge_id, type:"aggregation"}) {
                               _id
                               community_ids
                               datalink{
                                   inline_data
                               }
-                              depends_on{
-                                  tool_id
-                                  metrics_id
-                              }
                           }
                         }`
 
-      get_data(url, json_query, dataId, divid, metric_x, metric_y); 
+      get_data(url, json_query, dataId, divid); 
 
 
       //check the transformation to table attribute and append table to html
@@ -76,7 +71,7 @@ function load_scatter_visualization(){
 
 
 
-function get_data(url, json_query ,dataId, divid, metric_x, metric_y){
+function get_data(url, json_query ,dataId, divid){
 
   try {
 
@@ -106,50 +101,38 @@ function get_data(url, json_query ,dataId, divid, metric_x, metric_y){
 
           // get the names of the tools that are present in the community
           const fetchData = () => fetch({
-            query: `query getTools($community_id: String!){
-                        getTools(toolFilters:{community_id: $community_id}) {
-                            _id
-                            name
-                        }
+            query: `query getMetrics{
                         getMetrics {
                           _id
                           title
                           representation_hints
                         }
-                    }`,
-            variables: {community_id: result[0].community_ids[0]},
+                    }`
           });
-
+          
           fetchData().then(response => { 
             
-            let tool_list = response.data.getTools;
             let metrics_list = response.data.getMetrics;
-            // iterate over the list of tools to generate a dictionary
-            let tool_names = {};
-            tool_list.forEach( function(tool) {
-                tool_names[tool._id] = tool.name
-            
-            });
-
+          
             // iterate over the list of metrics to generate a dictionary
             let metrics_names = {};
             let metrics_representation = {};
             metrics_list.forEach( function(element) {
               metrics_names[element._id] = element.title
-              if (element.representation_hints !== null) {
-                metrics_representation[element._id] = element.representation_hints.optimization;
-              } else {
-                metrics_representation[element._id] = null;
-              };
               
             });
             // get optimization point
-            if ( metrics_representation[metric_x] == "minimize" || metrics_representation[metric_y] == "minimize") {
-              better[divid] = "bottom-right";
+            if (result[0].datalink.inline_data.visualization.optimization == "bottom-right"){
+              better[divid]= "bottom-right";
             } else {
-              better[divid] = "top-right";
+              better[divid]= "top-right";
             };
-            join_all_json(result, tool_names, divid, metric_x, metric_y,metrics_names, better);
+            let metric_x = result[0].datalink.inline_data.visualization.x_axis;
+            let metric_y = result[0].datalink.inline_data.visualization.y_axis;
+            // append those metrics as div attributes, so that they cna be used later
+            document.getElementById(divid).setAttribute("metric_x", metric_x); 
+            document.getElementById(divid).setAttribute("metric_y", metric_y);
+            join_all_json(result, divid, metric_x, metric_y,metrics_names, better);
 
           } );
           
@@ -165,43 +148,15 @@ function get_data(url, json_query ,dataId, divid, metric_x, metric_y){
 
 
 
-function join_all_json(result, tool_names, divid, metric_x, metric_y,metrics_names, better){
+function join_all_json(result, divid, metric_x, metric_y,metrics_names, better){
   try{
-
-    let tools_object  = {};
-
-    result.forEach( function(dataset) {
-      
-      // get tool which this dataset belongs to
-      let tool_name = tool_names[dataset.depends_on.tool_id];
-
-      if (!(tool_name in tools_object))
-          tools_object[tool_name] = new Array(4);
-
-      // get value of the two metrics
-      let metric = parseFloat( dataset.datalink.inline_data.value);
-      if (dataset.depends_on.metrics_id == metric_x) {
-          tools_object[tool_name][0] = metric;
-          if (typeof dataset.datalink.inline_data.error !== 'undefined') {
-            tools_object[tool_name][3] = parseFloat(dataset.datalink.inline_data.error);
-          } else {
-            tools_object[tool_name][3] = 0;
-          };
-      } else if (dataset.depends_on.metrics_id == metric_y) {
-          tools_object[tool_name][1] = metric;
-          if (typeof dataset.datalink.inline_data.error !== 'undefined') {
-            tools_object[tool_name][2] = parseFloat(dataset.datalink.inline_data.error);
-          } else {
-            tools_object[tool_name][2] = 0;
-          };
-      }
-    });
 
     // transform the object to an array, which is usable by the D3 chart
     let full_json = [];
-    Object.keys(tools_object).forEach(tool_name => {
+    result[0].datalink.inline_data.challenge_participants.forEach( function(element) {
 
       //if participant name is too long, slice it
+      let tool_name = element.tool_id;
       var short_name;
       if (tool_name.length > 22){
         short_name = tool_name.substring(0,22);
@@ -211,14 +166,14 @@ function join_all_json(result, tool_names, divid, metric_x, metric_y,metrics_nam
 
       let jo = {};
       jo['toolname'] = short_name;
-      jo['x'] = tools_object[tool_name][0];
-      jo['y'] = tools_object[tool_name][1];
-      jo['e_y'] = tools_object[tool_name][2];
-      jo['e_x'] = tools_object[tool_name][3];
+      jo['x'] = element.metric_x;
+      jo['y'] = element.metric_y;
+      jo['e_y'] = element.stderr_y ? parseFloat(element.stderr_y) : 0;
+      jo['e_x'] = element.stderr_x ? parseFloat(element.stderr_x) : 0;
       full_json.push(jo); 
 
     });
-    
+
     MAIN_DATA[divid] = full_json;
     MAIN_METRICS[divid] = metrics_names;
     // by default, no classification method is applied. it is the first item in the selection list

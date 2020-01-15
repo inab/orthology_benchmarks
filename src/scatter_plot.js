@@ -67,6 +67,16 @@ export function createChart (data,divid, classification_type, metric_x, metric_y
   svg.append("g").attr("class", "axis axis--y").call(yAxis);
 
   // add axis labels
+  if (metric_x.startsWith("OEBM") == true){
+    var txt_x = metrics_names[metric_x];
+  } else {
+    var txt_x = metric_x;
+  };
+  if (metric_y.startsWith("OEBM") == true){
+    var txt_y = metrics_names[metric_y];
+  } else {
+    var txt_y = metric_y;
+  };
   svg.append("text")             
   .attr("transform",
         "translate(" + (width/2) + " ," + 
@@ -74,7 +84,7 @@ export function createChart (data,divid, classification_type, metric_x, metric_y
   .style("text-anchor", "middle")
   .style("font-weight", "bold")
   .style("font-size", ".75vw")
-  .text(metrics_names[metric_x]);
+  .text(txt_x);
 
   svg.append("text")
       .attr("transform", "rotate(-90)")
@@ -84,7 +94,7 @@ export function createChart (data,divid, classification_type, metric_x, metric_y
       .style("text-anchor", "middle")
       .style("font-weight", "bold")
       .style("font-size", ".75vw")
-      .text(metrics_names[metric_y] ); 
+      .text(txt_y ); 
   
   // add pareto legend
 

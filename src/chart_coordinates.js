@@ -138,11 +138,21 @@ export function append_dots_errobars (svg, data, xScale, yScale, div, cValue, co
       .on("mouseover", function(d) {
         // show tooltip only if the tool is visible
         let ID = divid+"___"+d.toolname.replace(/[\. ()/-]/g, "_");
+        if (metric_x.startsWith("OEBM") == true){
+          var txt_x = metrics_names[metric_x];
+        } else {
+          var txt_x = metric_x;
+        };
+        if (metric_y.startsWith("OEBM") == true){
+          var txt_y = metrics_names[metric_y];
+        } else {
+          var txt_y = metric_y;
+        };
         if (d3.select("#"+ID).style("opacity") == 1) {
           div.transition()		
               .duration(100)		
               .style("opacity", .9);		
-          div.html("<b>" + d.toolname + "</b><br/>"  + metrics_names[metric_x] + ": " + formatComma(d.x) + "<br/>"  + metrics_names[metric_y] + ": " + formatDecimal(d.y))	
+          div.html("<b>" + d.toolname + "</b><br/>"  + txt_x + ": " + formatComma(d.x) + "<br/>"  + txt_y + ": " + formatDecimal(d.y))	
               .style("left", (d3.event.pageX) + "px")		
               .style("top", (d3.event.pageY) + "px");
         }
