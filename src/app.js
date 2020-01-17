@@ -42,8 +42,8 @@ function load_scatter_visualization(){
       append_classifiers_list(divid);
       let url = base_url + "sciapi/graphql";
       
-      let json_query = `query getDatasets($challenge_id: String!){
-                          getDatasets(datasetFilters:{challenge_id: $challenge_id, type:"aggregation"}) {
+      let json_query = `query getDatasets($dataset_id: String!){
+                          getDatasets(datasetFilters:{id: $dataset_id, type:"aggregation"}) {
                               _id
                               community_ids
                               datalink{
@@ -79,7 +79,7 @@ function get_data(url, json_query ,dataId, divid){
         uri: url,
       });
 
-      let vars = { challenge_id: dataId };
+      let vars = { dataset_id: dataId };
 
       fetch({
         query: json_query,
