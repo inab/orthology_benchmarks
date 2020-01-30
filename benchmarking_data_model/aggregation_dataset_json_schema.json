@@ -81,7 +81,7 @@
                             "items": {
                                 "type": "object",
                                 "properties": {
-                                    "participant_id": {
+                                    "tool_id": {
                                         "title": "id of the tool which corresponds to this metrics",
                                         "minLength": 1,
                                         "type": "string",
@@ -114,7 +114,7 @@
                                     }
                                 },
                                 "additionalProperties": false,
-                                "required": [ "participant_id", "metric_x", "metric_y" ]
+                                "required": [ "tool_id", "metric_x", "metric_y" ]
 
                             }
                         }
