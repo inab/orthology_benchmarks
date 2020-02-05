@@ -1,5 +1,4 @@
 
-  
   .error-line {
     stroke:black;
     stroke-dasharray: 2,2;
@@ -85,6 +84,7 @@
         background-color: #f0f0f0;
         border: 5px solid black; 
         float: right;
+        margin-left: 2vw;
     }
 
     .benchmark_legend_rect {
@@ -92,7 +92,7 @@
     }
 
     .benchmarkingChart_scatter{
-        width: 90vw;
+        width: inherit;
     }
 
     .benchmarkingSVG{
