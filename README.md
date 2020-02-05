@@ -43,9 +43,8 @@ The HTML file should look like [this](./index.html)
 
 ### Attributes that can be set on the _<div\>_ tag
 
--   data-id : the official OEB id of the challege yo want to visualize
--   metric_x / metric_y: the official OEB ids of the metrics to be visualized in the chart
--   toTable: should be set to true/false depending whether you want to view the classification table in the right or not
+-   data-id : the official OEB id of the aggregation dataset you want to visualize.
+-   toTable: should be set to true/false depending whether you want to view the classification table in the right or not.
 -   class: should always be *'benchmarkingChart_scatter'*
 
 
