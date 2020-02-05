@@ -21,9 +21,10 @@
       opacity: 0.95;
       position: absolute;
       box-shadow: rgba(0, 0, 0, 0.3) 0 10px 15px;
+      z-index: 3;
     }
   
-  .benchmark_tooltip:after {
+  /* .benchmark_tooltip:after {
       content: " ";
       position: absolute;
       top: 50%;
@@ -33,7 +34,7 @@
       border-style: solid;
       border-color: transparent transparent transparent transparent;
       
-  }
+  } */
   
    .plot-bg {
      fill:#F8F8F8;

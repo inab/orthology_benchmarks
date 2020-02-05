@@ -42,7 +42,7 @@ export function createChart (data,divid, classification_type, metric_x, metric_y
 
   // Define the div for the tooltip
 
-  let div = d3.select('#'+divid).append("div").attr("class", "benchmark_tooltip").style("opacity", 0);
+  let div = d3.select('body').append("div").attr("class", "benchmark_tooltip").style("opacity", 0);
 
   // append the svg element
   // d3.select("svg").remove()
