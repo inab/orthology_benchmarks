@@ -84,7 +84,7 @@
         background-color: #f0f0f0;
         border: 5px solid black; 
         float: right;
-        margin-left: 2vw;
+        margin-left: 1vw;
     }
 
     .benchmark_legend_rect {
@@ -96,7 +96,7 @@
     }
 
     .benchmarkingSVG{
-        width: 68vw;
+        width: 60vw;
     }
       .axis--x {
           font-size: 12px;

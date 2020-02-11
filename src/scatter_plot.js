@@ -5,7 +5,7 @@ import { compute_classification } from "./classification";
 
 export function createChart (data,divid, classification_type, metric_x, metric_y, metrics_names, better){
   // console.log(data)
-  let margin = {top: 20, right: 40, bottom: compute_chart_height(data), left: 60},
+  let margin = {top: 20, right: 42, bottom: compute_chart_height(data), left: 60},
     width = Math.round($(window).width()* 0.6818) - margin.left - margin.right,
     height = Math.round($(window).height()* 0.5787037) - margin.top - margin.bottom;
 

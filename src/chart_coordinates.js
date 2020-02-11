@@ -151,6 +151,7 @@ export function append_dots_errobars (svg, data, xScale, yScale, div, cValue, co
         if (d3.select("#"+ID).style("opacity") == 1) {
           div.transition()		
               .duration(100)		
+              .style("display","block")		
               .style("opacity", .9);		
           div.html("<b>" + d.toolname + "</b><br/>"  + txt_x + ": " + formatComma(d.x) + "<br/>"  + txt_y + ": " + formatDecimal(d.y))	
               .style("left", (d3.event.pageX) + "px")		
@@ -159,7 +160,8 @@ export function append_dots_errobars (svg, data, xScale, yScale, div, cValue, co
       })					
       .on("mouseout", function(d) {		
         div.transition()		
-          .duration(1500)		
+          .duration(1500)
+          .style("display","none")		
           .style("opacity", 0);	
       });
     
