@@ -10,7 +10,7 @@ export function draw_legend (data, svg, xScale, yScale, div, width, height, remo
       .data(color_domain)
       .enter().append("g")
       .attr("class", "legend")
-      .attr("transform", function(d, i) { return "translate(" + (-width+i%n*(Math.round($(window).width()* 0.113636))) + "," + (height + (Math.round($(window).height()* 0.0862962)) + Math.floor(i/n) * (Math.round($(window).height()* 0.0231481))) + ")"; });
+      .attr("transform", function(d, i) { return "translate(" + (-width+i%n*(Math.round($(window).width()* 0.129636))) + "," + (height + (Math.round($(window).height()* 0.0862962)) + Math.floor(i/n) * (Math.round($(window).height()* 0.0231481))) + ")"; });
 
     // draw legend colored rectangles
     legend.append("rect")
@@ -89,7 +89,7 @@ export function draw_legend (data, svg, xScale, yScale, div, width, height, remo
           .attr("id", function (d) { return divid+"___"+d.replace(/[\. ()/-]/g, "_");})
           .attr("dy", ".35em")
           .style("text-anchor", "start")
-          .style("font-size", ".7vw")
+          .style("font-size", ".85vw")
           .text(function(d) {
             return d;
           });

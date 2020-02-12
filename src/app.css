@@ -75,15 +75,16 @@
         border: 2px solid black;
         border-collapse: collapse;
         text-align: center;
-        font-size: .7vw;
+        font-size: .8vw;
     }
 
     .benchmarkingTable_scatter {
-        width: 17vw; 
+        order:2;
+        width: 18vw; 
         border-collapse: collapse; 
         background-color: #f0f0f0;
         border: 5px solid black; 
-        float: right;
+        /* float: right; */
         margin-left: 1vw;
     }
 
@@ -95,7 +96,14 @@
         width: inherit;
     }
 
+    .flex-container{
+        width: 100%;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: flex-start;
+    }
     .benchmarkingSVG{
+        order:1;
         width: 60vw;
     }
       .axis--x {

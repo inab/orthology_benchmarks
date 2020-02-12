@@ -24,7 +24,9 @@ export function append_classifiers_list(divid){
         })
         .append("optgroup")
         .attr("label","Select a classification method:");
-  
+        
+        d3.select('#'+divid).append("div").attr("class", "flex-container").attr("id", divid + "flex-container")
+
         select_list.append("option")
         .attr("class", "selection_option")
         .attr("id", button1_id)

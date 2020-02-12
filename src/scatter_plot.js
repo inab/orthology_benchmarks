@@ -47,7 +47,7 @@ export function createChart (data,divid, classification_type, metric_x, metric_y
   // append the svg element
   // d3.select("svg").remove()
     // console.log(d3.select("svg").remove());
-  let svg = d3.select('#'+divid).append("svg")
+  let svg = d3.select('#'+divid + "flex-container").append("svg")
     .attr("class", "benchmarkingSVG")
     .attr("viewBox", "0 0 " + (width + margin.left + margin.right) + " " + (height + margin.top + margin.bottom))
     .attr("preserveAspectRatio", "xMinYMin meet")

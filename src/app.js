@@ -59,7 +59,7 @@ function load_scatter_visualization(){
       if (y.getAttribute('toTable') == "true"){
         let table_id = divid + "_table";
         var input = $('<br><br><table id="'+table_id+'" data-id="'+dataId+'" class="benchmarkingTable_scatter"></table>');
-        $("#" + divid).append(input);
+        $("#" + divid + "flex-container").append(input);
       };
             
       i++;
