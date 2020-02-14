@@ -126,7 +126,7 @@ export function append_dots_errobars (svg, data, xScale, yScale, div, cValue, co
     .enter()
     .append("path")
     .attr("class", "benchmark_path");
-    
+  
   dots.attr("d", symbol.type(function(){return d3.symbolSquare}))
       .attr("id", function (d) {  return divid+"___"+d.toolname.replace(/[\. ()/-]/g, "_");})
       .attr("class","line")

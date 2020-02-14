@@ -7,7 +7,7 @@ export function createChart (data,divid, classification_type, metric_x, metric_y
   // console.log(data)
   let margin = {top: 20, right: 42, bottom: compute_chart_height(data), left: 60},
     width = Math.round($(window).width()* 0.6818) - margin.left - margin.right,
-    height = Math.round($(window).height()* 0.5787037) - margin.top - margin.bottom;
+    height = Math.round($(window).height()* 0.7787037) - margin.top - margin.bottom;
 
   let min_x = d3.min(data, function(d) { return d.x; });
   let max_x = d3.max(data, function(d) { return d.x; });
@@ -83,7 +83,7 @@ export function createChart (data,divid, classification_type, metric_x, metric_y
                        (height + margin.top + (Math.round($(window).height()* 0.0347))) + ")")
   .style("text-anchor", "middle")
   .style("font-weight", "bold")
-  .style("font-size", ".75vw")
+  .style("font-size", ".95vw")
   .text(txt_x);
 
   svg.append("text")
@@ -93,7 +93,7 @@ export function createChart (data,divid, classification_type, metric_x, metric_y
       .attr("dy", "1em")
       .style("text-anchor", "middle")
       .style("font-weight", "bold")
-      .style("font-size", ".75vw")
+      .style("font-size", ".95vw")
       .text(txt_y ); 
   
   // add pareto legend

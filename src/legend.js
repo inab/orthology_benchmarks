@@ -4,13 +4,13 @@ import { better } from "./app"
 export function draw_legend (data, svg, xScale, yScale, div, width, height, removed_tools, color, color_domain, divid,classification_type, legend_color_palette) {
   
     //set number of elements per legend row
-    let n = 5;
+    let n = 4;
   
     let legend = svg.selectAll(".legend")
       .data(color_domain)
       .enter().append("g")
       .attr("class", "legend")
-      .attr("transform", function(d, i) { return "translate(" + (-width+i%n*(Math.round($(window).width()* 0.129636))) + "," + (height + (Math.round($(window).height()* 0.0862962)) + Math.floor(i/n) * (Math.round($(window).height()* 0.0231481))) + ")"; });
+      .attr("transform", function(d, i) { return "translate(" + (-width+i%n*(Math.round($(window).width()* 0.16))) + "," + (height + (Math.round($(window).height()* 0.0862962)) + Math.floor(i/n) * (Math.round($(window).height()* 0.0251481))) + ")"; });
 
     // draw legend colored rectangles
     legend.append("rect")
@@ -89,7 +89,7 @@ export function draw_legend (data, svg, xScale, yScale, div, width, height, remo
           .attr("id", function (d) { return divid+"___"+d.replace(/[\. ()/-]/g, "_");})
           .attr("dy", ".35em")
           .style("text-anchor", "start")
-          .style("font-size", ".85vw")
+          .style("font-size", "1vw")
           .text(function(d) {
             return d;
           });
