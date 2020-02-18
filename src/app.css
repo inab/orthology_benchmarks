@@ -134,3 +134,8 @@
     .closebtn:hover {
         color: white;
     }
+
+    .OEB_text_link {
+        cursor: pointer;
+        fill:#0000EE;
+    };

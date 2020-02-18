@@ -4,8 +4,8 @@ import { compute_classification } from "./classification";
 
 
 export function createChart (data,divid, classification_type, metric_x, metric_y, metrics_names, better){
-  // console.log(data)
-  let margin = {top: 20, right: 42, bottom: compute_chart_height(data), left: 60},
+
+  let margin = {top: Math.round($(window).height()* 0.0318), right:  Math.round($(window).width()* 0.0261), bottom: compute_chart_height(data), left:  Math.round($(window).width()* 0.0373)},
     width = Math.round($(window).width()* 0.6818) - margin.left - margin.right,
     height = Math.round($(window).height()* 0.7787037) - margin.top - margin.bottom;
 
@@ -139,7 +139,51 @@ export function createChart (data,divid, classification_type, metric_x, metric_y
      svg.append("g")
      .attr("class", "bench_grid")
      .call(gridlines_y);
-         
+  
+     
+  // add OpenEBench Credits
+  svg.append("a")
+  .attr("xlink:href", "https://openebench.bsc.es")
+  .attr("target", "_blank")
+  .append("rect")  
+  // .attr("transform",
+  //       "translate(" + (Math.round($(window).width()* 0.49)) + " ," + 
+  //       (height + margin.top + (Math.round($(window).height()* 0.02))) + ")")
+  .attr("transform",
+        "translate(" + (Math.round($(window).width()* 0.49)) + " ," + 
+        ( margin.top - (Math.round($(window).height()* 0.057))) + ")")
+  .attr("height", Math.round($(window).height()* 0.0235))
+  .attr("width", Math.round($(window).width()* 0.145))
+  .style("fill", "white")
+  .attr("rx", 10)
+  .attr("ry", 10);
+
+  svg.append("text") 
+  .attr("class", "OEB_text_link")   
+  .style("pointer-events", "none")         
+  // .attr("transform",
+  //       "translate(" + (Math.round($(window).width()* 0.55)) + " ," + 
+  //       (height + margin.top + (Math.round($(window).height()* 0.0347)) + 5) + ")")
+  .attr("transform",
+        "translate(" + (Math.round($(window).width()* 0.55)) + " ," + 
+        ( margin.top - (Math.round($(window).height()* 0.04))) + ")")
+  .style("text-anchor", "middle")
+  .style("font-style", "italic")
+  .style("font-size", ".75vw")
+  .text("Powered by OpenEBench");
+
+  svg.append("svg:image")
+  // .attr("transform",
+  // "translate(" + (Math.round($(window).width()* 0.6)) + " ," + 
+  // (height + margin.top + (Math.round($(window).height()* 0.015))) + ")")
+  .attr("transform",
+        "translate(" + (Math.round($(window).width()* 0.6)) + " ," + 
+        ( margin.top - (Math.round($(window).height()* 0.064))) + ")")
+.attr('width', Math.round($(window).width()* 0.03))
+.attr('height', Math.round($(window).height()* 0.03))
+.attr("xlink:href", "images/logo.png")
+.style("pointer-events", "none");
+
   let removed_tools = []; // this array stores the tools when the user clicks on them
 
    // setup fill color
