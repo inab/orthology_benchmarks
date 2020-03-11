@@ -12,7 +12,7 @@ export function draw_legend (data, svg, xScale, yScale, div, width, height, remo
       .attr("class", "legend")
       .attr("transform", function(d, i) { return "translate(" + (-width+i%n*(Math.round($(window).width()* 0.16))) + "," + (height + (Math.round($(window).height()* 0.0862962)) + Math.floor(i/n) * (Math.round($(window).height()* 0.0251481))) + ")"; });
 
-    // draw legend colored rectangles
+    // draw legend colored rectangles    
     legend.append("rect")
           .attr("x", width + Math.round($(window).width()* 0.010227))
           .attr("width", Math.round($(window).width()* 0.010227))
@@ -93,7 +93,19 @@ export function draw_legend (data, svg, xScale, yScale, div, width, height, remo
           .text(function(d) {
             return d;
           });
-  
+    
+  let symbol = d3.symbol();
+  var shapeScale = d3.scaleOrdinal()
+          .domain(data.map(d => d.toolname))
+          .range(Array(Math.ceil(data.length/7)).fill([d3.symbolCircle, d3.symbolCross, d3.symbolDiamond, d3.symbolSquare, d3.symbolStar, d3.symbolTriangle, d3.symbolWye]).flat());
+
+  svg.selectAll(".benchmark_legend_rect")
+  .data(data)
+    .enter()
+    .append("path")
+  .style("fill", color)
+    .attr("d", symbol.type(function(d){return shapeScale(d.toolname)}).size(2000))
+
   };
   
 

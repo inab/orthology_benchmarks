@@ -57,6 +57,16 @@ export function createChart (data,divid, classification_type, metric_x, metric_y
     .append("g")
     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
   
+    var g = svg.append("g");
+var zoom = d3.zoom().on("zoom", function () { 
+        console.log("zoom", d3, d3.event);
+        g.attr("transform", d3.event.transform);
+    });
+
+svg.call(zoom);
+
+updateDownloadURL(svg.node(), document.getElementById('download'));
+
   svg.append("g").append("rect").attr("width", width).attr("height", height).attr("class", "plot-bg");
 
   // Add Axis numbers
@@ -184,7 +194,7 @@ export function createChart (data,divid, classification_type, metric_x, metric_y
 .attr("xlink:href", "images/logo.png")
 .style("pointer-events", "none");
 
-  let removed_tools = []; // this array stores the tools when the user clicks on them
+let removed_tools = []; // this array stores the tools when the user clicks on them
 
    // setup fill color
   let cValue_func = function(d) {
@@ -232,3 +242,53 @@ export function createChart (data,divid, classification_type, metric_x, metric_y
     return sum/data.length
   
   }
+
+  function zoomed(svg) {
+    svg.attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
+  }
+
+  // Download solution
+function getDownloadURL(svg, callback) {
+  
+  var canvas;
+  var source = svg.parentNode.innerHTML;
+  var image = d3.select('body').append('img')
+    .style('display', 'none')
+    .attr('width', 960)
+    .attr('height', 500)
+    .node();
+  console.log(image)
+  // image.onerror = function() {
+  //   callback(new Error('An error occurred while attempting to load SVG'));
+  // };
+  image.onload = function() {
+    canvas = d3.select('body').append('canvas')
+      .style('display', 'none')
+      .attr('width', 960)
+      .attr('height', 500)
+      .node();
+
+    var ctx = canvas.getContext('2d');
+    ctx.drawImage(image, 0, 0);
+    var url = canvas.toDataURL('image/png');
+
+    d3.selectAll([ canvas, image ]).remove();
+
+    callback(null, url);
+  };
+  image.src = 'data:image/svg+xml,' + encodeURIComponent(source);
+  console.log("vaa")
+}
+
+function updateDownloadURL(svg, link) {
+  console.log(svg, link)
+  getDownloadURL(svg, function(error, url) {
+    console.log(url)
+    if (error) {
+      console.error(error);
+    } else {
+      link.href = url;
+    }
+  });
+}
+
