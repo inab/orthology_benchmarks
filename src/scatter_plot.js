@@ -3,7 +3,7 @@ import { draw_legend } from "./legend";;
 import { compute_classification } from "./classification";
 
 
-export function createChart (data,divid, classification_type, metric_x, metric_y, metrics_names, better){
+export function createChart (data,divid, classification_type, metric_x, metric_y, metrics_names, better, axis_limits){
 
   let margin = {top: Math.round($(window).height()* 0.0318), right:  Math.round($(window).width()* 0.0261), bottom: compute_chart_height(data), left:  Math.round($(window).width()* 0.0373)},
     width = Math.round($(window).width()* 0.6818) - margin.left - margin.right,
@@ -11,23 +11,28 @@ export function createChart (data,divid, classification_type, metric_x, metric_y
 
   let min_x = d3.min(data, function(d) { return d.x; });
   let max_x = d3.max(data, function(d) { return d.x; });
+  let min_y = d3.min(data, function(d) { return d.y; });
+  let max_y = d3.max(data, function(d) { return d.y; });
 
   //the x axis domain is calculated based in the difference between the max and min, and the average stderr (BETA)
   var proportion = get_avg_stderr(data, "x")/(max_x-min_x);
 
+  // set the axis limits depending on zoom
+  let auto_x_start = min_x - proportion*(max_x-min_x);
+  let auto_y_start = min_y - proportion*(max_y-min_y);
+  var x_limit = (axis_limits == "auto") ? auto_x_start : 0;
+  var y_limit = (axis_limits  == "auto") ? auto_y_start : 0;
+
   let xScale = d3.scaleLinear()
     .range([0, width])
-    .domain([min_x - proportion*(max_x-min_x), max_x + proportion*(max_x-min_x)]).nice();
-
-  let min_y = d3.min(data, function(d) { return d.y; });
-  let max_y = d3.max(data, function(d) { return d.y; });
+    .domain([x_limit, max_x + proportion*(max_x-min_x)]).nice();
 
   //the y axis domain is calculated based in the difference between the max and min, and the average stderr (BETA)
   proportion = get_avg_stderr(data, "y")/(max_y-min_y);
 
   let yScale = d3.scaleLinear()
     .range([height, 0])
-    .domain([min_y - proportion*(max_y-min_y), max_y + proportion*(max_y-min_y)]).nice();
+    .domain([y_limit, max_y + proportion*(max_y-min_y)]).nice();
 
   let xAxis = d3.axisBottom(xScale).ticks(12),
       yAxis = d3.axisLeft(yScale).ticks(12 * height / width);
@@ -142,47 +147,10 @@ export function createChart (data,divid, classification_type, metric_x, metric_y
   
      
   // add OpenEBench Credits
-  svg.append("a")
-  .attr("xlink:href", "https://openebench.bsc.es")
-  .attr("target", "_blank")
-  .append("rect")  
-  // .attr("transform",
-  //       "translate(" + (Math.round($(window).width()* 0.49)) + " ," + 
-  //       (height + margin.top + (Math.round($(window).height()* 0.02))) + ")")
-  .attr("transform",
-        "translate(" + (Math.round($(window).width()* 0.49)) + " ," + 
-        ( margin.top - (Math.round($(window).height()* 0.057))) + ")")
-  .attr("height", Math.round($(window).height()* 0.0235))
-  .attr("width", Math.round($(window).width()* 0.145))
-  .style("fill", "white")
-  .attr("rx", 10)
-  .attr("ry", 10);
-
-  svg.append("text") 
-  .attr("class", "OEB_text_link")   
-  .style("pointer-events", "none")         
-  // .attr("transform",
-  //       "translate(" + (Math.round($(window).width()* 0.55)) + " ," + 
-  //       (height + margin.top + (Math.round($(window).height()* 0.0347)) + 5) + ")")
-  .attr("transform",
-        "translate(" + (Math.round($(window).width()* 0.55)) + " ," + 
-        ( margin.top - (Math.round($(window).height()* 0.04))) + ")")
-  .style("text-anchor", "middle")
-  .style("font-style", "italic")
-  .style("font-size", ".75vw")
-  .text("Powered by OpenEBench");
-
-  svg.append("svg:image")
-  // .attr("transform",
-  // "translate(" + (Math.round($(window).width()* 0.6)) + " ," + 
-  // (height + margin.top + (Math.round($(window).height()* 0.015))) + ")")
-  .attr("transform",
-        "translate(" + (Math.round($(window).width()* 0.6)) + " ," + 
-        ( margin.top - (Math.round($(window).height()* 0.064))) + ")")
-.attr('width', Math.round($(window).width()* 0.03))
-.attr('height', Math.round($(window).height()* 0.03))
-.attr("xlink:href", "images/logo.png")
-.style("pointer-events", "none");
+  if (window.location.href.toLocaleLowerCase().includes("openebench") == false ){
+    add_oeb_credits(svg, margin);
+  }
+  
 
   let removed_tools = []; // this array stores the tools when the user clicks on them
 
@@ -231,4 +199,45 @@ export function createChart (data,divid, classification_type, metric_x, metric_y
   
     return sum/data.length
   
+  }
+
+  function add_oeb_credits(svg, margin){
+
+    svg.append("a")
+    .attr("xlink:href", "https://openebench.bsc.es")
+    .attr("target", "_blank")
+    .append("rect")  
+    .attr("transform",
+          "translate(" + (Math.round($(window).width()* 0.6)) + " ," + 
+          ( margin.top - (Math.round($(window).height()* 0.057))) + ")")
+    .attr("height", Math.round($(window).height()* 0.0235))
+    .attr("width", Math.round($(window).width()* 0.03))
+    .style("fill", "white")
+    .attr("rx", 10)
+    .attr("ry", 10);
+  
+  
+    svg.append("svg:image")
+    .attr("transform",
+          "translate(" + (Math.round($(window).width()* 0.6)) + " ," + 
+          ( margin.top - (Math.round($(window).height()* 0.063))) + ")")
+  .attr('width', Math.round($(window).width()* 0.029))
+  .attr('height', Math.round($(window).height()* 0.026))
+  .attr("xlink:href", "images/logo.png")
+  .style("pointer-events", "none");
+
+      // svg.append("text") 
+    // .attr("class", "OEB_text_link")   
+    // .style("pointer-events", "none")         
+    // // .attr("transform",
+    // //       "translate(" + (Math.round($(window).width()* 0.55)) + " ," + 
+    // //       (height + margin.top + (Math.round($(window).height()* 0.0347)) + 5) + ")")
+    // .attr("transform",
+    //       "translate(" + (Math.round($(window).width()* 0.55)) + " ," + 
+    //       ( margin.top - (Math.round($(window).height()* 0.04))) + ")")
+    // .style("text-anchor", "middle")
+    // .style("font-style", "italic")
+    // .style("font-size", ".75vw")
+    // .text("Powered by OpenEBench");
+
   }

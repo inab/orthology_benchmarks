@@ -180,7 +180,32 @@ function join_all_json(result, divid, metric_x, metric_y,metrics_names, better){
     var e = document.getElementById(divid + "_dropdown_list");
     let classification_type = e.options[e.selectedIndex].id;
 
-    createChart(full_json,divid, classification_type, metric_x, metric_y,metrics_names, better);
+    //add button wich allows to toogle between zoom in & out
+    d3.select('.buttons_container').append("button")
+    .attr("class","toggle_axis_button")
+    .attr("id",divid + "axis_button")
+    .attr("name", "zoom out")
+    .text("zoom out")
+    .on('click', function(d) {
+      if (this.name == "zoom out"){
+        d3.select(this).text("zoom in");
+        this.name = "zoom in"
+        //the chart will be created again, but first it needs to know which classification method is selected
+        let select_list = document.getElementById(divid + "_dropdown_list")
+        onQuartileChange(select_list.options[select_list.selectedIndex].id, metric_x, metric_y, better)
+
+      } else {
+        d3.select(this).text("zoom out");
+        this.name = "zoom out"
+        //the chart will be created again, but first it needs to know which classification method is selected
+        let select_list = document.getElementById(divid + "_dropdown_list")
+        onQuartileChange(select_list.options[select_list.selectedIndex].id, metric_x, metric_y, better)
+
+      }
+      
+    })
+
+    createChart(full_json,divid, classification_type, metric_x, metric_y,metrics_names, better, "auto");
   } catch(err){
     console.log(`Invalid Url Error: ${err.stack} `);
   }
@@ -189,14 +214,21 @@ function join_all_json(result, divid, metric_x, metric_y,metrics_names, better){
 };
 
 
-function onQuartileChange(ID, metric_x, metric_y, better){  
+function onQuartileChange(ID, metric_x, metric_y, better, axis_limit="auto"){  
   
   var chart_id = ID.split("__")[0];
   // console.log(d3.select('#'+'svg_'+chart_id));
   d3.select('#'+'svg_'+chart_id).remove();
   let classification_type = ID;
 
-  createChart(MAIN_DATA[chart_id],chart_id, classification_type, metric_x, metric_y, MAIN_METRICS[chart_id], better);
+  var axis_limit;
+  if (document.getElementById(chart_id + "axis_button").name == "zoom in"){
+    axis_limit = 0;
+  } else {
+    axis_limit = "auto"
+  }
+
+  createChart(MAIN_DATA[chart_id],chart_id, classification_type, metric_x, metric_y, MAIN_METRICS[chart_id], better, axis_limit);
   
 };
 
