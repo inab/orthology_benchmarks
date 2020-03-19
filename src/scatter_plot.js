@@ -7,7 +7,7 @@ export function createChart (data,divid, classification_type, metric_x, metric_y
 
   let margin = {top: Math.round($(window).height()* 0.0318), right:  Math.round($(window).width()* 0.0261), bottom: compute_chart_height(data), left:  Math.round($(window).width()* 0.0373)},
     width = Math.round($(window).width()* 0.6818) - margin.left - margin.right,
-    height = Math.round($(window).height()* 0.7787037) - margin.top - margin.bottom;
+    height = Math.round($(window).height()* 0.87) - margin.top - margin.bottom;
 
   let min_x = d3.min(data, function(d) { return d.x; });
   let max_x = d3.max(data, function(d) { return d.x; });
@@ -178,9 +178,9 @@ export function createChart (data,divid, classification_type, metric_x, metric_y
   function compute_chart_height(data){
 
     if (data.length%5 == 0){
-      return (90 + (20 * (Math.trunc(data.length/5))));
+      return (165 + (20 * (Math.trunc(data.length/5))));
     } else if (data.lenght%5 != 0) {
-      return (90 + (20 * (Math.trunc(data.length/5)+1)));
+      return (165 + (20 * (Math.trunc(data.length/5)+1)));
     } 
     
   };

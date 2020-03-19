@@ -180,16 +180,16 @@ function join_all_json(result, divid, metric_x, metric_y,metrics_names, better){
     var e = document.getElementById(divid + "_dropdown_list");
     let classification_type = e.options[e.selectedIndex].id;
 
-    //add button wich allows to toogle between zoom in & out
-    d3.select('.buttons_container').append("button")
+    //add button wich allows to toogle between reset view & out
+    d3.select('#' + divid + '_buttons_container').append("button")
     .attr("class","toggle_axis_button")
     .attr("id",divid + "axis_button")
     .attr("name", "zoom out")
     .text("zoom out")
     .on('click', function(d) {
       if (this.name == "zoom out"){
-        d3.select(this).text("zoom in");
-        this.name = "zoom in"
+        d3.select(this).text("reset view");
+        this.name = "reset view"
         //the chart will be created again, but first it needs to know which classification method is selected
         let select_list = document.getElementById(divid + "_dropdown_list")
         onQuartileChange(select_list.options[select_list.selectedIndex].id, metric_x, metric_y, better)
@@ -222,7 +222,7 @@ function onQuartileChange(ID, metric_x, metric_y, better, axis_limit="auto"){
   let classification_type = ID;
 
   var axis_limit;
-  if (document.getElementById(chart_id + "axis_button").name == "zoom in"){
+  if (document.getElementById(chart_id + "axis_button").name == "reset view"){
     axis_limit = 0;
   } else {
     axis_limit = "auto"
