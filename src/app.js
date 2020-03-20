@@ -184,10 +184,10 @@ function join_all_json(result, divid, metric_x, metric_y,metrics_names, better){
     d3.select('#' + divid + '_buttons_container').append("button")
     .attr("class","toggle_axis_button")
     .attr("id",divid + "axis_button")
-    .attr("name", "zoom out")
-    .text("zoom out")
+    .attr("name", "optimal view")
+    .text("optimal view")
     .on('click', function(d) {
-      if (this.name == "zoom out"){
+      if (this.name == "optimal view"){
         d3.select(this).text("reset view");
         this.name = "reset view"
         //the chart will be created again, but first it needs to know which classification method is selected
@@ -195,8 +195,8 @@ function join_all_json(result, divid, metric_x, metric_y,metrics_names, better){
         onQuartileChange(select_list.options[select_list.selectedIndex].id, metric_x, metric_y, better)
 
       } else {
-        d3.select(this).text("zoom out");
-        this.name = "zoom out"
+        d3.select(this).text("optimal view");
+        this.name = "optimal view"
         //the chart will be created again, but first it needs to know which classification method is selected
         let select_list = document.getElementById(divid + "_dropdown_list")
         onQuartileChange(select_list.options[select_list.selectedIndex].id, metric_x, metric_y, better)
@@ -205,7 +205,7 @@ function join_all_json(result, divid, metric_x, metric_y,metrics_names, better){
       
     })
 
-    createChart(full_json,divid, classification_type, metric_x, metric_y,metrics_names, better, "auto");
+    createChart(full_json,divid, classification_type, metric_x, metric_y,metrics_names, better, 0);
   } catch(err){
     console.log(`Invalid Url Error: ${err.stack} `);
   }
@@ -222,7 +222,7 @@ function onQuartileChange(ID, metric_x, metric_y, better, axis_limit="auto"){
   let classification_type = ID;
 
   var axis_limit;
-  if (document.getElementById(chart_id + "axis_button").name == "reset view"){
+  if (document.getElementById(chart_id + "axis_button").name == "optimal view"){
     axis_limit = 0;
   } else {
     axis_limit = "auto"
