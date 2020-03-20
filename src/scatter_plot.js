@@ -19,9 +19,7 @@ export function createChart (data,divid, classification_type, metric_x, metric_y
 
   // set the axis limits depending on zoom
   let auto_x_start = min_x - proportion*(max_x-min_x);
-  let auto_y_start = min_y - proportion*(max_y-min_y);
   var x_limit = (axis_limits == "auto") ? auto_x_start : 0;
-  var y_limit = (axis_limits  == "auto") ? auto_y_start : 0;
 
   let xScale = d3.scaleLinear()
     .range([0, width])
@@ -29,6 +27,8 @@ export function createChart (data,divid, classification_type, metric_x, metric_y
 
   //the y axis domain is calculated based in the difference between the max and min, and the average stderr (BETA)
   proportion = get_avg_stderr(data, "y")/(max_y-min_y);
+  let auto_y_start = min_y - proportion*(max_y-min_y);
+  var y_limit = (axis_limits  == "auto") ? auto_y_start : 0;
 
   let yScale = d3.scaleLinear()
     .range([height, 0])
