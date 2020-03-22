@@ -173,6 +173,13 @@ function join_all_json(result, divid, metric_x, metric_y,metrics_names, better){
       full_json.push(jo); 
 
     });
+    full_json.sort(function(a,b){
+        let x = a.toolname.toLowerCase();
+        let y = b.toolname.toLowerCase();
+        if (x < y) { return -1;}
+        if (x > y){ return 1;}
+        return 0;
+    });
 
     MAIN_DATA[divid] = full_json;
     MAIN_METRICS[divid] = metrics_names;
