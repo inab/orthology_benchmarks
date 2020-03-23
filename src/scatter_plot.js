@@ -9,10 +9,10 @@ export function createChart (data,divid, classification_type, metric_x, metric_y
     width = Math.round($(window).width()* 0.6818) - margin.left - margin.right,
     height = Math.round($(window).height()* 0.87) - margin.top - margin.bottom;
 
-  let min_x = d3.min(data, function(d) { return d.x; });
-  let max_x = d3.max(data, function(d) { return d.x; });
-  let min_y = d3.min(data, function(d) { return d.y; });
-  let max_y = d3.max(data, function(d) { return d.y; });
+  let min_x = d3.min(data, function(d) { return d.valid ? d.x : NaN; });
+  let max_x = d3.max(data, function(d) { return d.valid ? d.x : NaN; });
+  let min_y = d3.min(data, function(d) { return d.valid ? d.y : NaN; });
+  let max_y = d3.max(data, function(d) { return d.valid ? d.y : NaN; });
 
   //the x axis domain is calculated based in the difference between the max and min, and the average stderr (BETA)
   var proportion = get_avg_stderr(data, "x")/(max_x-min_x);

@@ -4,7 +4,7 @@ export function append_dots_errobars (svg, data, xScale, yScale, div, cValue, co
   // Add Y Axis Error Line
   svg.append("g").selectAll("line")
       .data(data).enter()
-      .append("line")
+      .append("line").filter(function(d){ return d.valid; })
       .attr("class", "error-line")
       .attr("id", function (d) { return divid+"___line"+d.toolname.replace(/[\. ()/-]/g, "_");})
       .attr("x1", function(d) {
@@ -23,7 +23,7 @@ export function append_dots_errobars (svg, data, xScale, yScale, div, cValue, co
   // Add X Axis Error Line
   svg.append("g").selectAll("line")
       .data(data).enter()
-      .append("line")
+      .append("line").filter(function(d){ return d.valid; })
       .attr("class", "error-line")
       .attr("id", function (d) { return divid+"___lineX"+d.toolname.replace(/[\. ()/-]/g, "_");})
       .attr("x1", function(d) {
@@ -42,7 +42,7 @@ export function append_dots_errobars (svg, data, xScale, yScale, div, cValue, co
   // Add Error Top Cap
   svg.append("g").selectAll("line")
       .data(data).enter()
-      .append("line")
+      .append("line").filter(function(d){ return d.valid; })
       .attr("id", function (d) { return divid+"___top"+d.toolname.replace(/[\. ()/-]/g, "_");})
       .attr("class", "error-cap")
       .attr("x1", function(d) {
@@ -61,7 +61,7 @@ export function append_dots_errobars (svg, data, xScale, yScale, div, cValue, co
   // Add Error Bottom Cap
   svg.append("g").selectAll("line")
       .data(data).enter()
-      .append("line")
+      .append("line").filter(function(d){ return d.valid; })
       .attr("id", function (d) { return divid+"___bottom"+d.toolname.replace(/[\. ()/-]/g, "_");})
       .attr("class", "error-cap")
       .attr("x1", function(d) {
@@ -80,7 +80,7 @@ export function append_dots_errobars (svg, data, xScale, yScale, div, cValue, co
   // add right error cap
   svg.append("g").selectAll("line")
       .data(data).enter()
-      .append("line")
+      .append("line").filter(function(d){ return d.valid; })
       .attr("class", "error-cap")
       .attr("id", function (d) { return divid+"___right"+d.toolname.replace(/[\. ()/-]/g, "_");})
       .attr("x1", function(d) {
@@ -99,7 +99,7 @@ export function append_dots_errobars (svg, data, xScale, yScale, div, cValue, co
     // add left error cap
     svg.append("g").selectAll("line")
       .data(data).enter()
-      .append("line")
+      .append("line").filter(function(d){ return d.valid; })
       .attr("class", "error-cap")
       .attr("id", function (d) { return divid+"___left"+d.toolname.replace(/[\. ()/-]/g, "_");})
       .attr("x1", function(d) {
@@ -124,7 +124,7 @@ export function append_dots_errobars (svg, data, xScale, yScale, div, cValue, co
   let dots =svg.selectAll(".dots")
     .data(data)
     .enter()
-    .append("path")
+    .append("path").filter(function(d){ return d.valid; })
     .attr("class", "benchmark_path");
   
   dots.attr("d", symbol.type(function(){return d3.symbolSquare}))
