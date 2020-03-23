@@ -170,6 +170,8 @@ function join_all_json(result, divid, metric_x, metric_y,metrics_names, better){
       jo['y'] = element.metric_y;
       jo['e_y'] = element.stderr_y ? parseFloat(element.stderr_y) : 0;
       jo['e_x'] = element.stderr_x ? parseFloat(element.stderr_x) : 0;
+      jo['valid'] = (element.metric_y < 10000);
+      if (!jo['valid']){ jo['e_y'] = 0; }
       full_json.push(jo); 
 
     });
