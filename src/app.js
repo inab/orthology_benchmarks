@@ -187,12 +187,16 @@ function join_all_json(result, divid, metric_x, metric_y,metrics_names, better){
     var e = document.getElementById(divid + "_dropdown_list");
     let classification_type = e.options[e.selectedIndex].id;
 
+    // load default zoom state from div attribute 'default-zoom'
+    let default_zoom = document.getElementById(divid).getAttribute('default-zoom');
+    default_zoom = (default_zoom && (default_zoom === 'on' || default_zoom === 'true'));
+
     //add button wich allows to toogle between reset view & out
     d3.select('#' + divid + '_buttons_container').append("button")
     .attr("class","toggle_axis_button")
     .attr("id",divid + "axis_button")
-    .attr("name", "optimal view")
-    .text("optimal view")
+    .attr("name", default_zoom ? "reset view" : "optimal view")
+    .text(default_zoom ? "reset view" : "optimal view")
     .on('click', function(d) {
       if (this.name == "optimal view"){
         d3.select(this).text("reset view");
@@ -212,7 +216,7 @@ function join_all_json(result, divid, metric_x, metric_y,metrics_names, better){
       
     })
 
-    createChart(full_json,divid, classification_type, metric_x, metric_y,metrics_names, better, 0);
+    createChart(full_json,divid, classification_type, metric_x, metric_y,metrics_names, better, (default_zoom ? "auto" : 0));
   } catch(err){
     console.log(`Invalid Url Error: ${err.stack} `);
   }
