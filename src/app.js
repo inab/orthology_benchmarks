@@ -3,7 +3,7 @@ import { createApolloFetch } from 'apollo-fetch';
 import { append_classifiers_list } from './selection_list';
 import { createChart } from './scatter_plot';
 import { svg } from 'd3';
-//import { saveAsImage } from './saveImageAsPng';
+import { downloadSvgAsPng } from './saveImageAsPng';
 import * as svgtopng from 'save-svg-as-png';
 
 // ./node_modules/.bin/webpack-cli src/app.js --output=build/build.js -d -w
@@ -64,10 +64,7 @@ function load_scatter_visualization() {
 }
 
 function downloadPng(name, id) {
-	console.log(name, id);
-	svgtopng.saveSvgAsPng(document.getElementById(id), name + '.png', {
-		backgroundColor: 'white',
-	});
+	downloadSvgAsPng(name, id);
 }
 
 function get_data(url, json_query, dataId, divid) {
