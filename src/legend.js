@@ -84,6 +84,7 @@ export function draw_legend (data, svg, xScale, yScale, div, width, height, remo
   
     // draw legend text
     legend.append("text")
+          .attr("class", "legend_txt")
           .attr("x", width + Math.round($(window).width()* 0.022727))
           .attr("y", Math.round($(window).height()* 0.01041))
           .attr("id", function (d) { return divid+"___"+d.replace(/[\. ()/-]/g, "_");})

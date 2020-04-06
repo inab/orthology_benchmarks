@@ -57,7 +57,7 @@ export function createChart (data,divid, classification_type, metric_x, metric_y
     .append("g")
     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
   
-  svg.append("g").append("rect").attr("width", width).attr("height", height).attr("class", "plot-bg");
+  svg.append("g").append("rect").attr("width", width).attr("height", height).attr("class", "plot-bg").attr("fill", "#F8F8F8").attr("stroke", "black");
 
   // Add Axis numbers
   svg.append("g").attr("class", "axis axis--x")
@@ -134,10 +134,14 @@ export function createChart (data,divid, classification_type, metric_x, metric_y
 
   svg.append("g")
      .attr("class", "bench_grid")
+     .attr("stroke-opacity", 0.1)
+     .attr("stroke-dasharray", 7,5)
      .call(gridlines_x);
   
      svg.append("g")
      .attr("class", "bench_grid")
+     .attr("stroke-opacity", 0.1)
+     .attr("stroke-dasharray", 7,5)
      .call(gridlines_y);
   
      

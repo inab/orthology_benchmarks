@@ -22,24 +22,7 @@
       box-shadow: rgba(0, 0, 0, 0.3) 0 10px 15px;
       z-index: 3;
     }
-  
-  /* .benchmark_tooltip:after {
-      content: " ";
-      position: absolute;
-      top: 50%;
-      right: 100%;
-      margin-top: -10px;
-      border-width: 10px;
-      border-style: solid;
-      border-color: transparent transparent transparent transparent;
-      
-  } */
-  
-   .plot-bg {
-     fill:#F8F8F8;
-     stroke: black;
-   }
-      
+        
    .axis path,
    .axis line {
        fill: none;
@@ -47,13 +30,7 @@
        stroke-width: 1;
        shape-rendering: crispEdges;
    }
-
-   .bench_grid {
-    stroke-opacity: 0.1;
-    stroke-dasharray: 7,5;
-  }
-
-    
+   
     .classificators_list{
         background-color: #0A58A2; 
         border-radius: 8px;

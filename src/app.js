@@ -2,9 +2,10 @@ import './app.css';
 import { createApolloFetch } from 'apollo-fetch';
 import { append_classifiers_list } from './selection_list';
 import { createChart } from './scatter_plot';
-import { svg } from 'd3';
+// import { svg } from 'd3';
 import { downloadSvgAsPng } from './saveImageAsPng';
-import * as svgtopng from 'save-svg-as-png';
+// import * as svgtopng from 'save-svg-as-png';
+import html2canvas from 'html2canvas'
 
 // ./node_modules/.bin/webpack-cli src/app.js --output=build/build.js -d -w
 
@@ -63,8 +64,53 @@ function load_scatter_visualization() {
 	}
 }
 
-function downloadPng(name, id) {
-	downloadSvgAsPng(name, id);
+function downloadPng(id) {
+
+	// downloadSvgAsPng(name, id);
+	var itm = document.getElementById(id);
+
+	// Copy the <li> element and its child nodes
+	var cln = itm.cloneNode(true);
+	cln.id = "duplicate"
+	var elements = cln.getElementsByClassName("legend_txt")
+	for (var i = 0; i < elements.length; i++) {
+		elements[i].style.fontSize = "20px";
+	  }
+    html2canvas(cln).then(function(canvas) {
+
+		console.log(canvas);
+		var ctx = canvas.getContext("2d");
+		ctx.font = "20px"
+		console.log(ctx)
+        saveAs(canvas.toDataURL(), 'file-name.png');
+    });
+
+
+}
+
+function saveAs(uri, filename) {
+
+    var link = document.createElement('a');
+
+    if (typeof link.download === 'string') {
+
+        link.href = uri;
+        link.download = filename;
+
+        //Firefox requires the link to be in the body
+        document.body.appendChild(link);
+
+        //simulate click
+        link.click();
+
+        //remove the link when done
+        document.body.removeChild(link);
+
+    } else {
+
+        window.open(uri);
+
+    }
 }
 
 function get_data(url, json_query, dataId, divid) {

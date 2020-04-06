@@ -21,6 +21,7 @@
   "author": "Javier Garrayo <me.javi@hotmail.com>",
   "license": "ISC",
   "dependencies": {
+    "html2canvas": "^1.0.0-rc.5",
     "license-checker": "^25.0.1",
     "save-svg-as-png": "^1.4.17"
   }
