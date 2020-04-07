@@ -49,10 +49,12 @@ export function createChart (data,divid, classification_type, metric_x, metric_y
 
   let div = d3.select('body').append("div").attr("class", "benchmark_tooltip").style("opacity", 0);
 
+
+  // add div which will hold the svg
+  d3.select('#'+divid + "flex-container").append("div")
+  .attr("id", divid + "_svg_container")
   // append the svg element
-  // d3.select("svg").remove()
-    // console.log(d3.select("svg").remove());
-  let svg = d3.select('#'+divid + "flex-container").append("svg")
+  let svg = d3.select('#'+divid + "_svg_container").append("svg")
     .attr("class", "benchmarkingSVG")
     .attr("viewBox", "0 0 " + (width + margin.left + margin.right) + " " + (height + margin.top + margin.bottom))
     .attr("preserveAspectRatio", "xMinYMin meet")
@@ -62,7 +64,7 @@ export function createChart (data,divid, classification_type, metric_x, metric_y
     .append("g")
     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
   
-  svg.append("g").append("rect").attr("width", width).attr("height", height).attr("class", "plot-bg");
+  svg.append("g").append("rect").attr("width", width).attr("height", height).attr("class", "plot-bg").attr("fill", "#F8F8F8").attr("stroke", "black");
 
   // Add Axis numbers
   svg.append("g").attr("class", "axis axis--x")
@@ -139,10 +141,14 @@ export function createChart (data,divid, classification_type, metric_x, metric_y
 
   svg.append("g")
      .attr("class", "bench_grid")
+     .attr("stroke-opacity", 0.1)
+     .attr("stroke-dasharray", 7,5)
      .call(gridlines_x);
   
      svg.append("g")
      .attr("class", "bench_grid")
+     .attr("stroke-opacity", 0.1)
+     .attr("stroke-dasharray", 7,5)
      .call(gridlines_y);
   
      

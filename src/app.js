@@ -2,6 +2,7 @@ import './app.css';
 import { createApolloFetch } from 'apollo-fetch';
 import { append_classifiers_list } from "./selection_list";
 import { createChart } from "./scatter_plot"
+import html2canvas from 'html2canvas'
 
 // ./node_modules/.bin/webpack-cli src/app.js --output=build/build.js -d -w
 
@@ -187,30 +188,8 @@ function join_all_json(result, divid, metric_x, metric_y,metrics_names, better){
     var e = document.getElementById(divid + "_dropdown_list");
     let classification_type = e.options[e.selectedIndex].id;
 
-    //add button wich allows to toogle between reset view & out
-    d3.select('#' + divid + '_buttons_container').append("button")
-    .attr("class","toggle_axis_button")
-    .attr("id",divid + "axis_button")
-    .attr("name", "optimal view")
-    .text("optimal view")
-    .on('click', function(d) {
-      if (this.name == "optimal view"){
-        d3.select(this).text("reset view");
-        this.name = "reset view"
-        //the chart will be created again, but first it needs to know which classification method is selected
-        let select_list = document.getElementById(divid + "_dropdown_list")
-        onQuartileChange(select_list.options[select_list.selectedIndex].id, metric_x, metric_y, better)
-
-      } else {
-        d3.select(this).text("optimal view");
-        this.name = "optimal view"
-        //the chart will be created again, but first it needs to know which classification method is selected
-        let select_list = document.getElementById(divid + "_dropdown_list")
-        onQuartileChange(select_list.options[select_list.selectedIndex].id, metric_x, metric_y, better)
-
-      }
-      
-    })
+    // add buttons
+    add_buttons(divid, metric_x, metric_y, better);
 
     createChart(full_json,divid, classification_type, metric_x, metric_y,metrics_names, better, 0);
   } catch(err){
@@ -220,7 +199,85 @@ function join_all_json(result, divid, metric_x, metric_y,metrics_names, better){
     
 };
 
+function add_buttons(divid, metric_x, metric_y, better){
 
+      //add button which allows to toogle between reset view & out
+      d3.select('#' + divid + '_buttons_container').append("button")
+      .attr("class","toggle_axis_button")
+      .attr("id",divid + "axis_button")
+      .attr("name", "optimal view")
+      .text("optimal view")
+      .on('click', function(d) {
+        if (this.name == "optimal view"){
+          d3.select(this).text("reset view");
+          this.name = "reset view"
+          //the chart will be created again, but first it needs to know which classification method is selected
+          let select_list = document.getElementById(divid + "_dropdown_list")
+          onQuartileChange(select_list.options[select_list.selectedIndex].id, metric_x, metric_y, better)
+  
+        } else {
+          d3.select(this).text("optimal view");
+          this.name = "optimal view"
+          //the chart will be created again, but first it needs to know which classification method is selected
+          let select_list = document.getElementById(divid + "_dropdown_list")
+          onQuartileChange(select_list.options[select_list.selectedIndex].id, metric_x, metric_y, better)
+  
+        }
+        
+      })
+
+      // add button to download chart in png format
+      d3.select('#' + divid + '_buttons_container').append("button")
+      .attr("class","download_button")
+      .attr("id",divid + "download_button")
+      .attr("name", "download")
+      .text("download PNG")
+      .on('click', function(d) {
+        download_png(divid)        
+      })
+
+}
+
+function download_png(id){
+
+  var download_id;
+  if ($("#" +  id + "_table").is(':empty')) {
+    download_id = id + "_svg_container"
+  } else {
+    download_id = id + "flex-container"
+  }
+
+  html2canvas(document.querySelector("#" + download_id)).then(function(canvas) {
+    saveAs(canvas.toDataURL(), 'benchmarking_chart_' + id + '.png');
+  });
+
+
+}
+
+function saveAs(uri, filename) {
+
+  var link = document.createElement('a');
+
+  if (typeof link.download === 'string') {
+
+      link.href = uri;
+      link.download = filename;
+
+      //Firefox requires the link to be in the body
+      document.body.appendChild(link);
+
+      //simulate click
+      link.click();
+
+      //remove the link when done
+      document.body.removeChild(link);
+
+  } else {
+
+      window.open(uri);
+
+  }
+}
 function onQuartileChange(ID, metric_x, metric_y, better, axis_limit="auto"){  
   
   var chart_id = ID.split("__")[0];

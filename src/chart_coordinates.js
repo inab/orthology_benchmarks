@@ -6,6 +6,8 @@ export function append_dots_errobars (svg, data, xScale, yScale, div, cValue, co
       .data(data).enter()
       .append("line")
       .attr("class", "error-line")
+      .attr("stroke", "black")
+      .style("stroke-dasharray", ("2, 2"))
       .attr("id", function (d) { return divid+"___line"+d.toolname.replace(/[\. ()/-]/g, "_");})
       .attr("x1", function(d) {
         return xScale(d.x);
@@ -25,6 +27,8 @@ export function append_dots_errobars (svg, data, xScale, yScale, div, cValue, co
       .data(data).enter()
       .append("line")
       .attr("class", "error-line")
+      .attr("stroke", "black")
+      .style("stroke-dasharray", ("2, 2"))
       .attr("id", function (d) { return divid+"___lineX"+d.toolname.replace(/[\. ()/-]/g, "_");})
       .attr("x1", function(d) {
         return xScale(d.x - d.e_x);
@@ -45,6 +49,8 @@ export function append_dots_errobars (svg, data, xScale, yScale, div, cValue, co
       .append("line")
       .attr("id", function (d) { return divid+"___top"+d.toolname.replace(/[\. ()/-]/g, "_");})
       .attr("class", "error-cap")
+      .attr("stroke", "black")
+      .style("stroke-width", "1px")
       .attr("x1", function(d) {
         return xScale(d.x) - 4;
       })
@@ -64,6 +70,8 @@ export function append_dots_errobars (svg, data, xScale, yScale, div, cValue, co
       .append("line")
       .attr("id", function (d) { return divid+"___bottom"+d.toolname.replace(/[\. ()/-]/g, "_");})
       .attr("class", "error-cap")
+      .attr("stroke", "black")
+      .style("stroke-width", "1px")
       .attr("x1", function(d) {
         return xScale(d.x) - 4;
       })
@@ -82,6 +90,8 @@ export function append_dots_errobars (svg, data, xScale, yScale, div, cValue, co
       .data(data).enter()
       .append("line")
       .attr("class", "error-cap")
+      .attr("stroke", "black")
+      .style("stroke-width", "1px")
       .attr("id", function (d) { return divid+"___right"+d.toolname.replace(/[\. ()/-]/g, "_");})
       .attr("x1", function(d) {
         return xScale(d.x + d.e_x);
@@ -101,6 +111,8 @@ export function append_dots_errobars (svg, data, xScale, yScale, div, cValue, co
       .data(data).enter()
       .append("line")
       .attr("class", "error-cap")
+      .attr("stroke", "black")
+      .style("stroke-width", "1px")
       .attr("id", function (d) { return divid+"___left"+d.toolname.replace(/[\. ()/-]/g, "_");})
       .attr("x1", function(d) {
         return xScale(d.x - d.e_x);
