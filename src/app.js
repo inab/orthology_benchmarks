@@ -1,8 +1,9 @@
 import './app.css';
 import { createApolloFetch } from 'apollo-fetch';
 import { append_classifiers_list } from "./selection_list";
-import { createChart } from "./scatter_plot"
-import html2canvas from 'html2canvas'
+import { createChart } from "./scatter_plot";
+import html2canvas from 'html2canvas';
+import d3_save_svg from 'd3-save-svg';
 
 // ./node_modules/.bin/webpack-cli src/app.js --output=build/build.js -d -w
 
@@ -226,15 +227,25 @@ function add_buttons(divid, metric_x, metric_y, better){
         
       })
 
-      // add button to download chart in png format
-      d3.select('#' + divid + '_buttons_container').append("button")
-      .attr("class","download_button")
-      .attr("id",divid + "download_button")
-      .attr("name", "download")
-      .text("download PNG")
-      .on('click', function(d) {
-        download_png(divid)        
-      })
+     // add button to download chart in png format
+     d3.select('#' + divid + '_buttons_container').append("button")
+     .attr("class","download_button")
+     .attr("id",divid + "download_button")
+     .attr("name", "download")
+     .text("download PNG")
+     .on('click', function(d) {
+       download_png(divid)        
+     });
+
+     // add button to download chart in svg format
+     d3.select('#' + divid + '_buttons_container').append("button")
+     .attr("class","download_button")
+     .attr("id",divid + "download_button_svg")
+     .attr("name", "download_svg")
+     .text("download SVG")
+     .on('click', function(d) {
+         download_svg(divid);
+     });
 
 }
 
@@ -252,6 +263,16 @@ function download_png(id){
   });
 
 
+}
+
+function download_svg(id){
+    // d3-save-svg requires svg element, so we cannot store the classification 
+    // table for now.
+    var download_id = "svg_" + id;
+    var config = {
+        filename: 'benchmarking_chart_' + id,
+    }
+    d3_save_svg.save(d3.select('#'+download_id).node(), config);
 }
 
 function saveAs(uri, filename) {
