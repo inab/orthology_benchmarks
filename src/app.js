@@ -3,6 +3,7 @@ import { createApolloFetch } from 'apollo-fetch';
 import { append_classifiers_list } from "./selection_list";
 import { createChart } from "./scatter_plot"
 import html2canvas from 'html2canvas'
+import * as jsPDF from 'jspdf'
 
 // ./node_modules/.bin/webpack-cli src/app.js --output=build/build.js -d -w
 
@@ -227,18 +228,45 @@ function add_buttons(divid, metric_x, metric_y, better){
       })
 
       // add button to download chart in png format
-      d3.select('#' + divid + '_buttons_container').append("button")
-      .attr("class","download_button")
-      .attr("id",divid + "download_button")
-      .attr("name", "download")
-      .text("download PNG")
-      .on('click', function(d) {
-        download_png(divid)        
-      })
+      let select_list = d3.select("#" + divid + "_buttons_container").append("form").append("select")
+        .attr("class","download_button")
+        .attr("id",divid + "_download_button")
+        .on('change', function(d) {
+          download_png(this.options[this.selectedIndex].id, divid);
+          let select_list = document.getElementById(divid + "_download_button");
+          select_list.value = "Download";
+
+        })
+        .append("optgroup")
+        .attr("label", "Select a format: ")
+        
+        
+        select_list.append("option")
+        .attr("value", "Download")
+        .attr("disabled","selected")
+        .text("Download")
+        .attr("style", "display:none")
+
+        select_list.append("option")
+        .attr("class", "selection_option")
+        .attr("id", "png")
+        .attr("value", "a")
+        .attr("title", "Download plot as PNG")
+        .attr("data-toggle", "list_tooltip")
+        .attr("data-container", "#tooltip_container") 
+        .text("PNG")
+        select_list.append("option")
+        .attr("class", "selection_option")
+        .attr("id", "pdf")
+        .attr("value", "b")
+        .attr("title", "Download plot as PNG")
+        .attr("data-toggle", "list_tooltip")
+        .attr("data-container", "#tooltip_container") 
+        .text("PDF")
 
 }
 
-function download_png(id){
+function download_png(format, id){
 
   var download_id;
   if ($("#" +  id + "_table").is(':empty')) {
@@ -248,13 +276,39 @@ function download_png(id){
   }
 
   html2canvas(document.querySelector("#" + download_id)).then(function(canvas) {
-    saveAs(canvas.toDataURL(), 'benchmarking_chart_' + id + '.png');
+
+    if (format == "pdf") {
+      saveAsPDF(id, canvas.toDataURL(), 'benchmarking_chart_' + id + '.pdf');
+    } else if (format == "png"){
+      saveAsPNG(canvas.toDataURL(), 'benchmarking_chart_' + id + '.png')
+    }
+    
   });
 
 
 }
 
-function saveAs(uri, filename) {
+function saveAsPDF(id, uri, filename) {
+
+  var doc = new jsPDF({
+    orientation: 'landscape',
+    unit: 'mm',
+    format: [750, 1200]
+  })
+  let width, height;
+  if ($("#" +  id + "_table").is(':empty')) {
+    width = 375;
+    height = 250;
+  } else {
+    width = 500;
+    height = 250;
+  }
+  doc.addImage(uri, 'PNG', 5, 5, width, height);
+  doc.save(filename);
+
+}
+
+function saveAsPNG (uri, filename){
 
   var link = document.createElement('a');
 

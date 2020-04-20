@@ -55,6 +55,7 @@
 
     
     .classificators_list{
+        order:1;
         background-color: #0A58A2; 
         border-radius: 8px;
         color: #fff;
@@ -103,6 +104,14 @@
         flex-wrap: wrap;
         justify-content: flex-start;
     }
+
+    .buttons_container{
+        width: 100%;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: flex-start;
+    }
+
     .benchmarkingSVG{
         order:1;
         width: 60vw;
@@ -141,12 +150,17 @@
         fill:#0000EE;
     };
 
-/* .toggle_axis_button{
-    background-color: #4CAF50;
+.toggle_axis_button{
+    /* background-color: #4CAF50;
   border: none;
   color: white;
   padding: 16px 32px;
   text-decoration: none;
   margin: 4px 2px;
-  cursor: pointer;
-} */
+  cursor: pointer; */
+  order:2;
+}
+
+.download_button{
+  order:3;
+}
