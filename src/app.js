@@ -4,6 +4,7 @@ import { append_classifiers_list } from "./selection_list";
 import { createChart } from "./scatter_plot"
 import html2canvas from 'html2canvas'
 import * as jsPDF from 'jspdf'
+import d3_save_svg from 'd3-save-svg';
 
 // ./node_modules/.bin/webpack-cli src/app.js --output=build/build.js -d -w
 
@@ -227,7 +228,7 @@ function add_buttons(divid, metric_x, metric_y, better){
         
       })
 
-      // add button to download chart in png format
+      // add options button to download chart in pdf or png format
       let select_list = d3.select("#" + divid + "_buttons_container").append("form").append("select")
         .attr("class","download_button")
         .attr("id",divid + "_download_button")
@@ -250,7 +251,6 @@ function add_buttons(divid, metric_x, metric_y, better){
         select_list.append("option")
         .attr("class", "selection_option")
         .attr("id", "png")
-        .attr("value", "a")
         .attr("title", "Download plot as PNG")
         .attr("data-toggle", "list_tooltip")
         .attr("data-container", "#tooltip_container") 
@@ -258,11 +258,17 @@ function add_buttons(divid, metric_x, metric_y, better){
         select_list.append("option")
         .attr("class", "selection_option")
         .attr("id", "pdf")
-        .attr("value", "b")
-        .attr("title", "Download plot as PNG")
+        .attr("title", "Download plot as PDF")
         .attr("data-toggle", "list_tooltip")
         .attr("data-container", "#tooltip_container") 
         .text("PDF")
+        select_list.append("option")
+        .attr("class", "selection_option")
+        .attr("id", "svg")
+        .attr("title", "Download plot as SVG")
+        .attr("data-toggle", "list_tooltip")
+        .attr("data-container", "#tooltip_container") 
+        .text("SVG (only plot)")
 
 }
 
@@ -274,17 +280,27 @@ function download_png(format, id){
   } else {
     download_id = id + "flex-container"
   }
+  //save window' current scroll, as the html2canvas library needs to scroll up to the top right corner
+  let scrollPos = [window.pageXOffset, window.pageYOffset]
+  window.scrollTo(0,0);
+  if (format == "svg"){
 
-  html2canvas(document.querySelector("#" + download_id)).then(function(canvas) {
+    saveAsSVG(id);
+  } else {
 
-    if (format == "pdf") {
-      saveAsPDF(id, canvas.toDataURL(), 'benchmarking_chart_' + id + '.pdf');
-    } else if (format == "png"){
-      saveAsPNG(canvas.toDataURL(), 'benchmarking_chart_' + id + '.png')
-    }
-    
-  });
+    html2canvas(document.querySelector("#" + download_id)).then(function(canvas) {
 
+      if (format == "pdf") {
+        saveAsPDF(id, canvas.toDataURL(), 'benchmarking_chart_' + id + '.pdf');
+      } else if (format == "png"){
+        saveAsPNG(canvas.toDataURL(), 'benchmarking_chart_' + id + '.png')
+      }
+      
+    });
+  }
+  
+
+  window.scrollTo(scrollPos[0],scrollPos[1]);
 
 }
 
@@ -332,6 +348,15 @@ function saveAsPNG (uri, filename){
 
   }
 }
+
+function saveAsSVG(id){
+
+  var download_id = "svg_" + id;
+  var name = 'benchmarking_chart_' + id;
+
+  d3_save_svg.save(d3.select('#'+download_id).node(), { filename: name});
+}
+
 function onQuartileChange(ID, metric_x, metric_y, better, axis_limit="auto"){  
   
   var chart_id = ID.split("__")[0];
