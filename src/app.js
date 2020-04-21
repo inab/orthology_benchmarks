@@ -309,15 +309,14 @@ function saveAsPDF(id, uri, filename) {
   var doc = new jsPDF({
     orientation: 'landscape',
     unit: 'mm',
-    format: [750, 1200]
+    // format: [750, 1200]
   })
-  let width, height;
+  let width;
+  let height = doc.internal.pageSize.getHeight();
   if ($("#" +  id + "_table").is(':empty')) {
-    width = 375;
-    height = 250;
+    width = doc.internal.pageSize.getWidth();
   } else {
-    width = 500;
-    height = 250;
+    width = doc.internal.pageSize.getWidth() + doc.internal.pageSize.getWidth() * 0.2126 ; // this value might change when it is used as a widget in a different website
   }
   doc.addImage(uri, 'PNG', 5, 5, width, height);
   doc.save(filename);
