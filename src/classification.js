@@ -56,20 +56,18 @@ function add_arrow(divid, svg, xScale, yScale, better){
   let y_axis = yScale.domain();
 
   // set coordinates depending on optimization
-  let x1, y1, x2, y2, top;
+  let x1, y1, x2, y2;
   if (better == "bottom-right"){
     x1 = (x_axis[1]-(0.05*(x_axis[1]-x_axis[0])))
     y1 = (y_axis[1]-(0.9*(y_axis[1]-y_axis[0])))
     x2 = (x_axis[1]-(0.009*(x_axis[1]-x_axis[0]))) 
     y2 = (y_axis[1]-(0.97*(y_axis[1]-y_axis[0]))) 
-    top = 0
  } 
  else if (better == "top-right"){
     x1 = (x_axis[1]-(0.05*(x_axis[1]-x_axis[0])))
     y1 = (y_axis[1]-(0.1*(y_axis[1]-y_axis[0])))
     x2 = (x_axis[1]-(0.009*(x_axis[1]-x_axis[0]))) 
     y2 = (y_axis[1]-(0.03*(y_axis[1]-y_axis[0]))) 
-    top = 1
  };
 
   var line = svg.append("line")
@@ -85,8 +83,8 @@ function add_arrow(divid, svg, xScale, yScale, better){
 
   svg.append("text")
   .attr("class", function (d) { return divid+"___better_annotation";})
-  .attr("x", xScale(x_axis[1]))
-  .attr("y", yScale(y_axis[top]))
+  .attr("x", xScale(x1))
+  .attr("y", yScale(y2))
   .style("opacity", 0.4)
   .style("font-size", ".7vw")
   .text("better");
