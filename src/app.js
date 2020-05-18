@@ -108,6 +108,7 @@ function get_data(url, json_query, dataId, divid) {
                         getMetrics {
                           _id
                           title
+                          _metadata
                           representation_hints
                         }
                     }`
@@ -119,10 +120,12 @@ function get_data(url, json_query, dataId, divid) {
 
                     // iterate over the list of metrics to generate a dictionary
                     let metrics_names = {};
-                    let metrics_representation = {};
                     metrics_list.forEach(function(element) {
                         metrics_names[element._id] = element.title
+                        if (element._metadata != null && "level_2:metric_id" in element._metadata) {
+                            metrics_names[element._metadata["level_2:metric_id"]] = element.title
 
+                        } 
                     });
                     // get optimization point
                     if (result[0].datalink.inline_data.visualization.optimization == "bottom-right") {
