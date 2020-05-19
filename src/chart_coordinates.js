@@ -138,7 +138,7 @@ export function append_dots_errobars (svg, data, xScale, yScale, div, cValue, co
     dots.attr("d", symbol.type(function(d){return shapeScale(d.toolname)}).size(120))
       .attr("id", function (d) {  return divid+"___"+d.toolname.replace(/[\. ()/-]/g, "_");})
       .attr("class","line")
-      .attr('transform',function(d){ return "translate("+xScale(d.x)+","+yScale(d.y)+")"; })
+      .attr('transform',function(d){ return "translate("+xScale(d.x)+","+yScale(d.y)+") scale(1.4)"; })
       .attr("r", 6)
       .style("fill", function(d) {
         return color(cValue(d));

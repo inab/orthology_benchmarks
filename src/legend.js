@@ -5,12 +5,24 @@ export function draw_legend (data, svg, xScale, yScale, div, width, height, remo
   
     //set number of elements per legend row
     let n = 4;
-  
+
+    let symbol = d3.symbol();
+    var shapeScale = d3.scaleOrdinal()
+            .domain(color_domain)
+            .range(Array(Math.ceil(data.length/7)).fill([d3.symbolCircle, d3.symbolCross, d3.symbolDiamond, d3.symbolSquare, d3.symbolStar, d3.symbolTriangle, d3.symbolWye]).flat());
+      
+      
     let legend = svg.selectAll(".legend")
       .data(color_domain)
       .enter().append("g")
       .attr("class", "legend")
       .attr("transform", function(d, i) { return "translate(" + (-width+i%n*(Math.round($(window).width()* 0.16))) + "," + (height + (Math.round($(window).height()* 0.0862962)) + Math.floor(i/n) * (Math.round($(window).height()* 0.0251481))) + ")"; });
+
+    legend.append("path")
+      .style("fill", color)
+        .attr("d", symbol.type(function(d){return shapeScale(d)}).size(200))
+        .attr("transform", function(d, i) { return "translate(" + (width+28+i%n*(Math.round($(window).width()* 0.001))) + "," + (Math.round($(window).height()* 0.01)) +  ")"; })
+        .attr("id", function (d) { return divid+"___leg_symbol"+d.replace(/[\. ()/-]/g, "_");});
 
     // draw legend colored rectangles    
     legend.append("rect")
@@ -19,7 +31,7 @@ export function draw_legend (data, svg, xScale, yScale, div, width, height, remo
           .attr("height", Math.round($(window).height()* 0.020833))
           .attr("id", function (d) { return divid+"___leg_rect"+d.replace(/[\. ()/-]/g, "_");})
           .attr("class", "benchmark_legend_rect")
-          .style("fill", color)
+          .style("fill", "transparent")
           .on('click', function(d) {
             
             let dot = d3.select("text#" +divid+"___"+d.replace(/[\. ()/-]/g, "_"));
@@ -60,9 +72,11 @@ export function draw_legend (data, svg, xScale, yScale, div, width, height, remo
   
             if (d3.select("#"+ID).style("opacity") == 0){
               d3.select(this).style("opacity", 1);
+              d3.select("path#" +divid+"___leg_symbol"+ tool_id).style("opacity", 1);
               d3.select("text#" +divid+"___"+tool_id).style("opacity", 1);
             } else {
               d3.select(this).style("opacity", 0.2);
+              d3.select("path#" +divid+"___leg_symbol"+ tool_id).style("opacity", 0.2);
               d3.select("text#" +divid+"___"+tool_id).style("opacity", 0.2);
             };
             
@@ -75,16 +89,18 @@ export function draw_legend (data, svg, xScale, yScale, div, width, height, remo
   
             if (d3.select("#"+ID).style("opacity") == 0){
               d3.select(this).style("opacity", 0.2);
+              d3.select("path#" +divid+"___leg_symbol"+ tool_id).style("opacity", 0.2);
               d3.select("text#" +divid+"___"+tool_id).style("opacity", 0.2);
             } else {
               d3.select(this).style("opacity", 1);
+              d3.select("path#" +divid+"___leg_symbol"+ tool_id).style("opacity", 1);
               d3.select("text#" +divid+"___"+tool_id).style("opacity", 1);
             };
           });
   
     // draw legend text
     legend.append("text")
-          .attr("x", width + Math.round($(window).width()* 0.022727))
+          .attr("x", width + Math.round($(window).width()* 0.028))
           .attr("y", Math.round($(window).height()* 0.01041))
           .attr("id", function (d) { return divid+"___"+d.replace(/[\. ()/-]/g, "_");})
           .attr("dy", ".35em")
@@ -94,17 +110,7 @@ export function draw_legend (data, svg, xScale, yScale, div, width, height, remo
             return d;
           });
     
-  let symbol = d3.symbol();
-  var shapeScale = d3.scaleOrdinal()
-          .domain(data.map(d => d.toolname))
-          .range(Array(Math.ceil(data.length/7)).fill([d3.symbolCircle, d3.symbolCross, d3.symbolDiamond, d3.symbolSquare, d3.symbolStar, d3.symbolTriangle, d3.symbolWye]).flat());
 
-  svg.selectAll(".benchmark_legend_rect")
-  .data(data)
-    .enter()
-    .append("path")
-  .style("fill", color)
-    .attr("d", symbol.type(function(d){return shapeScale(d.toolname)}).size(2000))
 
   };
   
@@ -147,6 +153,7 @@ function show_or_hide_participant_in_plot (ID, data, svg, xScale, yScale, div, w
      //change the legend opacity to keep track of hidden tools
      d3.select(legend_rect).style("opacity", 1);
      d3.select("text#" +divid+"___"+tool_id).style("opacity", 1);
+     d3.select("path#" +divid+"___leg_symbol"+ tool_id).style("opacity", 1);
  
    } else {
      d3.select("#"+ID).style("opacity", 0);
@@ -161,6 +168,7 @@ function show_or_hide_participant_in_plot (ID, data, svg, xScale, yScale, div, w
      //change the legend opacity to keep track of hidden tools
      d3.select(legend_rect).style("opacity", 0.2);
      d3.select("text#" +divid+"___"+tool_id).style("opacity", 0.2);
+     d3.select("path#" +divid+"___leg_symbol"+ tool_id).style("opacity", 0.2);
    }
  
  };
