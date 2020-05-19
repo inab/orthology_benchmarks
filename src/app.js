@@ -2,6 +2,8 @@ import './app.css';
 import { createApolloFetch } from 'apollo-fetch';
 import { append_classifiers_list } from "./selection_list";
 import { createChart } from "./scatter_plot"
+import { add_oeb_credits } from "./scatter_plot"
+import { compute_chart_height } from "./scatter_plot"
 import html2canvas from 'html2canvas'
 import * as jsPDF from 'jspdf'
 import d3_save_svg from 'd3-save-svg';
@@ -193,7 +195,7 @@ function join_all_json(result, divid, metric_x, metric_y, metrics_names, better)
         let classification_type = e.options[e.selectedIndex].id;
 
         // add buttons
-        add_buttons(divid, metric_x, metric_y, better);
+        add_buttons(divid, metric_x, metric_y, better, full_json);
 
         createChart(full_json, divid, classification_type, metric_x, metric_y, metrics_names, better, 0);
     } catch (err) {
@@ -203,7 +205,7 @@ function join_all_json(result, divid, metric_x, metric_y, metrics_names, better)
 
 };
 
-function add_buttons(divid, metric_x, metric_y, better) {
+function add_buttons(divid, metric_x, metric_y, better, data) {
 
     //add button which allows to toogle between reset view & out
     d3.select('#' + divid + '_buttons_container').append("div").attr("class", "toggle_div").append("button")
@@ -235,9 +237,20 @@ function add_buttons(divid, metric_x, metric_y, better) {
         .attr("class", "download_button")
         .attr("id", divid + "_download_button")
         .on('change', function(d) {
+            
+            // add the oeb logo, for download, which will be removed after the download function is completed
+            if (window.location.href.toLocaleLowerCase().includes("openebench") == true ){
+                let margin = {top: Math.round($(window).height()* 0.0318), right:  Math.round($(window).width()* 0.0261), bottom: compute_chart_height(data), left:  Math.round($(window).width()* 0.0373)}
+                add_oeb_credits(divid, d3.select('#' + divid +"_g_svg"), margin);
+              }
+
             download_png(this.options[this.selectedIndex].id, divid);
             let select_list = document.getElementById(divid + "_download_button");
             select_list.value = "Download";
+            if (window.location.href.toLocaleLowerCase().includes("openebench") == true ){
+                document.getElementById(divid + "_logo_container").remove();
+                document.getElementById(divid + "_logo").remove();
+            };
 
         })
         .append("optgroup")

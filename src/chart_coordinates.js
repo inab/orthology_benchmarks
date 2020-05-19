@@ -128,8 +128,6 @@ export function append_dots_errobars (svg, data, xScale, yScale, div, cValue, co
       });
 
   // add dots
-  let symbol = d3.symbol();
-
   let formatComma = d3.format(",");
   let formatDecimal = d3.format(".4f");
 
@@ -139,7 +137,14 @@ export function append_dots_errobars (svg, data, xScale, yScale, div, cValue, co
     .append("path")
     .attr("class", "benchmark_path");
   
-  dots.attr("d", symbol.type(function(){return d3.symbolSquare}))
+  // define the shapes of the dots
+  let symbol = d3.symbol();
+
+  var shapeScale = d3.scaleOrdinal()
+            .domain(data.map(d => d.toolname))
+            .range(Array(Math.ceil(data.length/7)).fill([d3.symbolCircle, d3.symbolCross, d3.symbolDiamond, d3.symbolSquare, d3.symbolStar, d3.symbolTriangle, d3.symbolWye]).flat());
+
+    dots.attr("d", symbol.type(function(d){return shapeScale(d.toolname)}).size(180))
       .attr("id", function (d) {  return divid+"___"+d.toolname.replace(/[\. ()/-]/g, "_");})
       .attr("class","line")
       .attr('transform',function(d){ return "translate("+xScale(d.x)+","+yScale(d.y)+")"; })
