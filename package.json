@@ -5,7 +5,7 @@
   "main": "app.js",
   "devDependencies": {
     "d3": "^5.5.0",
-    "jquery": "^3.3.1",
+    "jquery": "^3.5.0",
     "pareto-frontier": "^1.1.1",
     "clusters": "0.0.4",
     "d3-polygon": "^1.0.5",
