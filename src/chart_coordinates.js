@@ -157,10 +157,14 @@ export function append_dots_errobars (svg, data, xScale, yScale, div, cValue, co
         let ID = divid+"___"+d.toolname.replace(/[\. ()/-]/g, "_");
         if (metric_x.startsWith("OEBM") == true){
           var txt_x = metrics_names[metric_x];
+        } else if ( metric_x in metrics_names) {
+          var txt_x = metrics_names[metric_x];
         } else {
           var txt_x = metric_x;
         };
         if (metric_y.startsWith("OEBM") == true){
+          var txt_y = metrics_names[metric_y];
+        } else if ( metric_y in metrics_names) {
           var txt_y = metrics_names[metric_y];
         } else {
           var txt_y = metric_y;

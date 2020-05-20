@@ -22,7 +22,7 @@ export function draw_legend (data, svg, xScale, yScale, div, width, height, remo
       legend.append("path")
       .style("fill", color)
         .attr("d", symbol.type(function(d){return shapeScale(d)}).size(200))
-        .attr("transform", function(d, i) { return "translate(" + (width+28+i%n*(Math.round($(window).width()* 0.001))) + "," + (Math.round($(window).height()* 0.01)) +  ")"; })
+        .attr("transform", function(d, i) { return "translate(" + (width+25+i%n*(Math.round($(window).width()* 0.0002))) + "," + (Math.round($(window).height()* 0.01)) +  ")"; })
         .attr("id", function (d) { return divid+"___leg_symbol"+d.replace(/[\. ()/-]/g, "_");});
 
     // draw legend colored rectangles
@@ -33,6 +33,7 @@ export function draw_legend (data, svg, xScale, yScale, div, width, height, remo
           .attr("id", function (d) { return divid+"___leg_rect"+d.replace(/[\. ()/-]/g, "_");})
           .attr("class", "benchmark_legend_rect")
           .style("fill", "transparent")
+          .attr("z-index", 3)
           .on('click', function(d) {
             
             let dot = d3.select("text#" +divid+"___"+d.replace(/[\. ()/-]/g, "_"));

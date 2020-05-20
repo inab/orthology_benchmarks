@@ -17,7 +17,7 @@ export function append_classifiers_list(divid){
       .attr("id", divid + "_buttons_container")
       .attr("class", "buttons_container")
 
-        let select_list = d3.select("#" + divid + "_buttons_container").append("form").append("select")
+        let select_list = d3.select("#" + divid + "_buttons_container").append("div").attr("class", "classif_list_div").append("form").append("select")
         .attr("class","classificators_list")
         .attr("id",divid + "_dropdown_list")
         .on('change', function(d) {

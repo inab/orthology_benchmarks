@@ -59,11 +59,13 @@ div.benchmark_tooltip {
     border-radius: 8px;
     color: #fff;
     font-size: 1vw;
-    padding-left: 25px;
-    padding-right: 25px;
+    /* padding-left: 25px;
+    padding-right: 25px; */
     text-align: center;
     width: 20vw;
     float: left;
+    height: 1.5vw;
+
 }
 
 .classificators_list:hover {
@@ -155,6 +157,11 @@ div.benchmark_tooltip {
     color: #fff;
     cursor: pointer;
     height: 1.5vw;
+    font-size: 1vw;
+    width: 10vw;
+    display: inline-flex;
+    align-items: center; 
+    justify-content: center; 
 }
 
 .download_button {
@@ -164,14 +171,22 @@ div.benchmark_tooltip {
     font-size: 1vw;
     text-align: center;
     width: 10vw;
+    height: 1.5vw;
 }
 
 .download_div {
     order: 3;
     padding-left: .5vw;
+    padding-top: .05vw;
 }
 
 .toggle_div {
     order: 2;
     padding-left: .5vw;
+    padding-top: .05vw;
+}
+
+.classif_list_div{
+    order: 1;
+    padding-top: .05vw;
 }
