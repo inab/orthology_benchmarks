@@ -177,16 +177,16 @@ div.benchmark_tooltip {
 .download_div {
     order: 3;
     padding-left: .5vw;
-    padding-top: .05vw;
+    padding-top: 1vh;
 }
 
 .toggle_div {
     order: 2;
     padding-left: .5vw;
-    padding-top: .05vw;
+    padding-top: .8vh;
 }
 
 .classif_list_div{
     order: 1;
-    padding-top: .05vw;
+    padding-top: 1vh;
 }

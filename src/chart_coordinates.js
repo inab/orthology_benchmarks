@@ -144,7 +144,7 @@ export function append_dots_errobars (svg, data, xScale, yScale, div, cValue, co
             .domain(data.map(d => d.toolname))
             .range(Array(Math.ceil(data.length/7)).fill([d3.symbolCircle, d3.symbolCross, d3.symbolDiamond, d3.symbolSquare, d3.symbolStar, d3.symbolTriangle, d3.symbolWye]).flat());
 
-    dots.attr("d", symbol.type(function(d){return shapeScale(d.toolname)}).size(180))
+    dots.attr("d", symbol.type(function(d){return shapeScale(d.toolname)}).size(Math.round($(window).height()* 0.2)))
       .attr("id", function (d) {  return divid+"___"+d.toolname.replace(/[\. ()/-]/g, "_");})
       .attr("class","line")
       .attr('transform',function(d){ return "translate("+xScale(d.x)+","+yScale(d.y)+")"; })

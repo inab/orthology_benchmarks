@@ -21,7 +21,7 @@ export function draw_legend (data, svg, xScale, yScale, div, width, height, remo
 
       legend.append("path")
       .style("fill", color)
-        .attr("d", symbol.type(function(d){return shapeScale(d)}).size(200))
+        .attr("d", symbol.type(function(d){return shapeScale(d)}).size(Math.round($(window).height()* 0.22)))
         .attr("transform", function(d, i) { return "translate(" + (width+25+i%n*(Math.round($(window).width()* 0.0002))) + "," + (Math.round($(window).height()* 0.01)) +  ")"; })
         .attr("id", function (d) { return divid+"___leg_symbol"+d.replace(/[\. ()/-]/g, "_");});
 
