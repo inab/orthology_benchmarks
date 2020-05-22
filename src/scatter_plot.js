@@ -15,7 +15,7 @@ export function createChart (data,divid, classification_type, metric_x, metric_y
   let max_y = d3.max(data, function(d) { return d.y; });
 
   //the x axis domain is calculated based in the difference between the max and min, and the average stderr (BETA)
-  var proportion = get_avg_stderr(data, "x")/(max_x-min_x);
+  var proportion = get_max_stderr(data, "x")/(max_x-min_x);
 
   // set the axis limits depending on zoom
   let auto_x_start = min_x - proportion*(max_x-min_x);
@@ -26,7 +26,7 @@ export function createChart (data,divid, classification_type, metric_x, metric_y
     .domain([x_limit, max_x + proportion*(max_x-min_x)]).nice();
 
   //the y axis domain is calculated based in the difference between the max and min, and the average stderr (BETA)
-  proportion = get_avg_stderr(data, "y")/(max_y-min_y);
+  proportion = get_max_stderr(data, "y")/(max_y-min_y);
   let auto_y_start = min_y - proportion*(max_y-min_y);
   var y_limit = (axis_limits  == "auto") ? auto_y_start : 0;
 
@@ -196,19 +196,23 @@ export function createChart (data,divid, classification_type, metric_x, metric_y
     
   };
 
-  function get_avg_stderr(data, axis){
+  function get_max_stderr(data, axis){
 
-    var sum = 0;
+    var max = 0;
 
     data.forEach(function(element) {
       if (axis == "y"){
-        sum = sum + element.e_y;
+        if (max < element.e_y) {
+          max = element.e_y
+        }
       } else if (axis == "x"){
-        sum = sum + element.e_x;
+        if (max < element.e_x) {
+          max = element.e_x
+        }
       }
     });
   
-    return sum/data.length
+    return max
   
   }
 
