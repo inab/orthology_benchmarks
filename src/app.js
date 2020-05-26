@@ -50,10 +50,29 @@ function load_scatter_visualization() {
         let json_query = `query getDatasets($dataset_id: String!){
                           getDatasets(datasetFilters:{id: $dataset_id, type:"aggregation"}) {
                               _id
+                              name
+                              description
+                              type
+                              orig_id
                               community_ids
                               datalink{
                                   inline_data
                               }
+                              challenge_ids
+                              dataset_contact_ids
+                              dates {
+                                creation
+                                modification
+                                _public
+                              }
+                              depends_on {
+                                metrics_id
+                                tool_id
+                                rel_dataset_ids {
+                                    dataset_id
+                                }
+                              }
+                             
                           }
                         }`
 
@@ -195,7 +214,7 @@ function join_all_json(result, divid, metric_x, metric_y, metrics_names, better)
         let classification_type = e.options[e.selectedIndex].id;
 
         // add buttons
-        add_buttons(divid, metric_x, metric_y, better, full_json);
+        add_buttons(divid, metric_x, metric_y, better, full_json, result[0]);
 
         createChart(full_json, divid, classification_type, metric_x, metric_y, metrics_names, better, 0);
     } catch (err) {
@@ -205,7 +224,7 @@ function join_all_json(result, divid, metric_x, metric_y, metrics_names, better)
 
 };
 
-function add_buttons(divid, metric_x, metric_y, better, data) {
+function add_buttons(divid, metric_x, metric_y, better, data, json_download) {
 
     //add button which allows to toogle between reset view & out
     d3.select('#' + divid + '_buttons_container').append("div").attr("class", "toggle_div").append("button")
@@ -244,7 +263,7 @@ function add_buttons(divid, metric_x, metric_y, better, data) {
                 add_oeb_credits(divid, d3.select('#' + divid +"_g_svg"), margin);
               }
 
-            download_png(this.options[this.selectedIndex].id, divid);
+            download_file(this.options[this.selectedIndex].id, divid, json_download);
             let select_list = document.getElementById(divid + "_download_button");
             select_list.value = "Download";
             if (window.location.href.toLocaleLowerCase().includes("openebench") == true ){
@@ -262,6 +281,14 @@ function add_buttons(divid, metric_x, metric_y, better, data) {
         .attr("disabled", "selected")
         .text("Download")
         .attr("style", "display:none")
+    
+    select_list.append("option")
+    .attr("class", "selection_option")
+    .attr("id", "json")
+    .attr("title", "Download raw data as JSON")
+    .attr("data-toggle", "list_tooltip")
+    .attr("data-container", "#tooltip_container")
+    .text("JSON (raw data)")
 
     select_list.append("option")
         .attr("class", "selection_option")
@@ -287,7 +314,7 @@ function add_buttons(divid, metric_x, metric_y, better, data) {
 
 }
 
-function download_png(format, id) {
+function download_file(format, id, json_download) {
 
     var download_id;
     if ($("#" + id + "_table").is(':empty')) {
@@ -301,6 +328,14 @@ function download_png(format, id) {
     if (format == "svg") {
 
         saveAsSVG(id);
+    } else if (format == "json") {
+        var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(json_download, undefined, 2));
+        var downloadAnchorNode = document.createElement('a');
+        downloadAnchorNode.setAttribute("href",     dataStr);
+        downloadAnchorNode.setAttribute("download", "raw_data_" + id + ".json");
+        document.body.appendChild(downloadAnchorNode); // required for firefox
+        downloadAnchorNode.click();
+        downloadAnchorNode.remove();  
     } else {
 
         html2canvas(document.querySelector("#" + download_id)).then(function(canvas) {
